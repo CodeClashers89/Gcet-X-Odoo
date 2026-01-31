@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
@@ -56,7 +58,7 @@ class VendorRegistrationForm(UserCreationForm):
     pincode = forms.CharField(max_length=6, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
     business_address = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}), required=True)
     bank_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    bank_account_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bank_account_number = forms.CharField(max_length=18, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     bank_ifsc_code = forms.CharField(max_length=11, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     
     class Meta:
@@ -92,6 +94,16 @@ class VendorRegistrationForm(UserCreationForm):
                 is_approved=False
             )
         return user
+
+    def clean_bank_account_number(self):
+        bank_account_number = self.cleaned_data.get('bank_account_number', '')
+        if not bank_account_number:
+            return bank_account_number
+        if not bank_account_number.isdigit():
+            raise forms.ValidationError('Bank account number must contain only digits.')
+        if not 11 <= len(bank_account_number) <= 18:
+            raise forms.ValidationError('Bank account number must be between 11 and 18 digits.')
+        return bank_account_number
 
 
 class LoginForm(forms.Form):
@@ -177,6 +189,24 @@ class VendorProfileUpdateForm(forms.ModelForm):
             'advance_payment_type': forms.Select(attrs={'class': 'form-select'}),
             'advance_payment_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make optional fields not required
+        self.fields['city'].required = False
+        self.fields['bank_name'].required = False
+        self.fields['vendor_logo'].required = False
+        self.fields['pincode'].required = False
+    
+    def clean_pincode(self):
+        """Validate pincode if provided"""
+        pincode = self.cleaned_data.get('pincode', '')
+        if pincode:
+            if not pincode.isdigit():
+                raise forms.ValidationError('Pincode must contain only digits')
+            if len(pincode) != 6:
+                raise forms.ValidationError('Pincode must be exactly 6 digits')
+        return pincode
 
 
 class ChangePasswordForm(forms.Form):
@@ -225,6 +255,7 @@ class AdminVendorEditForm(forms.ModelForm):
     last_name = forms.CharField(max_length=100, required=True)
     email = forms.EmailField(required=True)
     phone_number = forms.CharField(max_length=15, required=False)
+    bank_account_number = forms.CharField(max_length=18, required=False)
     
     class Meta:
         model = VendorProfile
@@ -281,3 +312,22 @@ class AdminVendorEditForm(forms.ModelForm):
             vendor_profile.save()
         
         return vendor_profile
+
+    def clean_bank_account_number(self):
+        bank_account_number = self.cleaned_data.get('bank_account_number', '')
+        if not bank_account_number:
+            return bank_account_number
+        if not bank_account_number.isdigit():
+            raise forms.ValidationError('Bank account number must contain only digits.')
+        if not 11 <= len(bank_account_number) <= 18:
+            raise forms.ValidationError('Bank account number must be between 11 and 18 digits.')
+        return bank_account_number
+
+    def clean_upi_id(self):
+        upi_id = self.cleaned_data.get('upi_id', '')
+        if not upi_id:
+            return upi_id
+        pattern = re.compile(r'^[a-zA-Z0-9.]{2,}@[a-zA-Z]{2,}$')
+        if not pattern.fullmatch(upi_id):
+            raise forms.ValidationError('UPI ID must match the format: name@bank (alphanumeric or dot before @).')
+        return upi_id

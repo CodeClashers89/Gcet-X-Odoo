@@ -83,8 +83,8 @@ def invoice_detail(request, pk):
     # Get invoice lines
     lines = invoice.invoice_lines.all()
     
-    # Get payments
-    payments = invoice.payment_set.filter(is_refund=False).order_by('-payment_date')
+    # Get payments (use the correct related_name from Payment model)
+    payments = invoice.payments.filter(is_refund=False).order_by('-payment_date')
     
     return render(request, 'billing/invoice_detail.html', {
         'invoice': invoice,

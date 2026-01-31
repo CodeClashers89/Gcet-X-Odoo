@@ -383,8 +383,7 @@
                     <td><span class="order-number">{{ order.order_number }}</span></td>
                     <td><span class="customer-name">{{ order.customer.get_full_name }}</span></td>
                     <td><span class="date-cell">{{ order.created_at|date:"d M Y" }}</span></td>
-                    <td><span class="date-cell">{{ order.rental_start_date|date:"d M" }} - {{
-                            order.rental_end_date|date:"d M" }}</span></td>
+                    <td><span class="date-cell">{{ order.rental_start_date|date:"d M" }} - {{order.rental_end_date|date:"d M" }}</span></td>
                     <td><span class="amount-cell">₹{{ order.total_amount|default:"0" }}</span></td>
                     <td>
                         {% if order.status == 'confirmed' %}

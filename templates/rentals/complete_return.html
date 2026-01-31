@@ -25,12 +25,14 @@
                 <div class="card-body">
                     <div class="mb-3 p-3 bg-light rounded">
                         <p class="mb-1"><strong>Customer:</strong> {{ order.customer.get_full_name }}</p>
-                        <p class="mb-1"><strong>Items:</strong> {{ order.rental_order_lines.count }} line(s)</p>
+                        <p class="mb-1"><strong>Items:</strong> {{ order.order_lines.count }} line(s)</p>
                         <p class="mb-1"><strong>Rental Period:</strong> 
-                            {% if order.rental_order_lines.exists %}
-                                {% with first=order.rental_order_lines.first %}
+                            {% if order.order_lines.exists %}
+                                {% with first=order.order_lines.first %}
                                     {{ first.rental_start_date|date:"d M Y" }} to {{ first.rental_end_date|date:"d M Y" }}
                                 {% endwith %}
+                            {% else %}
+                                N/A
                             {% endif %}
                         </p>
                         <p class="mb-0"><strong>Total Amount:</strong> ₹{{ order.total_amount|floatformat:2 }}</p>

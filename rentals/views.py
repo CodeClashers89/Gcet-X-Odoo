@@ -749,9 +749,15 @@ def complete_return(request, order_id):
                 with transaction.atomic():
                     return_record = order.return_doc if hasattr(order, 'return_doc') else None
                     if not return_record:
+                        # Get scheduled return date from the first order line
+                        scheduled_return = order.rental_end_date
+                        if not scheduled_return:
+                            raise ValueError("Could not determine scheduled return date from order")
+                        
                         return_record = Return.objects.create(
                             rental_order=order,
                             return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                            scheduled_return_date=scheduled_return,
                         )
                     
                     return_record.actual_return_date = form.cleaned_data['actual_return_date']

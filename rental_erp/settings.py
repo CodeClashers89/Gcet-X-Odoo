@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'accounts',  # user roles, profiles, authentication workflows
     'catalog',  # products, attributes, variants, pricing
     'rentals',  # quotations, orders, reservations, pickup/return
@@ -334,7 +335,10 @@ CACHES = {
 }
 
 # Email Configuration for Secure Communications
+# For testing/development, use console backend to see emails in terminal
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_FILE_PATH = BASE_DIR / os.environ.get('EMAIL_FILE_PATH', 'logs/emails')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp-relay.brevo.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False') == 'True'

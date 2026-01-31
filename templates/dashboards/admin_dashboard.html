@@ -228,7 +228,7 @@
     <h2 class="section-title">Management</h2>
     <div class="actions-grid">
         <a href="{% url 'accounts:admin_vendor_list' %}" class="action-btn action-btn-primary">Manage Vendors</a>
-        <a href="#" class="action-btn">View Reports</a>
+        <a href="{% url 'dashboards:analytics_dashboard' %}" class="action-btn">View Reports</a>
         <a href="{% url 'system_settings:admin_system_config' %}" class="action-btn">System Settings</a>
         <a href="{% url 'accounts:change_password' %}" class="action-btn">Change Password</a>
     </div>

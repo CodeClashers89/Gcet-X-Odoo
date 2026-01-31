@@ -9,6 +9,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from django.db import transaction
+from django.core.mail import send_mail
+from django.conf import settings
 import json
 import requests
 from .models import User, CustomerProfile, VendorProfile
@@ -453,8 +455,31 @@ def forgot_password(request):
                     f'/accounts/reset-password/{uid}/{token}/'
                 )
                 
-                # TODO: Send reset email via Brevo
-                # For now, just show success message
+                # Send reset email via Django mail (configured with Brevo SMTP)
+                subject = 'Password Reset Request - Rental ERP'
+                message = f"""
+Hello {user.first_name or user.email},
+
+You requested to reset your password. Click the link below to proceed:
+
+{reset_url}
+
+This link will expire in 1 hour.
+
+If you didn't request this, please ignore this email.
+
+Best regards,
+Rental ERP Team
+                """
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                
                 messages.success(
                     request,
                     'Password reset link sent to your email. Check your inbox.'
@@ -467,6 +492,8 @@ def forgot_password(request):
                     'If an account exists with this email, you will receive a password reset link.'
                 )
                 return redirect('accounts:login')
+            except Exception as e:
+                messages.error(request, f'Error sending email: {str(e)}')
         else:
             for error in form.non_field_errors():
                 messages.error(request, error)
@@ -588,28 +615,63 @@ def profile(request):
     Phase 10 - Task 2: Decrypt sensitive fields for display, mask for security
     """
     user = request.user
+    vendor_form = None
     
     if request.method == 'POST':
         # Check if updating vendor profile with encrypted fields
         if user.role == 'vendor' and 'update_vendor_profile' in request.POST:
             vendor_profile = VendorProfile.objects.get(user=user)
+            # IMPORTANT: Bind BOTH forms to POST data so both get saved
             vendor_form = VendorProfileUpdateForm(request.POST, request.FILES, instance=vendor_profile)
+            form = UserProfileForm(request.POST, instance=user)
             
-            if vendor_form.is_valid():
+            if vendor_form.is_valid() and form.is_valid():
+                # DEBUG: Print form cleaned data
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Saving vendor profile for {user.email}")
+                logger.info(f"User form cleaned data: {form.cleaned_data}")
+                logger.info(f"Vendor form cleaned data: {vendor_form.cleaned_data}")
+                
+                # Save BOTH forms
+                form.save()
                 vendor_form.save()
+                
+                # Get fresh instances from database to verify save
+                user.refresh_from_db()
+                vendor_profile.refresh_from_db()
+                logger.info(f"After save - user.phone: {user.phone}, company_name: {vendor_profile.company_name}")
                 
                 # Log profile update
                 AuditLog.log_action(
                     user=user,
                     action_type='update',
-                    model_name='VendorProfile',
-                    object_id=vendor_profile.id,
-                    description='Vendor profile updated (encrypted fields)',
-                    ip_address=get_client_ip(request),
+                    model_instance=user,
+                    description='Profile updated (user info and vendor details)',
+                    request=request,
                 )
                 
-                messages.success(request, 'Vendor profile updated successfully.')
+                messages.success(request, 'Your profile has been updated successfully!')
                 return redirect('accounts:profile')
+            else:
+                # Show errors from both forms
+                import logging
+                logger = logging.getLogger(__name__)
+                
+                if not form.is_valid():
+                    logger.warning(f"User form validation failed: {form.errors}")
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f'{field}: {error}')
+                
+                if not vendor_form.is_valid():
+                    logger.warning(f"Vendor form validation failed: {vendor_form.errors}")
+                    for field, errors in vendor_form.errors.items():
+                        for error in errors:
+                            if field == '__all__':
+                                messages.error(request, f'Error: {error}')
+                            else:
+                                messages.error(request, f'{field}: {error}')
         else:
             # Update basic user profile
             form = UserProfileForm(request.POST, instance=user)
@@ -658,7 +720,12 @@ def profile(request):
     elif user.role == 'vendor':
         vendor_profile = VendorProfile.objects.get(user=user)
         context['profile'] = vendor_profile
-        context['vendor_form'] = VendorProfileUpdateForm(instance=vendor_profile)
+        
+        # If no vendor_form exists (GET request), create it
+        if vendor_form is None:
+            vendor_form = VendorProfileUpdateForm(instance=vendor_profile)
+        
+        context['vendor_form'] = vendor_form
         
         # Decrypt and mask all sensitive vendor data for display
         masked_data = {}
