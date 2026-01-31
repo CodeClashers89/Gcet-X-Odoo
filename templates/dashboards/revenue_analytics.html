@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}Revenue Analytics - Rental ERP{% endblock %}
 
@@ -93,6 +94,8 @@
                 </div>
                 <div class="card-body">
                     <canvas id="revenueChart" height="80"></canvas>
+                    {{ chart_labels|json_script:"revenueChartLabels" }}
+                    {{ chart_data|json_script:"revenueChartData" }}
                 </div>
             </div>
         </div>
@@ -189,46 +192,9 @@
     border-left: 4px solid #DC3545 !important;
 }
 </style>
+{% endblock %}
 
+{% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-new Chart(revenueCtx, {
-    type: 'line',
-    data: {
-        labels: {{ chart_labels|safe }},
-        datasets: [{
-            label: 'Daily Revenue',
-            data: {{ chart_data|safe }},
-            borderColor: '#28A745',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.3,
-            pointRadius: 5,
-            pointBackgroundColor: '#28A745',
-            pointHoverRadius: 7,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '₹' + value.toLocaleString('en-IN');
-                    }
-                }
-            }
-        }
-    }
-});
-</script>
+<script src="{% static 'js/dashboards/revenue-analytics.js' %}"></script>
 {% endblock %}

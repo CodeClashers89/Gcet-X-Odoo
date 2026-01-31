@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Customer Sign Up - Rental ERP{% endblock %}
 
@@ -68,7 +69,7 @@
             <label for="id_gstin">{{ form.gstin.label }}</label>
             {{ form.gstin }}
             <small class="form-text">{{ form.gstin.help_text }}</small>
-            <div id="gstin-status" style="margin-top: 8px; font-size: 13px;"></div>
+            <div id="gstin-status" data-verify-url="{% url 'accounts:verify_gstin_ajax' %}" style="margin-top: 8px; font-size: 13px;"></div>
             {% if form.gstin.errors %}
                 <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
                     {% for error in form.gstin.errors %}{{ error }}{% endfor %}
@@ -172,35 +173,8 @@
         </p>
     </form>
 </div>
+{% endblock %}
 
-<script>
-    // GSTIN real-time validation
-    document.getElementById('id_gstin').addEventListener('blur', function() {
-        const gstin = this.value.toUpperCase();
-        const statusDiv = document.getElementById('gstin-status');
-        
-        if (gstin.length !== 15) {
-            statusDiv.innerHTML = '<span style="color: #ffc107;">GSTIN must be 15 characters</span>';
-            return;
-        }
-        
-        // Show loading state
-        statusDiv.innerHTML = '<span style="color: #17a2b8;">Verifying GSTIN...</span>';
-        
-        // Call AJAX endpoint
-        fetch(`/accounts/api/verify-gstin/?gstin=${gstin}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.valid) {
-                    statusDiv.innerHTML = `<span style="color: #28a745;">✓ Valid - ${data.company_name}</span>`;
-                } else {
-                    statusDiv.innerHTML = `<span style="color: #dc3545;">✗ ${data.message}</span>`;
-                }
-            })
-            .catch(error => {
-                statusDiv.innerHTML = '<span style="color: #dc3545;">Verification error. Check manually.</span>';
-                console.error(error);
-            });
-    });
-</script>
+{% block extra_scripts %}
+<script src="{% static 'js/accounts/gstin-validation.js' %}"></script>
 {% endblock %}

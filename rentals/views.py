@@ -37,7 +37,7 @@ def get_client_ip(request):
     return ip
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def create_quotation(request):
     """
@@ -109,7 +109,7 @@ def create_quotation(request):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def quotation_list(request):
     """
@@ -137,7 +137,7 @@ def quotation_list(request):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def vendor_query_list(request):
     """
@@ -161,7 +161,7 @@ def vendor_query_list(request):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def quotation_detail(request, pk):
     """
@@ -362,7 +362,7 @@ def quotation_detail(request, pk):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def order_list(request):
     """
@@ -395,7 +395,7 @@ def order_list(request):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def order_detail(request, pk):
     """
@@ -481,7 +481,7 @@ def order_detail(request, pk):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def schedule_pickup(request, order_id):
     """
@@ -529,7 +529,7 @@ def schedule_pickup(request, order_id):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def complete_pickup(request, order_id):
     """
@@ -578,7 +578,7 @@ def complete_pickup(request, order_id):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def schedule_return(request, order_id):
     """
@@ -623,7 +623,7 @@ def schedule_return(request, order_id):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def complete_return(request, order_id):
     """
@@ -750,7 +750,7 @@ def get_pricing_ajax(request):
 # APPROVAL WORKFLOW VIEWS (Phase 8)
 # =====================================================================
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def approval_list(request):
     """
@@ -822,7 +822,7 @@ def approval_list(request):
     return render(request, 'rentals/approval_list.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def approval_detail(request, approval_id):
     """
@@ -904,7 +904,7 @@ def approval_detail(request, approval_id):
     return render(request, 'rentals/approval_detail.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def approve_request(request, approval_id):
     """
@@ -947,7 +947,7 @@ def approve_request(request, approval_id):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def reject_request(request, approval_id):
     """

@@ -3,6 +3,49 @@
 
 {% block title %}Analytics Dashboard - Rental ERP{% endblock %}
 
+{# ============================================================================ #}
+{# CSS STYLES SECTION                                                          #}
+{# ============================================================================ #}
+
+{% block extra_css %}
+<style>
+    /* ========================================================================== */
+    /* CARD BORDER STYLES                                                         */
+    /* ========================================================================== */
+    .border-left-primary {
+        border-left: 4px solid #4CAF50 !important;
+    }
+
+    .border-left-info {
+        border-left: 4px solid #2196F3 !important;
+    }
+
+    .border-left-warning {
+        border-left: 4px solid #FF9800 !important;
+    }
+
+    .border-left-danger {
+        border-left: 4px solid #F44336 !important;
+    }
+
+    /* ========================================================================== */
+    /* CARD HOVER EFFECTS                                                         */
+    /* ========================================================================== */
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{# ============================================================================ #}
+{# HTML CONTENT SECTION                                                        #}
+{# ============================================================================ #}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row mb-4">
@@ -232,31 +275,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.border-left-primary {
-    border-left: 4px solid #4CAF50 !important;
-}
-
-.border-left-info {
-    border-left: 4px solid #2196F3 !important;
-}
-
-.border-left-warning {
-    border-left: 4px solid #FF9800 !important;
-}
-
-.border-left-danger {
-    border-left: 4px solid #F44336 !important;
-}
-
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-}
-</style>
 {% endblock %}

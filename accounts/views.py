@@ -365,7 +365,7 @@ def login_view(request):
     return render(request, 'accounts/login.html', {'form': form})
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def logout_view(request):
     """
@@ -544,7 +544,7 @@ def verify_email(request, uidb64, token):
     return redirect('accounts:login')
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def profile(request):
     """
@@ -674,7 +674,7 @@ def profile(request):
     return render(request, 'accounts/profile.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET", "POST"])
 def change_password(request):
     """

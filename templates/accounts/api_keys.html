@@ -71,7 +71,7 @@
                     {% if key.is_active %}
                     <form method="POST" action="{% url 'accounts:revoke_api_key' key.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Revoke this API key?');">Revoke</button>
+                        <button type="submit" class="btn btn-danger" data-confirm="Revoke this API key?">Revoke</button>
                     </form>
                     {% else %}
                         <span style="color: #6c757d;">—</span>

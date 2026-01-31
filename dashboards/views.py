@@ -10,7 +10,7 @@ from decimal import Decimal
 import json
 
 
-@login_required(login_url='login')
+@login_required
 def dashboard(request):
     """
     Role-based dashboard landing page.
@@ -42,7 +42,7 @@ def dashboard(request):
 # ANALYTICS VIEWS (Phase 9)
 # =====================================================================
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def analytics_dashboard(request):
     """
@@ -145,7 +145,7 @@ def analytics_dashboard(request):
     return render(request, 'dashboards/analytics_dashboard.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def quotation_analytics(request):
     """
@@ -205,7 +205,7 @@ def quotation_analytics(request):
     return render(request, 'dashboards/quotation_analytics.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def order_analytics(request):
     """
@@ -261,7 +261,7 @@ def order_analytics(request):
     return render(request, 'dashboards/order_analytics.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def approval_analytics(request):
     """
@@ -326,7 +326,7 @@ def approval_analytics(request):
     return render(request, 'dashboards/approval_analytics.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def revenue_analytics(request):
     """
@@ -385,7 +385,7 @@ def revenue_analytics(request):
     return render(request, 'dashboards/revenue_analytics.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def inventory_analytics(request):
     """
@@ -437,7 +437,7 @@ def inventory_analytics(request):
     return render(request, 'dashboards/inventory_analytics.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def late_returns_analytics(request):
     """

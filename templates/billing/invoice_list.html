@@ -16,7 +16,7 @@
         <div class="col-md-6">
             <div class="input-group">
                 <span class="input-group-text">Filter by Status:</span>
-                <select class="form-select" onchange="filterByStatus(this.value)">
+                <select class="form-select" id="invoice-status-filter" data-base-url="{% url 'billing:invoice_list' %}">
                     <option value="">All Statuses</option>
                     <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
                     <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent</option>
@@ -93,14 +93,8 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
 
-<script>
-function filterByStatus(status) {
-    if (status) {
-        window.location.href = "{% url 'billing:invoice_list' %}?status=" + status;
-    } else {
-        window.location.href = "{% url 'billing:invoice_list' %}";
-    }
-}
-</script>
+{% block extra_scripts %}
+<script src="{% static 'js/billing/invoice-list.js' %}"></script>
 {% endblock %}

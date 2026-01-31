@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Two-Factor Authentication - Rental ERP{% endblock %}
 
@@ -64,23 +65,8 @@
         </a>
     </div>
 </div>
+{% endblock %}
 
-<script>
-// Auto-submit form when 6 digits are entered
-document.getElementById('token').addEventListener('input', function(e) {
-    if (e.target.value.length === 6) {
-        // Small delay for better UX
-        setTimeout(() => {
-            e.target.form.submit();
-        }, 300);
-    }
-});
-
-// Auto-format: only allow numbers
-document.getElementById('token').addEventListener('keypress', function(e) {
-    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
-        e.preventDefault();
-    }
-});
-</script>
+{% block extra_scripts %}
+<script src="{% static 'js/accounts/verify-2fa.js' %}"></script>
 {% endblock %}

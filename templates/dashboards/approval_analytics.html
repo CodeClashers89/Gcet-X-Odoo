@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}Approval Analytics - Rental ERP{% endblock %}
 
@@ -84,6 +85,8 @@
                 </div>
                 <div class="card-body">
                     <canvas id="typeChart" height="200"></canvas>
+                    <script type="application/json" id="approvalStatusCounts">[{{ approved_count }}, {{ rejected_count }}, {{ pending_count }}]</script>
+                    {{ type_stats|json_script:"approvalTypeStats" }}
                 </div>
             </div>
         </div>
@@ -195,67 +198,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Status Chart
-const statusData = [{{ approved_count }}, {{ rejected_count }}, {{ pending_count }}];
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Approved', 'Rejected', 'Pending'],
-        datasets: [{
-            data: statusData,
-            backgroundColor: ['#28A745', '#DC3545', '#FFC107'],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
-
-// Type Chart
-const typeData = {{ type_stats|safe }};
-const typeLabels = typeData.map(t => t.request_type === 'quotation' ? 'Quotations' : 'Orders');
-const typeCounts = typeData.map(t => t.count);
-
-const typeCtx = document.getElementById('typeChart').getContext('2d');
-new Chart(typeCtx, {
-    type: 'bar',
-    data: {
-        labels: typeLabels,
-        datasets: [{
-            label: 'Requests',
-            data: typeCounts,
-            backgroundColor: ['#17A2B8', '#007BFF'],
-            borderColor: ['#0C5460', '#0056B3'],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
-    }
-});
-</script>
+<script src="{% static 'js/dashboards/approval-analytics.js' %}"></script>
 {% endblock %}

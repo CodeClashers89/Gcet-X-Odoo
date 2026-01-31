@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}Order Analytics - Rental ERP{% endblock %}
 
@@ -72,6 +73,8 @@
                 </div>
                 <div class="card-body">
                     <canvas id="trendChart" height="80"></canvas>
+                    {{ chart_labels|json_script:"orderChartLabels" }}
+                    {{ chart_data|json_script:"orderChartData" }}
                 </div>
             </div>
         </div>
@@ -84,6 +87,7 @@
                 </div>
                 <div class="card-body">
                     <canvas id="statusChart" height="150"></canvas>
+                    {{ status_stats|json_script:"orderStatusStats" }}
                 </div>
             </div>
         </div>
@@ -176,72 +180,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Trend chart
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-new Chart(trendCtx, {
-    type: 'bar',
-    data: {
-        labels: {{ chart_labels|safe }},
-        datasets: [{
-            label: 'Orders Created',
-            data: {{ chart_data|safe }},
-            backgroundColor: 'rgba(33, 150, 243, 0.7)',
-            borderColor: '#2196F3',
-            borderWidth: 2,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
-    }
-});
-
-// Status pie chart
-const statusData = {{ status_stats|safe }};
-const statusLabels = statusData.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1));
-const statusCounts = statusData.map(s => s.count);
-
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: statusLabels,
-        datasets: [{
-            data: statusCounts,
-            backgroundColor: [
-                '#6C757D',
-                '#17A2B8',
-                '#FFC107',
-                '#28A745',
-                '#DC3545'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
-</script>
+<script src="{% static 'js/dashboards/order-analytics.js' %}"></script>
 {% endblock %}

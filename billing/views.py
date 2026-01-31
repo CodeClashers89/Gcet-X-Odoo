@@ -32,7 +32,7 @@ def get_client_ip(request):
     return ip
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def invoice_list(request):
     """
@@ -62,7 +62,7 @@ def invoice_list(request):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def invoice_detail(request, pk):
     """
@@ -91,7 +91,7 @@ def invoice_detail(request, pk):
     })
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def generate_invoice_ajax(request):
     """
@@ -211,7 +211,7 @@ def generate_invoice_ajax(request):
         }, status=400)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["GET"])
 def download_invoice_pdf(request, pk):
     """
@@ -379,7 +379,7 @@ def download_invoice_pdf(request, pk):
         return redirect('billing:invoice_detail', pk=invoice.id)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def mark_invoice_sent(request, pk):
     """
@@ -427,7 +427,7 @@ def mark_invoice_sent(request, pk):
             return redirect('billing:invoice_detail', pk=invoice.id)
 
 
-@login_required(login_url='login')
+@login_required
 @require_http_methods(["POST"])
 def record_payment(request, pk):
     """

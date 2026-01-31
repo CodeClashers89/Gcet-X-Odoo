@@ -4,25 +4,386 @@
 {% block title %}Order {{ order.order_number }} - Rental ERP{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>Order {{ order.order_number }}</h2>
-            <small class="text-muted">Created on {{ order.created_at|date:"d M Y H:i" }}</small>
-        </div>
-        <div class="col-md-4 text-end">
-            {% if order.status == 'draft' %}
-                <span class="badge bg-secondary">Draft</span>
-            {% elif order.status == 'confirmed' %}
-                <span class="badge bg-info">Confirmed</span>
-            {% elif order.status == 'in_progress' %}
-                <span class="badge bg-warning">In Progress</span>
-            {% elif order.status == 'completed' %}
-                <span class="badge bg-success">Completed</span>
-            {% elif order.status == 'cancelled' %}
-                <span class="badge bg-danger">Cancelled</span>
-            {% endif %}
-        </div>
+<style>
+    .detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📦";
+        font-size: 32px;
+    }
+
+    .order-status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+        animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .order-status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-draft { background-color: #f0f0f0; color: #6c757d; }
+    .status-draft::before { background-color: #6c757d; }
+    .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+    .status-confirmed::before { background-color: #17a2b8; }
+    .status-in-progress { background-color: #fff3cd; color: #856404; }
+    .status-in-progress::before { background-color: #ffc107; }
+    .status-completed { background-color: #d4edda; color: #155724; }
+    .status-completed::before { background-color: #28a745; animation: pulse 2s infinite; }
+    .status-cancelled { background-color: #f8d7da; color: #721c24; }
+    .status-cancelled::before { background-color: #dc3545; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .card-modern {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    .card-modern-header {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+        padding: 18px 25px;
+        border-bottom: none;
+    }
+
+    .card-modern-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-modern-body {
+        padding: 25px;
+    }
+
+    .info-section {
+        margin-bottom: 25px;
+    }
+
+    .info-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        color: #555;
+        line-height: 1.8;
+    }
+
+    .divider-line {
+        border-top: 1px solid #e0e0e0;
+        margin: 20px 0;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .items-table thead {
+        background-color: #f8f9fa;
+    }
+
+    .items-table thead th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .items-table tbody td {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #555;
+    }
+
+    .items-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .items-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .pricing-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .pricing-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+    }
+
+    .pricing-row.total {
+        border-top: 2px solid #e0e0e0;
+        padding-top: 20px;
+        font-weight: 700;
+        font-size: 18px;
+        color: #2c3e50;
+    }
+
+    .pricing-label {
+        color: #555;
+        font-weight: 500;
+    }
+
+    .pricing-value {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .pricing-value.total {
+        color: #27ae60;
+        font-size: 20px;
+    }
+
+    .pricing-value.negative {
+        color: #e74c3c;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .status-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .status-card.completed {
+        border-left-color: #28a745;
+    }
+
+    .status-card.pending {
+        border-left-color: #ffc107;
+    }
+
+    .status-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+
+    .status-text {
+        color: #7f8c8d;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.primary {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+
+    .action-btn.primary:hover {
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+        box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+    }
+
+    .action-btn.secondary {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        box-shadow: 0 2px 8px rgba(127, 140, 141, 0.3);
+    }
+
+    .action-btn.secondary:hover {
+        background: linear-gradient(135deg, #7f8c8d 0%, #6c7a7b 100%);
+        box-shadow: 0 4px 16px rgba(127, 140, 141, 0.4);
+    }
+
+    .alert-info-modern {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 15px 20px;
+        border-radius: 8px;
+        border-left: 4px solid #17a2b8;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 25px;
+    }
+
+    @media (max-width: 1024px) {
+        .detail-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .detail-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .card-modern-body {
+            padding: 15px;
+        }
+
+        .items-table thead th,
+        .items-table tbody td {
+            padding: 10px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div class="detail-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>Order {{ order.order_number }}</h2>
+        {% if order.status == 'draft' %}
+            <span class="order-status-badge status-draft">Draft</span>
+        {% elif order.status == 'confirmed' %}
+            <span class="order-status-badge status-confirmed">Confirmed</span>
+        {% elif order.status == 'in_progress' %}
+            <span class="order-status-badge status-in-progress">In Progress</span>
+        {% elif order.status == 'completed' %}
+            <span class="order-status-badge status-completed">Completed</span>
+        {% elif order.status == 'cancelled' %}
+            <span class="order-status-badge status-cancelled">Cancelled</span>
+        {% endif %}
     </div>
 
     {% if messages %}
@@ -34,62 +395,74 @@
         {% endfor %}
     {% endif %}
 
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Order Summary -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Order Information</h5>
+    <div class="detail-layout">
+        <div>
+            <!-- Order Information -->
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Order Information</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Customer:</strong></p>
-                            <p>{{ order.customer.get_full_name }}<br/>
-                            {{ order.customer.email }}<br/>
+                <div class="card-modern-body">
+                    <div class="info-section">
+                        <div class="info-label">Order Date</div>
+                        <div class="info-value">{{ order.created_at|date:"d M Y H:i" }}</div>
+                    </div>
+
+                    <div class="divider-line"></div>
+
+                    <div class="info-section">
+                        <div class="info-label">Customer</div>
+                        <div class="info-value">
+                            <div style="font-weight: 600;">{{ order.customer.get_full_name }}</div>
+                            <div style="color: #7f8c8d;">{{ order.customer.email }}</div>
                             {% if order.customer.customerprofile %}
-                                {{ order.customer.customerprofile.phone }}
+                                <div style="color: #7f8c8d;">{{ order.customer.customerprofile.phone }}</div>
                             {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Vendor:</strong></p>
-                            <p>
-                            {% if order.vendor %}
-                                {{ order.vendor.get_full_name }}<br/>
-                                {% if order.vendor.vendorprofile %}
-                                    {{ order.vendor.vendorprofile.company_name }}<br/>
-                                    {{ order.vendor.vendorprofile.phone }}
-                                {% endif %}
-                            {% else %}
-                                -
-                            {% endif %}
-                            </p>
                         </div>
                     </div>
 
-                    <div class="row mb-3 pt-3 border-top">
-                        <div class="col-md-6">
-                            <p><strong>Delivery Address:</strong></p>
-                            <p class="text-muted">{{ order.delivery_address }}</p>
+                    <div class="divider-line"></div>
+
+                    <div class="info-section">
+                        <div class="info-label">Vendor</div>
+                        <div class="info-value">
+                            {% if order.vendor %}
+                                <div style="font-weight: 600;">{{ order.vendor.get_full_name }}</div>
+                                {% if order.vendor.vendorprofile %}
+                                    <div style="color: #7f8c8d;">{{ order.vendor.vendorprofile.company_name }}</div>
+                                    <div style="color: #7f8c8d;">{{ order.vendor.vendorprofile.phone }}</div>
+                                {% endif %}
+                            {% else %}
+                                <div style="color: #7f8c8d;">-</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>Billing Address:</strong></p>
-                            <p class="text-muted">{{ order.billing_address }}</p>
-                        </div>
+                    </div>
+
+                    <div class="divider-line"></div>
+
+                    <div class="info-section">
+                        <div class="info-label">Delivery Address</div>
+                        <div class="info-value">{{ order.delivery_address }}</div>
+                    </div>
+
+                    <div class="divider-line"></div>
+
+                    <div class="info-section">
+                        <div class="info-label">Billing Address</div>
+                        <div class="info-value">{{ order.billing_address }}</div>
                     </div>
                 </div>
             </div>
 
             <!-- Rental Items -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Rental Items</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Rental Items</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead class="table-light">
+                <div class="card-modern-body">
+                    <div style="overflow-x: auto;">
+                        <table class="items-table">
+                            <thead>
                                 <tr>
                                     <th>Product</th>
                                     <th>Rental Period</th>
@@ -101,20 +474,18 @@
                             <tbody>
                                 {% for line in order.rental_order_lines.all %}
                                 <tr>
-                                    <td>{{ line.product.product_name }}</td>
+                                    <td><span class="product-name">{{ line.product.product_name }}</span></td>
                                     <td>
-                                        <small>
-                                            {{ line.rental_start_date|date:"d M Y" }} to {{ line.rental_end_date|date:"d M Y" }}
-                                        </small>
+                                        <small>{{ line.rental_start_date|date:"d M Y" }} to {{ line.rental_end_date|date:"d M Y" }}</small>
                                     </td>
                                     <td>{{ line.quantity }}</td>
                                     <td>₹{{ line.unit_price|floatformat:2 }}</td>
                                     <td><strong>₹{{ line.line_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% if line.late_fee_charged %}
-                                <tr class="table-warning">
-                                    <td colspan="4"><strong>Late Fee:</strong></td>
-                                    <td><strong>₹{{ line.late_fee_charged|floatformat:2 }}</strong></td>
+                                <tr>
+                                    <td colspan="4" style="text-align: right;"><strong>Late Fee:</strong></td>
+                                    <td><strong style="color: #e74c3c;">₹{{ line.late_fee_charged|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 {% endfor %}
@@ -125,101 +496,83 @@
             </div>
 
             <!-- Pricing Summary -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Subtotal:</strong></p>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Pricing Summary</h5>
+                </div>
+                <div class="card-modern-body">
+                    <div class="pricing-summary">
+                        <div class="pricing-row">
+                            <span class="pricing-label">Subtotal:</span>
+                            <span class="pricing-value">₹{{ order.subtotal|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <p>₹{{ order.subtotal|floatformat:2 }}</p>
+                        {% if order.late_fee_amount %}
+                        <div class="pricing-row">
+                            <span class="pricing-label">Late Fees:</span>
+                            <span class="pricing-value negative">₹{{ order.late_fee_amount|floatformat:2 }}</span>
                         </div>
-                    </div>
-                    {% if order.late_fee_amount %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Late Fees:</strong></p>
+                        {% endif %}
+                        {% if order.discount_amount %}
+                        <div class="pricing-row">
+                            <span class="pricing-label">Discount:</span>
+                            <span class="pricing-value negative">-₹{{ order.discount_amount|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <p class="text-danger">₹{{ order.late_fee_amount|floatformat:2 }}</p>
+                        {% endif %}
+                        {% if order.tax_amount %}
+                        <div class="pricing-row">
+                            <span class="pricing-label">Tax (GST):</span>
+                            <span class="pricing-value">₹{{ order.tax_amount|floatformat:2 }}</span>
                         </div>
-                    </div>
-                    {% endif %}
-                    {% if order.discount_amount %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Discount:</strong></p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <p>-₹{{ order.discount_amount|floatformat:2 }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if order.tax_amount %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Tax (GST):</strong></p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <p>₹{{ order.tax_amount|floatformat:2 }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                    <div class="row pt-3 border-top">
-                        <div class="col-md-6">
-                            <p><strong>Total Amount:</strong></p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <h5>₹{{ order.total_amount|floatformat:2 }}</h5>
+                        {% endif %}
+                        <div class="pricing-row total">
+                            <span class="pricing-label">Total Amount:</span>
+                            <span class="pricing-value total">₹{{ order.total_amount|floatformat:2 }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Pickup & Return Status -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">Pickup Status</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if pickup %}
-                                <p><strong>Pickup #:</strong> {{ pickup.pickup_number }}</p>
-                                <p><strong>Scheduled:</strong> {{ pickup.scheduled_pickup_date|date:"d M Y H:i" }}</p>
-                                {% if pickup.actual_pickup_date %}
-                                    <p><strong>Completed:</strong> {{ pickup.actual_pickup_date|date:"d M Y H:i" }}</p>
-                                    <p><strong>Items Checked:</strong> {% if pickup.items_checked %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</p>
-                                {% else %}
-                                    <p class="text-muted">Pending pickup</p>
-                                {% endif %}
-                            {% else %}
-                                <p class="text-muted">No pickup scheduled yet</p>
-                            {% endif %}
-                        </div>
-                    </div>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Pickup & Return Status</h5>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">Return Status</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if return_record %}
-                                <p><strong>Return #:</strong> {{ return_record.return_number }}</p>
-                                <p><strong>Scheduled:</strong> {{ return_record.scheduled_return_date|date:"d M Y H:i" }}</p>
-                                {% if return_record.actual_return_date %}
-                                    <p><strong>Completed:</strong> {{ return_record.actual_return_date|date:"d M Y H:i" }}</p>
-                                    {% if return_record.items_damaged %}
-                                        <p class="text-danger"><strong>Damage Reported</strong></p>
-                                        <p class="text-muted">{{ return_record.damage_description }}</p>
+                <div class="card-modern-body">
+                    <div class="status-grid">
+                        <div class="status-card {% if pickup and pickup.actual_pickup_date %}completed{% else %}pending{% endif %}">
+                            <div class="status-title">Pickup Status</div>
+                            <div class="status-text">
+                                {% if pickup %}
+                                    <div><strong>{{ pickup.pickup_number }}</strong></div>
+                                    <div>Scheduled: {{ pickup.scheduled_pickup_date|date:"d M Y H:i" }}</div>
+                                    {% if pickup.actual_pickup_date %}
+                                        <div>✓ Completed: {{ pickup.actual_pickup_date|date:"d M Y H:i" }}</div>
+                                    {% else %}
+                                        <div>⏳ Pending</div>
                                     {% endif %}
                                 {% else %}
-                                    <p class="text-muted">Pending return</p>
+                                    <div>⏳ No pickup scheduled yet</div>
                                 {% endif %}
-                            {% else %}
-                                <p class="text-muted">No return scheduled yet</p>
-                            {% endif %}
+                            </div>
+                        </div>
+                        <div class="status-card {% if return_record and return_record.actual_return_date %}completed{% else %}pending{% endif %}">
+                            <div class="status-title">Return Status</div>
+                            <div class="status-text">
+                                {% if return_record %}
+                                    <div><strong>{{ return_record.return_number }}</strong></div>
+                                    <div>Scheduled: {{ return_record.scheduled_return_date|date:"d M Y H:i" }}</div>
+                                    {% if return_record.actual_return_date %}
+                                        <div>✓ Completed: {{ return_record.actual_return_date|date:"d M Y H:i" }}</div>
+                                        {% if return_record.items_damaged %}
+                                            <div style="color: #e74c3c; margin-top: 8px;">⚠️ Damage Reported</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div>⏳ Pending</div>
+                                    {% endif %}
+                                {% else %}
+                                    <div>⏳ No return scheduled yet</div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,19 +580,19 @@
         </div>
 
         <!-- Actions Panel -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Actions</h5>
+        <div>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Actions</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-modern-body">
                     {% if user == order.vendor %}
                         {% if order.status == 'draft' %}
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="confirm">
-                            <button type="submit" class="btn btn-primary w-100 mb-2">
-                                <i class="fas fa-check"></i> Confirm Order
+                            <button type="submit" class="action-btn primary">
+                                ✓ Confirm Order
                             </button>
                         </form>
                         {% endif %}
@@ -248,18 +601,18 @@
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="start">
-                            <button type="submit" class="btn btn-warning w-100 mb-2">
-                                <i class="fas fa-play"></i> Start Order
+                            <button type="submit" class="action-btn primary">
+                                ▶ Start Order
                             </button>
                         </form>
-                        <a href="{% url 'rentals:schedule_pickup' order.id %}" class="btn btn-info w-100 mb-2">
-                            <i class="fas fa-calendar"></i> Schedule Pickup
+                        <a href="{% url 'rentals:schedule_pickup' order.id %}" class="action-btn">
+                            📅 Schedule Pickup
                         </a>
                         {% endif %}
 
                         {% if order.status == 'in_progress' %}
-                        <a href="{% url 'rentals:schedule_return' order.id %}" class="btn btn-info w-100 mb-2">
-                            <i class="fas fa-calendar"></i> Schedule Return
+                        <a href="{% url 'rentals:schedule_return' order.id %}" class="action-btn">
+                            📅 Schedule Return
                         </a>
                         {% endif %}
 
@@ -267,30 +620,29 @@
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="complete">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="fas fa-flag-checkered"></i> Complete Order
+                            <button type="submit" class="action-btn primary">
+                                ✓ Complete Order
                             </button>
                         </form>
                         {% endif %}
                     {% endif %}
 
                     {% if user == order.customer %}
-                        <div class="alert alert-info">
-                            <small>Your rental order is being managed by {{ order.vendor.get_full_name }}. You will be notified when pickup and return are scheduled.</small>
+                        <div class="alert-info-modern">
+                            ℹ️ Your rental order is being managed by <strong>{{ order.vendor.get_full_name }}</strong>. You will be notified when pickup and return are scheduled.
                         </div>
                     {% endif %}
 
                     {% if invoice %}
-                    <hr>
-                    <p><strong>Invoice:</strong></p>
-                    <p><small>{{ invoice.invoice_number }}</small></p>
-                    <p><strong>₹{{ invoice.invoice_total|floatformat:2 }}</strong></p>
+                    <div style="margin: 20px 0; padding: 15px 0; border-top: 1px solid #e0e0e0;">
+                        <div style="font-weight: 600; margin-bottom: 8px;">Invoice</div>
+                        <div style="font-size: 13px; color: #7f8c8d;">{{ invoice.invoice_number }}</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #27ae60; margin-top: 8px;">₹{{ invoice.invoice_total|floatformat:2 }}</div>
+                    </div>
                     {% endif %}
 
-                    <hr>
-
-                    <a href="{% url 'rentals:order_list' %}" class="btn btn-secondary w-100">
-                        <i class="fas fa-arrow-left"></i> Back to Orders
+                    <a href="{% url 'rentals:order_list' %}" class="action-btn secondary">
+                        ← Back to Orders
                     </a>
                 </div>
             </div>

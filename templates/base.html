@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -322,9 +323,8 @@
         <p>&copy; 2024 Rental ERP System. All rights reserved.</p>
         <p>Built for the Odoo Hackathon | <a href="#" style="color: #fff;">Privacy Policy</a></p>
     </footer>
-    
-    <script>
-        {% block extra_scripts %}{% endblock %}
-    </script>
+
+    <script src="{% static 'js/global/confirm-actions.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

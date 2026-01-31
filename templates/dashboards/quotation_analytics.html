@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}Quotation Analytics - Rental ERP{% endblock %}
 
@@ -72,6 +73,8 @@
                 </div>
                 <div class="card-body">
                     <canvas id="trendChart" height="80"></canvas>
+                    {{ chart_labels|json_script:"quotationChartLabels" }}
+                    {{ chart_data|json_script:"quotationChartData" }}
                 </div>
             </div>
         </div>
@@ -159,45 +162,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Trend chart
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: {{ chart_labels|safe }},
-        datasets: [{
-            label: 'Quotations Created',
-            data: {{ chart_data|safe }},
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
-    }
-});
-</script>
+<script src="{% static 'js/dashboards/quotation-analytics.js' %}"></script>
 {% endblock %}

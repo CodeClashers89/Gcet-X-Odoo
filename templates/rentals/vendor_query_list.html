@@ -4,33 +4,338 @@
 {% block title %}Customer Queries - Rental ERP{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>Customer Queries</h2>
+<style>
+    .queries-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📋";
+        font-size: 32px;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .filter-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 14px;
+        display: block;
+    }
+
+    .filter-control {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .custom-select {
+        flex: 1;
+        max-width: 350px;
+        padding: 12px 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #2c3e50;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        outline: none;
+    }
+
+    .custom-select:hover {
+        border-color: #3498db;
+        background-color: white;
+    }
+
+    .custom-select:focus {
+        border-color: #2c3e50;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+    }
+
+    .queries-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .queries-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .queries-table thead {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+    }
+
+    .queries-table thead th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .queries-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .queries-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .queries-table tbody td {
+        padding: 20px;
+        vertical-align: middle;
+        color: #555;
+    }
+
+    .query-number {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 15px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .customer-name {
+        font-weight: 500;
+        color: #34495e;
+    }
+
+    .amount-cell {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 16px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+        animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background-color: #f0f0f0;
+        color: #6c757d;
+    }
+
+    .status-pending::before {
+        background-color: #6c757d;
+    }
+
+    .status-sent {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-sent::before {
+        background-color: #17a2b8;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-approved::before {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .status-declined {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-declined::before {
+        background-color: #dc3545;
+    }
+
+    .date-cell {
+        color: #7f8c8d;
+        font-size: 13px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn:active {
+        transform: translateY(0);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        animation: fadeIn 0.5s ease;
+    }
+
+    .empty-state-icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .empty-state-text {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .queries-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .queries-table {
+            font-size: 12px;
+        }
+
+        .queries-table thead th,
+        .queries-table tbody td {
+            padding: 12px 10px;
+        }
+
+        .custom-select {
+            max-width: 100%;
+        }
+    }
+</style>
+
+<div class="queries-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>Customer Queries</h2>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <label class="filter-label">Filter by Status:</label>
+        <div class="filter-control">
+            <select class="custom-select" id="statusFilter" onchange="filterByStatus(this.value)">
+                <option value="">All Statuses</option>
+                <option value="draft" {% if status == 'draft' %}selected{% endif %}>Pending Vendor</option>
+                <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent to Customer</option>
+                <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Approved</option>
+                <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Declined</option>
+            </select>
         </div>
     </div>
 
-    <!-- Status Filter -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="input-group">
-                <span class="input-group-text">Filter by Status:</span>
-                <select class="form-select" onchange="filterByStatus(this.value)">
-                    <option value="">All Statuses</option>
-                    <option value="draft" {% if status == 'draft' %}selected{% endif %}>Pending Vendor</option>
-                    <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent to Customer</option>
-                    <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Approved</option>
-                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Declined</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
+    <!-- Queries Table -->
     {% if quotations %}
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
+    <div class="queries-table-wrapper">
+        <table class="queries-table">
+            <thead>
                 <tr>
                     <th>Query #</th>
                     <th>Customer</th>
@@ -40,27 +345,27 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="queriesTableBody">
                 {% for quotation in quotations %}
-                <tr>
-                    <td><strong>{{ quotation.quotation_number }}</strong></td>
-                    <td>{{ quotation.customer.get_full_name }}</td>
-                    <td><strong>₹{{ quotation.total_amount|floatformat:2 }}</strong></td>
+                <tr class="query-row" >
+                    <td><span class="query-number">{{ quotation.quotation_number }}</span></td>
+                    <td><span class="customer-name">{{ quotation.customer.get_full_name }}</span></td>
+                    <td><span class="amount-cell">₹{{ quotation.total|floatformat:2 }}</span></td>
                     <td>
                         {% if quotation.status == 'draft' %}
-                            <span class="badge bg-secondary">Pending Vendor</span>
+                            <span class="status-badge status-pending">Pending Vendor</span>
                         {% elif quotation.status == 'sent' %}
-                            <span class="badge bg-info">Sent</span>
+                            <span class="status-badge status-sent">Sent</span>
                         {% elif quotation.status == 'confirmed' %}
-                            <span class="badge bg-success">Approved</span>
+                            <span class="status-badge status-approved">Approved</span>
                         {% elif quotation.status == 'cancelled' %}
-                            <span class="badge bg-danger">Declined</span>
+                            <span class="status-badge status-declined">Declined</span>
                         {% endif %}
                     </td>
-                    <td>{{ quotation.created_at|date:"d M Y H:i" }}</td>
+                    <td><span class="date-cell">{{ quotation.created_at|date:"d M Y H:i" }}</span></td>
                     <td>
-                        <a href="{% url 'rentals:quotation_detail' quotation.id %}" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i> View
+                        <a href="{% url 'rentals:quotation_detail' quotation.id %}" class="action-btn">
+                            View
                         </a>
                     </td>
                 </tr>
@@ -69,20 +374,124 @@
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
-        No customer queries found.
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p class="empty-state-text">No customer queries found.</p>
     </div>
     {% endif %}
 </div>
 
 <script>
+// Smooth AJAX filter with section refresh
 function filterByStatus(status) {
-    if (status) {
-        window.location.href = "{% url 'rentals:vendor_query_list' %}?status=" + status;
-    } else {
-        window.location.href = "{% url 'rentals:vendor_query_list' %}";
-    }
+    const tableWrapper = document.querySelector('.queries-table-wrapper') || document.querySelector('.empty-state');
+    const selectElement = document.getElementById('statusFilter');
+    
+    if (!tableWrapper) return;
+    
+    // Fade out transition
+    tableWrapper.style.opacity = '0';
+    tableWrapper.style.transform = 'translateY(10px)';
+    
+    setTimeout(() => {
+        // Build URL with status parameter
+        let url = "{% url 'rentals:vendor_query_list' %}";
+        if (status) {
+            url += "?status=" + status;
+        }
+        
+        // Fetch only the content we need
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the response HTML
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+            
+            // Get the new table or empty state
+            const newTableWrapper = newDoc.querySelector('.queries-table-wrapper') || newDoc.querySelector('.empty-state');
+            const newSelectElement = newDoc.querySelector('#statusFilter');
+            
+            if (newTableWrapper) {
+                // Replace table content
+                const oldWrapper = document.querySelector('.queries-table-wrapper') || document.querySelector('.empty-state');
+                if (oldWrapper) {
+                    oldWrapper.replaceWith(newTableWrapper);
+                }
+                // Update select value
+                if (newSelectElement) {
+                    selectElement.value = newSelectElement.value;
+                }
+            }
+            
+            // Trigger animation for new content
+            setTimeout(() => {
+                const newWrapper = document.querySelector('.queries-table-wrapper') || document.querySelector('.empty-state');
+                if (newWrapper) {
+                    newWrapper.style.opacity = '0';
+                    newWrapper.style.transform = 'translateY(10px)';
+                    newWrapper.style.transition = 'all 0.4s ease';
+                    
+                    // Trigger reflow to apply transition
+                    newWrapper.offsetHeight;
+                    
+                    newWrapper.style.opacity = '1';
+                    newWrapper.style.transform = 'translateY(0)';
+                    
+                    // Reinitialize animations for new rows
+                    initializeRowAnimations();
+                }
+            }, 10);
+        })
+        .catch(error => {
+            // Fallback to page reload if fetch fails
+            if (status) {
+                window.location.href = "{% url 'rentals:vendor_query_list' %}?status=" + status;
+            } else {
+                window.location.href = "{% url 'rentals:vendor_query_list' %}";
+            }
+        });
+    }, 200);
 }
+
+// Initialize row animations
+function initializeRowAnimations() {
+    const rows = document.querySelectorAll('.query-row');
+    rows.forEach((row, index) => {
+        // Reset styles
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        row.style.transition = '';
+        
+        // Apply stagger animation
+        setTimeout(() => {
+            row.style.transition = 'all 0.4s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateX(0)';
+        }, index * 50);
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRowAnimations();
+
+    // Smooth select animation
+    const selectElement = document.getElementById('statusFilter');
+    if (selectElement) {
+        selectElement.addEventListener('focus', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        selectElement.addEventListener('blur', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+});
 </script>
 {% endblock %}
