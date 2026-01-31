@@ -271,7 +271,7 @@
                         <tbody>
                             {% for line in quotation.quotation_lines.all %}
                             <tr>
-                                <td><strong>{{ line.product.product_name }}</strong></td>
+                                <td><strong>{{ line.product.name }}</strong></td>
                                 <td>{{ line.product_variant.variant_name|default:"-" }}</td>
                                 <td><small>{{ line.rental_start_date|date:"d M Y" }} - {{ line.rental_end_date|date:"d M Y" }}</small></td>
                                 <td style="text-align: center;">{{ line.quantity }}</td>
