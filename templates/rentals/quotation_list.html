@@ -4,104 +4,364 @@
 {% block title %}Queries - Rental ERP{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>Queries</h2>
-        </div>
-        <div class="col-md-4 text-end">
-            {% if user.role == 'customer' %}
-            <a href="{% url 'rentals:create_quotation' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> New Query
-            </a>
-            {% endif %}
-        </div>
+<style>
+    .queries-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📋";
+        font-size: 32px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .filter-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+    }
+
+    .filter-select {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        padding: 10px 12px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        min-width: 250px;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table thead {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+    }
+
+    table th {
+        padding: 16px 18px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: left;
+    }
+
+    table td {
+        padding: 14px 18px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-pending {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        color: white;
+    }
+
+    .badge-sent {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+    }
+
+    .badge-approved {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+    }
+
+    .badge-declined {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+    }
+
+    .view-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .view-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        color: #2c3e50;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        color: #7f8c8d;
+        margin-bottom: 20px;
+    }
+
+    .empty-state a {
+        display: inline-block;
+    }
+
+    .expired-text {
+        color: #e74c3c;
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    @media (max-width: 768px) {
+        .queries-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .filter-panel {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filter-select {
+            width: 100%;
+        }
+
+        table {
+            font-size: 12px;
+        }
+
+        table th,
+        table td {
+            padding: 10px 8px;
+        }
+    }
+</style>
+
+<div class="queries-container">
+    <div class="page-header">
+        <h2>My Queries</h2>
+        {% if user.role == 'customer' %}
+        <a href="{% url 'rentals:create_quotation' %}" class="action-btn">
+            + New Query
+        </a>
+        {% endif %}
     </div>
 
     <!-- Status Filter -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="input-group">
-                <span class="input-group-text">Filter by Status:</span>
-                <select class="form-select" onchange="filterByStatus(this.value)">
-                    <option value="">All Statuses</option>
-                    <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
-                    <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent</option>
-                    <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                </select>
-            </div>
-        </div>
+    <div class="filter-panel">
+        <label class="filter-label">Filter by Status:</label>
+        <select class="filter-select" onchange="filterByStatus(this.value)">
+            <option value="">All Statuses</option>
+            <option value="draft" {% if status == 'draft' %}selected{% endif %}>Pending Vendor</option>
+            <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent</option>
+            <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Approved</option>
+            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Declined</option>
+        </select>
     </div>
 
     <!-- Queries Table -->
     {% if quotations %}
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>Query #</th>
-                    <th>Customer</th>
-                    <th>Total Amount</th>
-                    <th>Status</th>
-                    <th>Valid Until</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for quotation in quotations %}
-                <tr>
-                    <td>
-                        <strong>{{ quotation.quotation_number }}</strong>
-                    </td>
-                    <td>{{ quotation.customer.get_full_name }}</td>
-                    <td>
-                        <strong>₹{{ quotation.total_amount|floatformat:2 }}</strong>
-                    </td>
-                    <td>
-                        {% if quotation.status == 'draft' %}
-                            {% if user.role == 'customer' %}
-                                <span class="badge bg-secondary">Pending Vendor</span>
+    <div class="table-card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Query #</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Valid Until</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quotation in quotations %}
+                    <tr>
+                        <td>
+                            <strong>{{ quotation.quotation_number }}</strong>
+                        </td>
+                        <td>{{ quotation.customer.get_full_name }}</td>
+                        <td>
+                            <strong>₹{{ quotation.total_amount|floatformat:2 }}</strong>
+                        </td>
+                        <td>
+                            {% if quotation.status == 'draft' %}
+                                {% if user.role == 'customer' %}
+                                    <span class="badge badge-pending">Pending Vendor</span>
+                                {% else %}
+                                    <span class="badge badge-pending">Draft</span>
+                                {% endif %}
+                            {% elif quotation.status == 'sent' %}
+                                <span class="badge badge-sent">Sent</span>
+                            {% elif quotation.status == 'confirmed' %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% elif quotation.status == 'cancelled' %}
+                                <span class="badge badge-declined">Declined</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if quotation.valid_until %}
+                                {{ quotation.valid_until|date:"d M Y" }}
+                                {% if quotation.valid_until < now %}
+                                    <span class="expired-text">(Expired)</span>
+                                {% endif %}
                             {% else %}
-                                <span class="badge bg-secondary">Draft</span>
+                                -
                             {% endif %}
-                        {% elif quotation.status == 'sent' %}
-                            <span class="badge bg-info">Sent</span>
-                        {% elif quotation.status == 'confirmed' %}
-                            <span class="badge bg-success">Approved</span>
-                        {% elif quotation.status == 'cancelled' %}
-                            <span class="badge bg-danger">Declined</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if quotation.valid_until %}
-                            {{ quotation.valid_until|date:"d M Y" }}
-                            {% if quotation.valid_until < now %}
-                                <span class="text-danger">(Expired)</span>
-                            {% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>{{ quotation.created_at|date:"d M Y H:i" }}</td>
-                    <td>
-                        <a href="{% url 'rentals:quotation_detail' quotation.id %}" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i> View
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                        <td>{{ quotation.created_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'rentals:quotation_detail' quotation.id %}" class="view-btn">
+                                👁️ View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <h3>No Queries Yet</h3>
         {% if user.role == 'customer' %}
-            No queries yet. <a href="{% url 'rentals:create_quotation' %}">Create one now</a>
+            <p>You haven't created any rental queries yet.</p>
+            <a href="{% url 'rentals:create_quotation' %}" class="action-btn">Create Your First Query</a>
         {% else %}
-            No queries found.
+            <p>No queries found.</p>
         {% endif %}
     </div>
     {% endif %}
