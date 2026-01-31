@@ -10,10 +10,7 @@ ENV/
 
 
 # Django
-*.sqlite3
-*.sqlite
-*.db
-/db.sqlite3
+# (database files are intentionally tracked for this repo)
 
 # Logs
 *.log
