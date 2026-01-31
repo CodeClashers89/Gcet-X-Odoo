@@ -1077,3 +1077,76 @@ class ApprovalRequest(models.Model):
             self.rental_order.approved_at = timezone.now()
             self.rental_order.save()
 
+
+class RentalInquiry(models.Model):
+    """
+    Initial rental inquiry/query from customer.
+    
+    Business Use: Customer sends initial request for products and quantity.
+    Vendor reviews and decides to create quotation or reject.
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),                    # Awaiting vendor response
+        ('sent_to_vendor', 'Sent to Vendor'),     # Sent to vendor
+        ('accepted', 'Accepted'),                  # Vendor accepted, quotation in progress
+        ('rejected', 'Rejected'),                  # Vendor rejected
+        ('expired', 'Expired'),                    # Inquiry validity expired
+    ]
+    
+    inquiry_number = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Auto-generated inquiry ID"
+    )
+    
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='rental_inquiries',
+        limit_choices_to={'role': 'customer'}
+    )
+    
+    vendor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_inquiries',
+        limit_choices_to={'role': 'vendor'}
+    )
+    
+    product = models.ForeignKey(
+        'catalog.Product',
+        on_delete=models.CASCADE
+    )
+    
+    variant = models.ForeignKey(
+        'catalog.ProductVariant',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    
+    quantity = models.PositiveIntegerField()
+    
+    rental_start_date = models.DateField()
+    rental_end_date = models.DateField()
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    
+    notes = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'rental_inquiries'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Inquiry {self.inquiry_number} - {self.product.name}"
+
+

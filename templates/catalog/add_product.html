@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Product - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 30px;">Add New Product</h1>
+    
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        {% if error %}
+            <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <strong style="color: #721c24;">✗ Error Adding Product</strong>
+                <p style="margin: 5px 0 0 0; color: #721c24;">{{ error }}</p>
+            </div>
+        {% endif %}
+        
+        {% if success %}
+            <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <strong style="color: #155724;">✓ Product Added Successfully</strong>
+                <p style="margin: 5px 0 0 0; color: #155724;">Your product "{{ product.name }}" has been added and is awaiting admin approval for publishing.</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                <a href="{% url 'catalog:vendor_manage_products' %}" class="btn btn-primary" style="padding: 12px 30px;">View All Products</a>
+                <a href="{% url 'catalog:vendor_add_product' %}" class="btn btn-secondary" style="padding: 12px 30px;">Add Another Product</a>
+            </div>
+        {% else %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Product Name *</label>
+                    <input type="text" name="name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Category *</label>
+                    <select name="category" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">Select a category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Description *</label>
+                    <textarea name="description" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-height: 120px;"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Daily Rental Price (₹) *</label>
+                    <input type="number" name="daily_price" required step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Quantity Available *</label>
+                    <input type="number" name="quantity" required min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Add Product</button>
+                    <a href="{% url 'catalog:vendor_manage_products' %}" class="btn btn-secondary" style="padding: 12px 30px; text-decoration: none;">Cancel</a>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #17a2b8; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 0 0 5px 5px; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #17a2b8; }
+        .details-label { font-weight: bold; color: #495057; }
+        .footer { font-size: 12px; color: #6c757d; margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Inquiry Accepted</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hi {{ customer_name }},</p>
+            
+            <p>Great news! {{ vendor_name }} has accepted your inquiry for {{ product_name }}. They are preparing a customized quotation for you.</p>
+            
+            <div class="details">
+                <p><span class="details-label">Inquiry Number:</span> {{ inquiry_number }}</p>
+                <p><span class="details-label">Vendor:</span> {{ vendor_name }}</p>
+            </div>
+            
+            <p>You will receive the quotation within 24 hours. Keep an eye on your inbox for the updated pricing and terms.</p>
+            
+            <p>Best regards,<br>The Rental Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply to this message.</p>
+        </div>
+    </div>
+</body>
+</html>

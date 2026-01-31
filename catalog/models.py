@@ -449,6 +449,11 @@ class RentalPricing(models.Model):
         help_text="Discount % if promotional pricing is active"
     )
     
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Enable/disable this pricing tier"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

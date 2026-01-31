@@ -149,30 +149,43 @@ def product_detail(request, pk):
     - Quick add to quotation form
     """
     
-    product = get_object_or_404(
-        Product.objects.filter(is_published=True, is_rentable=True).prefetch_related(
-            'variants',
-            'rental_prices',
-            'category',
-            'vendor'
-        ),
-        pk=pk
-    )
+    # Check if user is the vendor owner (can view draft products)
+    if request.user.is_authenticated and request.user.role == 'vendor':
+        # Vendor can see their own products (including drafts)
+        product = get_object_or_404(
+            Product.objects.filter(
+                Q(is_published=True) | Q(vendor=request.user)
+            ).filter(is_rentable=True).prefetch_related(
+                'variants',
+                'rental_prices',
+                'category',
+                'vendor'
+            ),
+            pk=pk
+        )
+    else:
+        # Public can only see published products
+        product = get_object_or_404(
+            Product.objects.filter(is_published=True, is_rentable=True).prefetch_related(
+                'variants',
+                'rental_prices',
+                'category',
+                'vendor'
+            ),
+            pk=pk
+        )
     
     # Get rental prices grouped by duration
     daily_prices = product.rental_prices.filter(
-        duration_type='daily',
-        is_active=True
+        duration_type='daily'
     ).order_by('duration_value')
     
     weekly_prices = product.rental_prices.filter(
-        duration_type='weekly',
-        is_active=True
+        duration_type='weekly'
     ).order_by('duration_value')
     
     monthly_prices = product.rental_prices.filter(
-        duration_type='monthly',
-        is_active=True
+        duration_type='monthly'
     ).order_by('duration_value')
     
     # Get product reviews/ratings (if any)
@@ -379,3 +392,231 @@ def get_product_variants_ajax(request):
     
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+# Vendor Product Management Views
+@require_http_methods(["GET", "POST"])
+def vendor_add_product(request):
+    """
+    Add new rental product by vendor.
+    Only approved vendors can add products.
+    """
+    from django.contrib.auth.decorators import login_required
+    from django.http import HttpResponseForbidden
+    from django.contrib import messages
+    from django.utils.text import slugify
+    
+    # Check if user is an approved vendor
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can add products.')
+    
+    if not hasattr(request.user, 'vendorprofile') or not request.user.vendorprofile.is_approved:
+        return HttpResponseForbidden('Your vendor account must be approved before adding products.')
+    
+    # Get all active categories
+    categories = ProductCategory.objects.filter(is_active=True).order_by('name')
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            name = request.POST.get('name')
+            category_id = request.POST.get('category')
+            description = request.POST.get('description')
+            daily_price = request.POST.get('daily_price')
+            quantity = request.POST.get('quantity')
+            
+            # Calculate cost price (use 70% of daily rental price as default)
+            daily_price_val = float(daily_price)
+            cost_price = daily_price_val * 0.7
+            
+            # Generate unique slug
+            base_slug = slugify(name)
+            slug = base_slug
+            counter = 1
+            
+            # Check if slug exists and make it unique
+            while Product.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            # Create the product
+            product = Product.objects.create(
+                vendor=request.user,
+                name=name,
+                slug=slug,
+                category_id=category_id,
+                description=description,
+                short_description=description[:200] if len(description) > 200 else description,
+                quantity_on_hand=int(quantity),
+                cost_price=cost_price,
+                is_rentable=True,
+                is_published=False  # Draft by default, admin can publish
+            )
+            
+            # Create rental pricing
+            RentalPricing.objects.create(
+                product=product,
+                duration_type='daily',
+                duration_value=1,
+                price=float(daily_price)
+            )
+            
+            return render(request, 'catalog/add_product.html', {
+                'success': True,
+                'product': product,
+                'categories': categories,
+                'vendor': request.user.vendorprofile
+            })
+            
+        except Exception as e:
+            return render(request, 'catalog/add_product.html', {
+                'error': str(e),
+                'categories': categories,
+                'vendor': request.user.vendorprofile
+            })
+    
+    return render(request, 'catalog/add_product.html', {
+        'vendor': request.user.vendorprofile,
+        'categories': categories
+    })
+
+
+@require_http_methods(["GET"])
+def vendor_manage_products(request):
+    """
+    View and manage vendor's products.
+    Only approved vendors can manage products.
+    """
+    from django.http import HttpResponseForbidden
+    
+    # Check if user is an approved vendor
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can manage products.')
+    
+    if not hasattr(request.user, 'vendorprofile') or not request.user.vendorprofile.is_approved:
+        return HttpResponseForbidden('Your vendor account must be approved before managing products.')
+    
+    # Get vendor's products
+    products = Product.objects.filter(vendor=request.user).order_by('-created_at')
+    
+    context = {
+        'products': products,
+        'vendor': request.user.vendorprofile
+    }
+    return render(request, 'catalog/manage_products.html', context)
+
+
+@require_http_methods(["GET", "POST"])
+def vendor_edit_product(request, product_id):
+    """
+    Edit vendor's product.
+    Only the product owner can edit their products.
+    """
+    from django.http import HttpResponseForbidden
+    from django.shortcuts import redirect
+    from django.utils.text import slugify
+    
+    # Check if user is vendor
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can edit products.')
+    
+    # Get product and verify ownership
+    product = get_object_or_404(Product, id=product_id, vendor=request.user)
+    categories = ProductCategory.objects.filter(is_active=True).order_by('name')
+    
+    if request.method == 'POST':
+        try:
+            # Update product fields
+            product.name = request.POST.get('name')
+            product.description = request.POST.get('description')
+            product.short_description = product.description[:200] if len(product.description) > 200 else product.description
+            product.category_id = request.POST.get('category')
+            product.quantity_on_hand = int(request.POST.get('quantity'))
+            
+            # Update slug if name changed
+            new_slug = slugify(product.name)
+            if new_slug != product.slug:
+                slug = new_slug
+                counter = 1
+                while Product.objects.filter(slug=slug).exclude(id=product.id).exists():
+                    slug = f"{new_slug}-{counter}"
+                    counter += 1
+                product.slug = slug
+            
+            product.save()
+            
+            # Update pricing
+            daily_price = float(request.POST.get('daily_price'))
+            pricing = product.rental_prices.filter(duration_type='daily').first()
+            if pricing:
+                pricing.price = daily_price
+                pricing.save()
+            
+            return redirect('catalog:vendor_manage_products')
+            
+        except Exception as e:
+            context = {
+                'product': product,
+                'categories': categories,
+                'error': str(e)
+            }
+            return render(request, 'catalog/edit_product.html', context)
+    
+    context = {
+        'product': product,
+        'categories': categories,
+        'vendor': request.user.vendorprofile
+    }
+    return render(request, 'catalog/edit_product.html', context)
+
+
+@require_http_methods(["POST"])
+def vendor_delete_product(request, product_id):
+    """
+    Delete vendor's product.
+    Only the product owner can delete their products.
+    """
+    from django.http import HttpResponseForbidden
+    from django.shortcuts import redirect
+    
+    # Check if user is vendor
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can delete products.')
+    
+    # Get product and verify ownership
+    product = get_object_or_404(Product, id=product_id, vendor=request.user)
+    product.delete()
+    
+    return redirect('catalog:vendor_manage_products')
+
+
+@require_http_methods(["GET"])
+def vendor_view_orders(request):
+    """
+    View orders for vendor's products.
+    Shows rental orders that customers placed for this vendor's products.
+    """
+    from django.http import HttpResponseForbidden
+    from rentals.models import RentalOrder
+    
+    # Check if user is an approved vendor
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can view orders.')
+    
+    if not hasattr(request.user, 'vendorprofile'):
+        return HttpResponseForbidden('Only vendors can view orders.')
+    
+    # Get orders for vendor's products
+    from django.db.models import Q
+    vendor_products = Product.objects.filter(vendor=request.user).values_list('id', flat=True)
+    
+    orders = RentalOrder.objects.filter(
+        order_lines__product_id__in=vendor_products
+    ).distinct().order_by('-created_at')
+    
+    context = {
+        'orders': orders,
+        'vendor': request.user.vendorprofile,
+        'total_orders': orders.count()
+    }
+    return render(request, 'catalog/vendor_orders.html', context)

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #dc3545; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 0 0 5px 5px; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #dc3545; }
+        .details-label { font-weight: bold; color: #495057; }
+        .footer { font-size: 12px; color: #6c757d; margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Order Could Not Be Confirmed</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hi {{ customer_name }},</p>
+            
+            <p>Unfortunately, we were unable to confirm your rental order at this time.</p>
+            
+            <div class="details">
+                <p><span class="details-label">Order Number:</span> {{ order_number }}</p>
+                {% if reason %}<p><span class="details-label">Reason:</span> {{ reason }}</p>{% endif %}
+            </div>
+            
+            <p>Please contact support for more information or try again later.</p>
+            
+            <p>Best regards,<br>The Rental Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply to this message.</p>
+        </div>
+    </div>
+</body>
+</html>

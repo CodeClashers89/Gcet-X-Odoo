@@ -200,7 +200,7 @@ class VendorProfile(models.Model):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name='vendor_profile',
+        related_name='vendorprofile',
         limit_choices_to={'role': 'vendor'},
         help_text="Links to the Vendor User account"
     )

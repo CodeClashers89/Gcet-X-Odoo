@@ -106,7 +106,7 @@ class RentalPricingInline(admin.TabularInline):
     extra = 1
     fields = (
         'duration_type', 'duration_value', 'price',
-        'is_discounted', 'discount_percentage'
+        'is_discounted', 'discount_percentage', 'is_active'
     )
 
 

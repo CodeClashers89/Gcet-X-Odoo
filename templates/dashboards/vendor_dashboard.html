@@ -49,9 +49,9 @@
         <h2 style="color: #2c3e50; margin-bottom: 15px;">Quick Actions</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
             {% if user.vendorprofile.is_approved %}
-                <a href="#" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Add Product</a>
-                <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Orders</a>
-                <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Manage Products</a>
+                <a href="{% url 'catalog:vendor_add_product' %}" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Add Product</a>
+                <a href="{% url 'catalog:vendor_view_orders' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Orders</a>
+                <a href="{% url 'catalog:vendor_manage_products' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Manage Products</a>
             {% else %}
                 <button class="btn btn-primary" disabled style="padding: 12px; text-align: center; display: block; cursor: not-allowed; opacity: 0.6;">Add Product (Pending Approval)</button>
             {% endif %}
