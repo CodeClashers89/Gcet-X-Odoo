@@ -104,12 +104,33 @@ def create_quotation(request):
             for formset_error in formset.non_form_errors():
                 messages.error(request, formset_error)
     else:
+        # Check if a specific product was selected from product listing
+        product_id = request.GET.get('product_id')
+        
         form = CreateQuotationForm()
-        formset = QuotationLineFormSet()
+        hide_extra_form = False
+        
+        if product_id:
+            # Pre-populate with one product line
+            try:
+                product = Product.objects.get(id=product_id)
+                
+                # Create formset with just one empty form
+                formset = QuotationLineFormSet()
+                # Pre-fill the first form with the selected product
+                if formset.forms:
+                    formset.forms[0].initial = {'product': product}
+                    hide_extra_form = True  # Hide the extra blank form
+            except Product.DoesNotExist:
+                formset = QuotationLineFormSet()
+        else:
+            # Default formset (no specific product selected)
+            formset = QuotationLineFormSet()
     
     return render(request, 'rentals/create_quotation.html', {
         'form': form,
         'formset': formset,
+        'hide_extra_form': hide_extra_form,
     })
 
 

@@ -310,7 +310,10 @@
                 {{ formset.management_form }}
                 <div id="formset-container">
                     {% for form in formset %}
-                        <div class="formset-row">
+                        {% if hide_extra_form and forloop.last and forloop.counter > 1 %}
+                            {# Hide the extra blank form when a specific product is selected #}
+                        {% else %}
+                            <div class="formset-row">
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
                                 <div>
                                     <label for="{{ form.product.id_for_label }}" class="form-label">{{ form.product.label }}</label>
@@ -357,6 +360,7 @@
                                 <span class="remove-row" onclick="removeFormset(this)">✕ Remove Item</span>
                             {% endif %}
                         </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
 
