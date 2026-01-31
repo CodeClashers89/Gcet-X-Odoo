@@ -11,6 +11,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.core.cache import cache
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from audit.models import AuditLog
 import re
@@ -247,6 +248,8 @@ def rate_limit_view(max_requests=10, period=3600):
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+            if not getattr(settings, 'RATELIMIT_ENABLE', True):
+                return view_func(request, *args, **kwargs)
             # Get client IP
             x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
             if x_forwarded_for:

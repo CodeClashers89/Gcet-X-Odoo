@@ -3,7 +3,6 @@ from . import views
 from . import gdpr_views
 from . import mfa_views
 from . import verify_2fa_view
-from . import api_key_views
 
 app_name = 'accounts'
 
@@ -20,10 +19,6 @@ urlpatterns = [
     path('2fa/verify/', verify_2fa_view.verify_2fa, name='verify_2fa'),
     path('api/2fa/verify/', mfa_views.verify_2fa_api, name='verify_2fa_api'),
 
-    # API Key Management
-    path('api-keys/', api_key_views.api_keys, name='api_keys'),
-    path('api-keys/revoke/<int:key_id>/', api_key_views.revoke_api_key, name='revoke_api_key'),
-    
     # Email & Password Management
     path('verify-email/<str:uidb64>/<str:token>/', views.verify_email, name='verify_email'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),

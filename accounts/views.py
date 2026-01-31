@@ -167,7 +167,7 @@ def signup_customer(request):
     POST: Process form submission
     """
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboards:dashboard')
     
     if request.method == 'POST':
         form = CustomerRegistrationForm(request.POST)
@@ -182,11 +182,9 @@ def signup_customer(request):
                     AuditLog.log_action(
                         user=user,
                         action_type='signup',
-                        model_name='User',
-                        object_id=user.id,
+                        model_instance=user,
                         description=f'Customer registration: {user.email}',
-                        ip_address=get_client_ip(request),
-                        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                        request=request,
                     )
                     
                     # Send verification email
@@ -196,7 +194,7 @@ def signup_customer(request):
                         request,
                         'Registration successful! Check your email for verification link.'
                     )
-                    return redirect('login')
+                    return redirect('accounts:login')
             
             except Exception as e:
                 messages.error(request, f'Registration failed: {str(e)}')
@@ -225,7 +223,7 @@ def signup_vendor(request):
     Note: Vendor requires admin approval before account activation.
     """
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboards:dashboard')
     
     if request.method == 'POST':
         form = VendorRegistrationForm(request.POST)
@@ -248,10 +246,9 @@ def signup_vendor(request):
                     AuditLog.log_action(
                         user=user,
                         action_type='signup',
-                        model_name='User',
-                        object_id=user.id,
+                        model_instance=user,
                         description=f'Vendor registration: {user.email} (pending approval)',
-                        ip_address=get_client_ip(request),
+                        request=request,
                     )
                     
                     # Send verification email
@@ -262,7 +259,7 @@ def signup_vendor(request):
                         'Registration successful! Your account is pending admin approval. '
                         'You will receive an email once approved.'
                     )
-                    return redirect('login')
+                    return redirect('accounts:login')
             
             except Exception as e:
                 messages.error(request, f'Registration failed: {str(e)}')
@@ -295,7 +292,7 @@ def login_view(request):
     - If vendor not approved: login (with error)
     """
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboards:dashboard')
     
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -312,7 +309,7 @@ def login_view(request):
                         'Your vendor account is pending admin approval. '
                         'You will be able to login once approved.'
                     )
-                    return redirect('login')
+                    return redirect('accounts:login')
             
             # Check if 2FA is enabled
             if user.totp_enabled:
@@ -357,7 +354,7 @@ def login_view(request):
                 request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
             
             # Redirect based on role
-            next_url = request.GET.get('next', 'dashboard')
+            next_url = request.GET.get('next', 'dashboards:dashboard')
             return redirect(next_url)
         else:
             for error in form.non_field_errors():
@@ -382,15 +379,14 @@ def logout_view(request):
     AuditLog.log_action(
         user=request.user,
         action_type='logout',
-        model_name='User',
-        object_id=request.user.id,
+        model_instance=request.user,
         description=f'User logout: {request.user.email}',
-        ip_address=get_client_ip(request),
+        request=request,
     )
     
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
-    return redirect('login')
+    return redirect('accounts:login')
 
 
 @rate_limit_view(max_requests=3, period=60)
@@ -407,7 +403,7 @@ def forgot_password(request):
     Security: Doesn't reveal if email exists (prevents user enumeration)
     """
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboards:dashboard')
     
     if request.method == 'POST':
         form = ForgotPasswordForm(request.POST)
@@ -432,14 +428,14 @@ def forgot_password(request):
                     request,
                     'Password reset link sent to your email. Check your inbox.'
                 )
-                return redirect('login')
+                return redirect('accounts:login')
             except User.DoesNotExist:
                 # Don't reveal if user exists
                 messages.success(
                     request,
                     'If an account exists with this email, you will receive a password reset link.'
                 )
-                return redirect('login')
+                return redirect('accounts:login')
         else:
             for error in form.non_field_errors():
                 messages.error(request, error)
@@ -464,7 +460,7 @@ def reset_password(request, uidb64, token):
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         messages.error(request, 'Invalid or expired reset link.')
-        return redirect('login')
+        return redirect('accounts:login')
     
     # Validate token
     if not default_token_generator.check_token(user, token):
@@ -483,15 +479,14 @@ def reset_password(request, uidb64, token):
             AuditLog.log_action(
                 user=user,
                 action_type='update',
-                model_name='User',
-                object_id=user.id,
+                model_instance=user,
                 field_name='password',
                 description='Password reset via email link',
-                ip_address=get_client_ip(request),
+                request=request,
             )
             
             messages.success(request, 'Password has been reset successfully. Please login.')
-            return redirect('login')
+            return redirect('accounts:login')
         else:
             for error in form.non_field_errors():
                 messages.error(request, error)
@@ -517,17 +512,17 @@ def verify_email(request, uidb64, token):
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         messages.error(request, 'Invalid verification link.')
-        return redirect('login')
+        return redirect('accounts:login')
     
     # Check if already verified
     if user.is_verified:
         messages.info(request, 'Email already verified. Please login.')
-        return redirect('login')
+        return redirect('accounts:login')
     
     # Validate token (one-time use)
     if not default_token_generator.check_token(user, token):
         messages.error(request, 'Verification link has expired. Request a new one.')
-        return redirect('login')
+        return redirect('accounts:login')
     
     # Mark as verified
     user.is_verified = True
@@ -537,16 +532,16 @@ def verify_email(request, uidb64, token):
     AuditLog.log_action(
         user=user,
         action_type='update',
-        model_name='User',
+        model_instance=user,
         field_name='is_verified',
         old_value='False',
         new_value='True',
         description='Email verified via link',
-        ip_address=get_client_ip(request),
+        request=request,
     )
     
     messages.success(request, 'Email verified successfully! You can now login.')
-    return redirect('login')
+    return redirect('accounts:login')
 
 
 @login_required(login_url='login')
@@ -583,7 +578,7 @@ def profile(request):
                 )
                 
                 messages.success(request, 'Vendor profile updated successfully.')
-                return redirect('profile')
+                return redirect('accounts:profile')
         else:
             # Update basic user profile
             form = UserProfileForm(request.POST, instance=user)
@@ -595,14 +590,13 @@ def profile(request):
                 AuditLog.log_action(
                     user=user,
                     action_type='update',
-                    model_name='User',
-                    object_id=user.id,
+                    model_instance=user,
                     description='User profile updated',
-                    ip_address=get_client_ip(request),
+                    request=request,
                 )
                 
                 messages.success(request, 'Profile updated successfully.')
-                return redirect('profile')
+                return redirect('accounts:profile')
             else:
                 for error in form.non_field_errors():
                     messages.error(request, error)
@@ -703,16 +697,15 @@ def change_password(request):
             AuditLog.log_action(
                 user=user,
                 action_type='update',
-                model_name='User',
-                object_id=user.id,
+                model_instance=user,
                 field_name='password',
                 description='Password changed by user',
-                ip_address=get_client_ip(request),
+                request=request,
             )
             
             messages.success(request, 'Password changed successfully. Please login again.')
             logout(request)
-            return redirect('login')
+            return redirect('accounts:login')
         else:
             for error in form.non_field_errors():
                 messages.error(request, error)
@@ -764,7 +757,7 @@ def role_required(allowed_roles):
     def decorator(view_func):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
-                return redirect('login')
+                return redirect('accounts:login')
             
             if request.user.role not in allowed_roles:
                 return HttpResponseForbidden('You do not have access to this page.')

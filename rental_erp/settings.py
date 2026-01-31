@@ -57,7 +57,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Security middleware (Phase 10)
     'rental_erp.security.SecurityHeadersMiddleware',
-    'rental_erp.security.RateLimitMiddleware',
     'rental_erp.security.AuditLoggingMiddleware',
     'rental_erp.security.InputValidationMiddleware',
     'rental_erp.security.APISecurityMiddleware',
@@ -272,7 +271,7 @@ LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)
 
 # Rate Limiting Configuration
-RATELIMIT_ENABLE = True
+RATELIMIT_ENABLE = False
 RATELIMIT_USE_CACHE = 'default'
 
 # API Security Configuration

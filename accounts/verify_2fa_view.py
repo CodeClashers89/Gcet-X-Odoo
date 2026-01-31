@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rental_erp.mfa import mfa_manager
 from audit.models import AuditLog
 from .models import User
@@ -17,6 +18,7 @@ def get_client_ip(request):
     return ip
 
 
+@ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
 def verify_2fa(request):
     """
@@ -27,7 +29,7 @@ def verify_2fa(request):
     user_id = request.session.get('pending_2fa_user_id')
     if not user_id:
         messages.error(request, 'No pending authentication. Please login again.')
-        return redirect('login')
+        return redirect('accounts:login')
     
     try:
         user = User.objects.get(id=user_id)
@@ -70,7 +72,7 @@ def verify_2fa(request):
                 request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
             
             messages.success(request, '🔐 Login successful with 2FA!')
-            next_url = request.GET.get('next', 'dashboard')
+            next_url = request.GET.get('next', 'dashboards:dashboard')
             return redirect(next_url)
         else:
             # Log failed 2FA attempt
