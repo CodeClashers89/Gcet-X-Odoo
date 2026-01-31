@@ -3,275 +3,526 @@
 
 {% block title %}{{ product.name }} - Rental ERP{% endblock %}
 
-{% block extra_css %}
+{% block content %}
 <style>
-    .product-image-main {
-        width: 100%;
-        max-height: 500px;
-        object-fit: cover;
-        border-radius: 0.375rem;
-        margin-bottom: 1rem;
-        background-color: #e9ecef;
+    .product-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
     }
-    
-    .product-image-thumb {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        border: 2px solid transparent;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    .product-image-thumb.active {
-        border-color: #0d6efd;
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
     }
-    
-    .product-image-thumb:hover {
-        border-color: #0d6efd;
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
-    
+
+    .page-header h2::before {
+        content: "📦";
+        font-size: 32px;
+    }
+
+    .back-link {
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 12px;
+    }
+
+    .back-link:hover {
+        background: rgba(255,255,255,0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    .product-content-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 30px;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .product-info-section {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 25px;
+        margin-bottom: 25px;
+    }
+
+    .product-info-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+        padding: 12px 20px;
+        margin: 0 -30px 20px -30px;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .section-header:first-of-type {
+        margin-top: -30px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .product-detail {
+        color: #555;
+        line-height: 1.8;
+        font-size: 15px;
+    }
+
+    .product-detail strong {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: #f0f0f0;
+        color: #2c3e50;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+        animation: popIn 0.3s ease;
+        margin-bottom: 15px;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-in-stock {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-in-stock::before {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    .status-low-stock {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-low-stock::before {
+        background-color: #ffc107;
+    }
+
+    .status-out-stock {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-out-stock::before {
+        background-color: #dc3545;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
     .pricing-table {
-        margin-bottom: 1.5rem;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 15px;
     }
-    
+
     .pricing-table thead {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+    }
+
+    .pricing-table thead th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .pricing-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .pricing-table tbody tr:hover {
         background-color: #f8f9fa;
     }
-    
-    .variant-list {
-        max-height: 300px;
-        overflow-y: auto;
+
+    .pricing-table tbody td {
+        padding: 20px;
+        vertical-align: middle;
+        color: #555;
     }
-    
-    .availability-form {
-        background-color: #f0f8ff;
-        padding: 1.5rem;
-        border-radius: 0.375rem;
-        border-left: 4px solid #0d6efd;
+
+    .amount-cell {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 16px;
     }
-    
+
+    .variant-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .variant-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .variant-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 15px;
+    }
+
+    .variant-sku {
+        color: #7f8c8d;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .availability-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 30px;
+        margin-top: 25px;
+        animation: slideUp 0.5s ease-out;
+        animation-delay: 0.1s;
+        animation-fill-mode: backwards;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 14px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #2c3e50;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .form-control:hover {
+        border-color: #3498db;
+        background-color: white;
+    }
+
+    .form-control:focus {
+        border-color: #2c3e50;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 6px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn:active {
+        transform: translateY(0);
+    }
+
+    .add-cart-btn {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+        padding: 14px 28px;
+        font-size: 15px;
+        margin-top: 15px;
+    }
+
+    .add-cart-btn:hover {
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+    }
+
     .availability-result {
-        margin-top: 1rem;
-        padding: 1rem;
-        border-radius: 0.375rem;
+        margin-top: 15px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        animation: popIn 0.3s ease;
         display: none;
     }
-    
+
     .availability-result.success {
-        background-color: #d1e7dd;
-        color: #0f5132;
-        border: 1px solid #badbcc;
+        background-color: #d4edda;
+        color: #155724;
+        border-left: 4px solid #28a745;
         display: block;
     }
-    
+
     .availability-result.error {
         background-color: #f8d7da;
-        color: #842029;
-        border: 1px solid #f5c2c7;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
         display: block;
     }
-    
-    .section-title {
-        font-weight: 600;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-        border-bottom: 2px solid #0d6efd;
-        padding-bottom: 0.5rem;
+
+    @media (max-width: 768px) {
+        .product-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .product-content-wrapper,
+        .availability-section {
+            padding: 20px;
+        }
+
+        .pricing-table {
+            font-size: 12px;
+        }
+
+        .pricing-table thead th,
+        .pricing-table tbody td {
+            padding: 12px 10px;
+        }
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary btn-sm mb-3">
-                <i class="fas fa-arrow-left"></i> Back to Products
-            </a>
-        </div>
+<div class="product-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>{{ product.name }}</h2>
+        <a href="{% url 'catalog:product_list' %}" class="back-link">← Back to Products</a>
     </div>
 
-    <div class="row">
-        <!-- Product Image & Basic Info -->
-        <div class="col-lg-5">
-            <!-- Main Image -->
-            {% if product.image_main %}
-            <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="product-image-main" id="mainImage">
-            {% else %}
-            <div class="product-image-main bg-light d-flex align-items-center justify-content-center">
-                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+    <!-- Product Content -->
+    <div class="product-content-wrapper">
+        <!-- Vendor & Category -->
+        <div class="product-info-section">
+            <h3 class="section-header">Product Information</h3>
+            
+            {% if product.category %}
+            <div class="product-detail">
+                <strong>Category:</strong> <span class="category-badge">📁 {{ product.category.name }}</span>
             </div>
             {% endif %}
 
-            <!-- Vendor Info Card -->
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">Vendor Information</h6>
-                </div>
-                <div class="card-body">
-                    {% if product.vendor %}
-                    <p><strong>{{ product.vendor.vendorprofile.company_name }}</strong></p>
-                    <p class="mb-1"><small>
-                        <i class="fas fa-phone"></i> {{ product.vendor.vendorprofile.phone }}
-                    </small></p>
-                    <p class="mb-0"><small>
-                        <i class="fas fa-envelope"></i> {{ product.vendor.email }}
-                    </small></p>
-                    {% else %}
-                    <p class="text-muted">Vendor information not available</p>
-                    {% endif %}
-                </div>
+            {% if product.vendor %}
+            <div class="product-detail">
+                <strong>Vendor:</strong> {{ product.vendor.vendorprofile.company_name }}<br>
+                <strong>Contact:</strong> {{ product.vendor.vendorprofile.phone }} | {{ product.vendor.email }}
             </div>
-        </div>
-
-        <!-- Product Details -->
-        <div class="col-lg-7">
-            <!-- Basic Info -->
-            <h2>{{ product.name }}</h2>
-            
-            {% if product.category %}
-            <p class="text-muted">
-                <i class="fas fa-tag"></i> 
-                <a href="{% url 'catalog:product_list' %}?category={{ product.category.slug }}">
-                    {{ product.category.name }}
-                </a>
-            </p>
             {% endif %}
 
             <!-- Stock Status -->
-            <div class="mb-3">
+            <div class="product-detail">
+                <strong>Stock Status:</strong><br>
                 {% if product.quantity_on_hand > 10 %}
-                    <span class="badge bg-success">In Stock ({{ product.quantity_on_hand }} available)</span>
+                    <span class="status-badge status-in-stock">In Stock ({{ product.quantity_on_hand }} available)</span>
                 {% elif product.quantity_on_hand > 0 %}
-                    <span class="badge bg-warning text-dark">Low Stock ({{ product.quantity_on_hand }} available)</span>
+                    <span class="status-badge status-low-stock">Low Stock ({{ product.quantity_on_hand }} available)</span>
                 {% else %}
-                    <span class="badge bg-danger">Out of Stock</span>
+                    <span class="status-badge status-out-stock">Out of Stock</span>
                 {% endif %}
             </div>
 
             <!-- Description -->
-            <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">Description</h6>
-                </div>
-                <div class="card-body">
-                    <p>{{ product.description }}</p>
-                </div>
+            <div class="product-detail">
+                <strong>Description:</strong><br>
+                {{ product.description }}
             </div>
-
-            <!-- Pricing Table -->
-            {% if daily_prices or weekly_prices or monthly_prices %}
-            <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">Rental Pricing</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Duration</th>
-                                    <th>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for price in daily_prices %}
-                                <tr>
-                                    <td>{{ price.duration_value }} Day(s)</td>
-                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
-                                </tr>
-                                {% endfor %}
-                                
-                                {% for price in weekly_prices %}
-                                <tr>
-                                    <td>{{ price.duration_value }} Week(s)</td>
-                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
-                                </tr>
-                                {% endfor %}
-                                
-                                {% for price in monthly_prices %}
-                                <tr>
-                                    <td>{{ price.duration_value }} Month(s)</td>
-                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Variants -->
-            {% if product.variants.all %}
-            <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">Available Variants</h6>
-                </div>
-                <div class="card-body">
-                    <div class="variant-list">
-                        {% for variant in product.variants.all %}
-                        <div class="mb-2 p-2 border rounded">
-                            <p class="mb-1"><strong>{{ variant.variant_name }}</strong></p>
-                            <small class="text-muted d-block">SKU: {{ variant.sku }}</small>
-                            <small class="text-muted d-block">
-                                {% if variant.quantity_on_hand > 0 %}
-                                    <span class="badge bg-success">In Stock ({{ variant.quantity_on_hand }})</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Out of Stock</span>
-                                {% endif %}
-                            </small>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Availability Checker -->
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">Check Availability</h6>
-                </div>
-                <div class="card-body">
-                    <div class="availability-form">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label form-label-sm">Start Date</label>
-                                <input type="datetime-local" id="checkStartDate" class="form-control form-control-sm">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label form-label-sm">End Date</label>
-                                <input type="datetime-local" id="checkEndDate" class="form-control form-control-sm">
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <label class="form-label form-label-sm">Quantity</label>
-                                <input type="number" id="checkQuantity" class="form-control form-control-sm" min="1" value="1">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label form-label-sm">&nbsp;</label>
-                                <button type="button" class="btn btn-primary btn-sm w-100" onclick="checkAvailability()">
-                                    <i class="fas fa-check"></i> Check Availability
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="availabilityResult" class="availability-result"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add to Cart -->
-            <a href="{% url 'rentals:create_quotation' %}?product_id={{ product.id }}" class="btn btn-primary btn-lg w-100 mt-4">
-                <i class="fas fa-cart-plus"></i> Add to Cart
-            </a>
         </div>
+
+        <!-- Rental Pricing -->
+        {% if daily_prices or weekly_prices or monthly_prices %}
+        <div class="product-info-section">
+            <h3 class="section-header">Rental Pricing</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Duration</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for price in daily_prices %}
+                    <tr>
+                        <td>{{ price.duration_value }} Day(s)</td>
+                        <td><span class="amount-cell">₹{{ price.price|floatformat:2 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% for price in weekly_prices %}
+                    <tr>
+                        <td>{{ price.duration_value }} Week(s)</td>
+                        <td><span class="amount-cell">₹{{ price.price|floatformat:2 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% for price in monthly_prices %}
+                    <tr>
+                        <td>{{ price.duration_value }} Month(s)</td>
+                        <td><span class="amount-cell">₹{{ price.price|floatformat:2 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Variants -->
+        {% if product.variants.all %}
+        <div class="product-info-section">
+            <h3 class="section-header">Available Variants</h3>
+            {% for variant in product.variants.all %}
+            <div class="variant-item">
+                <div class="variant-name">{{ variant.variant_name }}</div>
+                <div class="variant-sku">SKU: {{ variant.sku }}</div>
+                {% if variant.quantity_on_hand > 0 %}
+                    <span class="status-badge status-in-stock" style="margin-top: 8px;">In Stock ({{ variant.quantity_on_hand }})</span>
+                {% else %}
+                    <span class="status-badge status-out-stock" style="margin-top: 8px;">Out of Stock</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Availability Checker -->
+    <div class="availability-section">
+        <h3 class="section-header">Check Availability</h3>
+
+        <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="datetime-local" id="checkStartDate" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="datetime-local" id="checkEndDate" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Quantity</label>
+            <input type="number" id="checkQuantity" class="form-control" min="1" value="1">
+        </div>
+
+        <button type="button" class="action-btn" onclick="checkAvailability()">
+            ✓ Check Availability
+        </button>
+
+        <div id="availabilityResult" class="availability-result"></div>
+
+        <a href="{% url 'rentals:create_quotation' %}?product_id={{ product.id }}" class="action-btn add-cart-btn">
+            🛒 Add to Cart
+        </a>
     </div>
 </div>
 
@@ -290,25 +541,26 @@ function checkAvailability() {
     const resultDiv = document.getElementById('availabilityResult');
     resultDiv.className = 'availability-result';
     resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking availability...';
+    resultDiv.style.display = 'block';
 
     fetch(`{% url 'catalog:check_availability' %}?product_id=${productId}&start_date=${startDate}&end_date=${endDate}&quantity=${quantity}`)
         .then(response => response.json())
         .then(data => {
             if (data.available) {
                 resultDiv.className = 'availability-result success';
-                let html = `<strong><i class="fas fa-check-circle"></i> ${data.message}</strong>`;
+                let html = `<strong>✓ ${data.message}</strong>`;
                 if (data.pricing && data.pricing.daily_price) {
                     html += `<br><small>₹${data.pricing.daily_price} per day × ${data.pricing.duration_days} days = ₹${data.pricing.total_price}</small>`;
                 }
                 resultDiv.innerHTML = html;
             } else {
                 resultDiv.className = 'availability-result error';
-                resultDiv.innerHTML = `<strong><i class="fas fa-times-circle"></i> ${data.message}</strong>`;
+                resultDiv.innerHTML = `<strong>✗ ${data.message}</strong>`;
             }
         })
         .catch(error => {
             resultDiv.className = 'availability-result error';
-            resultDiv.innerHTML = `<strong><i class="fas fa-times-circle"></i> Error checking availability</strong>`;
+            resultDiv.innerHTML = `<strong>✗ Error checking availability</strong>`;
             console.error('Error:', error);
         });
 }
@@ -318,6 +570,21 @@ document.getElementById('checkQuantity').addEventListener('keypress', function(e
     if (e.key === 'Enter') {
         checkAvailability();
     }
+});
+
+// Initialize animations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const sections = document.querySelectorAll('.product-info-section');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            section.style.transition = 'all 0.4s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
 });
 </script>
 {% endblock %}

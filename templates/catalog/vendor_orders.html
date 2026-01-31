@@ -12,8 +12,15 @@
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .page-header {
@@ -21,7 +28,7 @@
         border-radius: 12px;
         padding: 25px 30px;
         margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         color: white;
     }
 
@@ -50,14 +57,14 @@
         background: white;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border-left: 5px solid #17a2b8;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
     .stat-number {
@@ -76,14 +83,21 @@
     .orders-table-wrapper {
         background: white;
         border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         overflow: hidden;
         animation: slideUp 0.5s ease-out;
     }
 
     @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .orders-table {
@@ -159,8 +173,15 @@
     }
 
     @keyframes popIn {
-        0% { transform: scale(0.8); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+        0% {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
     }
 
     .status-badge::before {
@@ -209,8 +230,15 @@
     }
 
     @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
     }
 
     .action-btn {
@@ -247,7 +275,7 @@
         padding: 80px 40px;
         background: white;
         border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         animation: fadeIn 0.5s ease;
     }
 
@@ -355,17 +383,18 @@
                     <td><span class="order-number">{{ order.order_number }}</span></td>
                     <td><span class="customer-name">{{ order.customer.get_full_name }}</span></td>
                     <td><span class="date-cell">{{ order.created_at|date:"d M Y" }}</span></td>
-                    <td><span class="date-cell">{{ order.rental_start_date|date:"d M" }} - {{ order.rental_end_date|date:"d M" }}</span></td>
+                    <td><span class="date-cell">{{ order.rental_start_date|date:"d M" }} - {{
+                            order.rental_end_date|date:"d M" }}</span></td>
                     <td><span class="amount-cell">₹{{ order.total_amount|default:"0" }}</span></td>
                     <td>
                         {% if order.status == 'confirmed' %}
-                            <span class="status-badge status-sale">Sale Order</span>
+                        <span class="status-badge status-sale">Sale Order</span>
                         {% elif order.status == 'pending' %}
-                            <span class="status-badge status-pending">Pending</span>
+                        <span class="status-badge status-pending">Pending</span>
                         {% elif order.status == 'completed' %}
-                            <span class="status-badge status-completed">Completed</span>
+                        <span class="status-badge status-completed">Completed</span>
                         {% else %}
-                            <span class="status-badge status-cancelled">{{ order.status }}</span>
+                        <span class="status-badge status-cancelled">{{ order.status }}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -391,25 +420,25 @@
 </div>
 
 <script>
-// Initialize row animations
-function initializeRowAnimations() {
-    const rows = document.querySelectorAll('.order-row');
-    rows.forEach((row, index) => {
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-20px)';
-        row.style.transition = '';
-        
-        setTimeout(() => {
-            row.style.transition = 'all 0.4s ease';
-            row.style.opacity = '1';
-            row.style.transform = 'translateX(0)';
-        }, index * 50);
-    });
-}
+    // Initialize row animations
+    function initializeRowAnimations() {
+        const rows = document.querySelectorAll('.order-row');
+        rows.forEach((row, index) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
+            row.style.transition = '';
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    initializeRowAnimations();
-});
+            setTimeout(() => {
+                row.style.transition = 'all 0.4s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateX(0)';
+            }, index * 50);
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeRowAnimations();
+    });
 </script>
 {% endblock %}

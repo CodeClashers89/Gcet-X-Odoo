@@ -3,57 +3,383 @@
 {% block title %}Manage Products - Rental ERP{% endblock %}
 
 {% block content %}
-<div style="max-width: 1000px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50; margin: 0;">Manage Products</h1>
-        <a href="{% url 'catalog:vendor_add_product' %}" class="btn btn-primary" style="padding: 10px 20px;">+ Add New Product</a>
+<style>
+    .products-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📦";
+        font-size: 32px;
+    }
+
+    .add-product-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+
+    .add-product-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .products-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .products-table thead {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+    }
+
+    .products-table thead th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .products-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .products-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .products-table tbody td {
+        padding: 20px;
+        vertical-align: middle;
+        color: #555;
+    }
+
+    .product-name {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 15px;
+    }
+
+    .product-name a {
+        color: #3498db;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .product-name a:hover {
+        color: #2980b9;
+        text-decoration: underline;
+    }
+
+    .category-cell {
+        color: #555;
+        font-weight: 500;
+    }
+
+    .price-cell {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 16px;
+    }
+
+    .quantity-cell {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+        animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-published {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-published::before {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    .status-draft {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-draft::before {
+        background-color: #ffc107;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .actions-cell {
+        font-size: 13px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .action-link {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding: 0;
+        font-size: 13px;
+    }
+
+    .action-link:hover {
+        color: #2980b9;
+        text-decoration: underline;
+    }
+
+    .action-link.delete {
+        color: #e74c3c;
+    }
+
+    .action-link.delete:hover {
+        color: #c0392b;
+    }
+
+    .divider {
+        color: #d0d0d0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        animation: fadeIn 0.5s ease;
+    }
+
+    .empty-state-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .empty-state-text {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+        .products-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .products-table {
+            font-size: 12px;
+        }
+
+        .products-table thead th,
+        .products-table tbody td {
+            padding: 12px 10px;
+        }
+
+        .actions-cell {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .add-product-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="products-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>Manage Products</h2>
+        <a href="{% url 'catalog:vendor_add_product' %}" class="add-product-btn">
+            <span>➕</span>
+            <span>Add New Product</span>
+        </a>
     </div>
-    
-    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        {% if products %}
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #ddd;">
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Product Name</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Category</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Daily Price</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Quantity</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Status</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 500; color: #2c3e50;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr style="border-bottom: 1px solid #eee; hover:background: #f9f9f9;">
-                        <td style="padding: 12px;"><a href="{% url 'catalog:product_detail' product.id %}" style="color: #007bff; text-decoration: none;">{{ product.name }}</a></td>
-                        <td style="padding: 12px;">{{ product.category.name }}</td>
-                        <td style="padding: 12px;">₹{{ product.rental_prices.first.price }}</td>
-                        <td style="padding: 12px;">{{ product.quantity_on_hand }}</td>
-                        <td style="padding: 12px;">
-                            {% if product.is_published %}
-                                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Published</span>
-                            {% else %}
-                                <span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Draft</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 12px;">
-                            <a href="{% url 'catalog:product_detail' product.id %}" style="color: #007bff; text-decoration: none; font-size: 12px;">View</a> | 
-                            <a href="{% url 'catalog:vendor_edit_product' product.id %}" style="color: #007bff; text-decoration: none; font-size: 12px;">Edit</a> | 
+
+    <!-- Products Table -->
+    {% if products %}
+    <div class="products-table-wrapper">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Daily Price</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                {% for product in products %}
+                <tr class="product-row" data-product-id="{{ product.id }}">
+                    <td><span class="product-name"><a href="{% url 'catalog:product_detail' product.id %}">{{ product.name }}</a></span></td>
+                    <td><span class="category-cell">{{ product.category.name }}</span></td>
+                    <td><span class="price-cell">₹{{ product.rental_prices.first.price|default:"0" }}</span></td>
+                    <td><span class="quantity-cell">{{ product.quantity_on_hand }}</span></td>
+                    <td>
+                        {% if product.is_published %}
+                            <span class="status-badge status-published">Published</span>
+                        {% else %}
+                            <span class="status-badge status-draft">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'catalog:product_detail' product.id %}" class="action-link">View</a>
+                            <span class="divider">|</span>
+                            <a href="{% url 'catalog:vendor_edit_product' product.id %}" class="action-link">Edit</a>
+                            <span class="divider">|</span>
                             <form method="POST" action="{% url 'catalog:vendor_delete_product' product.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this product?');">
                                 {% csrf_token %}
-                                <button type="submit" style="background: none; border: none; color: #dc3545; text-decoration: none; font-size: 12px; cursor: pointer; padding: 0;">Delete</button>
+                                <button type="submit" class="action-link delete">Delete</button>
                             </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div style="text-align: center; padding: 40px 0;">
-                <p style="color: #999; margin-bottom: 20px;">You haven't added any products yet.</p>
-                <a href="{% url 'catalog:vendor_add_product' %}" class="btn btn-primary" style="padding: 10px 20px;">Add Your First Product</a>
-            </div>
-        {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p class="empty-state-text">You haven't added any products yet.</p>
+        <a href="{% url 'catalog:vendor_add_product' %}" class="add-product-btn">
+            <span>➕</span>
+            <span>Add Your First Product</span>
+        </a>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+// Initialize row animations
+function initializeRowAnimations() {
+    const rows = document.querySelectorAll('.product-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        row.style.transition = '';
+        
+        setTimeout(() => {
+            row.style.transition = 'all 0.4s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateX(0)';
+        }, index * 50);
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRowAnimations();
+});
+</script>
 {% endblock %}

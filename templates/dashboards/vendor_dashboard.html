@@ -3,70 +3,437 @@
 {% block title %}Vendor Dashboard - Rental ERP{% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px;">
-    <h1 style="color: #2c3e50; margin-bottom: 10px;">Vendor Dashboard 📦</h1>
-    <p style="color: #666; margin-bottom: 30px;">Manage your inventory and track earnings</p>
-    
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📦";
+        font-size: 32px;
+    }
+
+    .page-subtitle {
+        margin: 8px 0 0 44px;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .alert-pending {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .alert-pending strong {
+        color: #856404;
+        font-size: 15px;
+    }
+
+    .alert-pending p {
+        margin: 5px 0 0 0;
+        color: #856404;
+        font-size: 14px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid #3498db;
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease-out;
+        animation-fill-mode: backwards;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card:nth-child(1) {
+        animation-delay: 0s;
+        border-left-color: #3498db;
+    }
+
+    .stat-card:nth-child(2) {
+        animation-delay: 0.1s;
+        border-left-color: #27ae60;
+    }
+
+    .stat-card:nth-child(3) {
+        animation-delay: 0.2s;
+        border-left-color: #17a2b8;
+    }
+
+    .stat-card:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #7f8c8d;
+        margin: 0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card.approved {
+        border-left-color: #27ae60;
+    }
+
+    .stat-card.pending {
+        border-left-color: #ffc107;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+    }
+
+    .status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-approved::before {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-pending::before {
+        background-color: #ffc107;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        border-radius: 2px;
+    }
+
+    .actions-section {
+        margin-bottom: 40px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn:active {
+        transform: translateY(0);
+    }
+
+    .action-btn-primary {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+
+    .action-btn-primary:hover {
+        box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+    }
+
+    .action-btn:disabled {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .action-btn:disabled:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(149, 165, 166, 0.3);
+    }
+
+    .orders-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    .orders-content {
+        padding: 40px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .empty-state-text {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .page-subtitle {
+            margin-left: 34px;
+            font-size: 13px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .orders-content {
+            padding: 25px 20px;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>Vendor Dashboard</h2>
+        <p class="page-subtitle">Manage your inventory and track earnings</p>
+    </div>
+
     <!-- Status Alert -->
     {% if not user.vendorprofile.is_approved %}
-        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 30px;">
-            <strong style="color: #856404;">⏳ Pending Approval</strong>
-            <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">Your vendor account is awaiting admin approval. You will be able to list products once approved.</p>
+        <div class="alert-pending">
+            <strong>⏳ Pending Approval</strong>
+            <p>Your vendor account is awaiting admin approval. You will be able to list products once approved.</p>
         </div>
     {% endif %}
-    
+
     <!-- Stats Section -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    <div class="stats-grid">
         <!-- Active Listings -->
-        <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-            <h3 style="color: #17a2b8; margin: 0; font-size: 24px; margin-bottom: 5px;">0</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Active Listings</p>
+        <div class="stat-card">
+            <h3 class="stat-value">0</h3>
+            <p class="stat-label">Active Listings</p>
         </div>
         
         <!-- Total Rentals -->
-        <div style="background: #d4edda; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
-            <h3 style="color: #28a745; margin: 0; font-size: 24px; margin-bottom: 5px;">0</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Total Rentals</p>
+        <div class="stat-card">
+            <h3 class="stat-value">0</h3>
+            <p class="stat-label">Total Rentals</p>
         </div>
         
         <!-- Total Revenue -->
-        <div style="background: #d1ecf1; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-            <h3 style="color: #17a2b8; margin: 0; font-size: 24px; margin-bottom: 5px;">₹0</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Total Revenue</p>
+        <div class="stat-card">
+            <h3 class="stat-value" style="color: #27ae60;">₹0</h3>
+            <p class="stat-label">Total Revenue</p>
         </div>
         
         <!-- Approval Status -->
-        <div style="background: {% if user.vendorprofile.is_approved %}#d4edda{% else %}#fff3cd{% endif %}; padding: 20px; border-radius: 8px; border-left: 4px solid {% if user.vendorprofile.is_approved %}#28a745{% else %}#ffc107{% endif %};">
-            <h3 style="color: {% if user.vendorprofile.is_approved %}#28a745{% else %}#ffc107{% endif %}; margin: 0; font-size: 14px; margin-bottom: 5px;">
-                {% if user.vendorprofile.is_approved %}Approved{% else %}Pending{% endif %}
-            </h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Approval Status</p>
+        <div class="stat-card {% if user.vendorprofile.is_approved %}approved{% else %}pending{% endif %}">
+            <div>
+                {% if user.vendorprofile.is_approved %}
+                    <span class="status-badge status-approved">Approved</span>
+                {% else %}
+                    <span class="status-badge status-pending">Pending</span>
+                {% endif %}
+            </div>
+            <p class="stat-label" style="margin-top: 8px;">Approval Status</p>
         </div>
     </div>
-    
+
     <!-- Quick Actions -->
-    <div style="margin-bottom: 40px;">
-        <h2 style="color: #2c3e50; margin-bottom: 15px;">Quick Actions</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+    <div class="actions-section">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="actions-grid">
             {% if user.vendorprofile.is_approved %}
-                <a href="{% url 'catalog:vendor_add_product' %}" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Add Product</a>
-                <a href="{% url 'rentals:vendor_query_list' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Queries</a>
-                <a href="{% url 'catalog:vendor_view_orders' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Orders</a>
-                <a href="{% url 'catalog:vendor_manage_products' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Manage Products</a>
+                <a href="{% url 'catalog:vendor_add_product' %}" class="action-btn action-btn-primary">
+                    ➕ Add Product
+                </a>
+                <a href="{% url 'rentals:vendor_query_list' %}" class="action-btn">
+                    📋 View Queries
+                </a>
+                <a href="{% url 'catalog:vendor_view_orders' %}" class="action-btn">
+                    📦 View Orders
+                </a>
+                <a href="{% url 'catalog:vendor_manage_products' %}" class="action-btn">
+                    🛠️ Manage Products
+                </a>
             {% else %}
-                <button class="btn btn-primary" disabled style="padding: 12px; text-align: center; display: block; cursor: not-allowed; opacity: 0.6;">Add Product (Pending Approval)</button>
+                <button class="action-btn action-btn-primary" disabled>
+                    ➕ Add Product (Pending Approval)
+                </button>
             {% endif %}
-            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">My Profile</a>
-            <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Change Password</a>
+            <a href="{% url 'accounts:profile' %}" class="action-btn">
+                👤 My Profile
+            </a>
+            <a href="{% url 'accounts:change_password' %}" class="action-btn">
+                🔒 Change Password
+            </a>
         </div>
     </div>
-    
+
     <!-- Recent Orders -->
     <div>
-        <h2 style="color: #2c3e50; margin-bottom: 15px;">Recent Orders</h2>
-        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <p style="text-align: center; color: #999; padding: 40px 0;">No orders yet. Start listing products to get rental requests from customers!</p>
+        <h2 class="section-title">Recent Orders</h2>
+        <div class="orders-wrapper">
+            <div class="orders-content">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p class="empty-state-text">No orders yet. Start listing products to get rental requests from customers!</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// Initialize animations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach((btn, index) => {
+        btn.style.opacity = '0';
+        btn.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            btn.style.transition = 'all 0.4s ease';
+            btn.style.opacity = '1';
+            btn.style.transform = 'translateY(0)';
+        }, index * 50);
+    });
+});
+</script>
 {% endblock %}
