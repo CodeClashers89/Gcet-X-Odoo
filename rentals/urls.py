@@ -21,7 +21,7 @@ urlpatterns = [
     path('order/<int:order_id>/pickup/complete/', views.complete_pickup, name='complete_pickup'),
     
     # Return URLs
-    path('order/<int:order_id>/return/schedule/', views.schedule_return, name='schedule_return'),
+    path('order/<int:order_id>/pay-balance/', views.pay_order_balance, name='pay_order_balance'),
     path('order/<int:order_id>/return/complete/', views.complete_return, name='complete_return'),
     
     # Approval URLs (Phase 8)

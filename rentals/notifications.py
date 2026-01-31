@@ -46,6 +46,8 @@ class NotificationService:
             
             email.send(fail_silently=False)
             logger.info(f"Email sent to {recipient_email}: {subject}")
+            if settings.DEBUG:
+                print(f"DEBUG: Email successfully sent to {recipient_email}")
             return True
         except Exception as e:
             logger.error(f"Failed to send email to {recipient_email}: {str(e)}")
@@ -155,7 +157,7 @@ class RentalWorkflowNotifications:
         """Notify customer that quotation is ready"""
         context = {
             'customer_name': quotation.customer.get_full_name(),
-            'vendor_name': quotation.quotation.vendor.get_full_name() if hasattr(quotation, 'quotation') else 'Vendor',
+            'vendor_name': quotation.quotation_lines.first().product.vendor.get_full_name() if quotation.quotation_lines.exists() else 'Vendor',
             'quotation_number': quotation.quotation_number,
             'total_amount': quotation.total_amount,
             'valid_until': quotation.valid_until,
@@ -181,8 +183,15 @@ class RentalWorkflowNotifications:
     @staticmethod
     def notify_vendor_quotation_accepted(quotation):
         """Notify vendor that customer accepted quotation"""
+        first_line = quotation.quotation_lines.first()
+        vendor = first_line.product.vendor if first_line else None
+        
+        if not vendor:
+            logger.error(f"Cannot notify vendor for quotation {quotation.quotation_number}: No vendor found in lines")
+            return
+            
         context = {
-            'vendor_name': quotation.customer.vendorprofile.company_name if hasattr(quotation.customer, 'vendorprofile') else 'Vendor',
+            'vendor_name': vendor.get_full_name(),
             'customer_name': quotation.customer.get_full_name(),
             'quotation_number': quotation.quotation_number,
             'total_amount': quotation.total_amount,
@@ -190,7 +199,7 @@ class RentalWorkflowNotifications:
         
         NotificationService.send_email(
             subject=f'Quotation Accepted - {quotation.quotation_number}',
-            recipient_email=quotation.customer.email,
+            recipient_email=vendor.email,
             template_name='rentals/emails/vendor_quotation_accepted.html',
             context=context
         )

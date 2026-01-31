@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
@@ -221,7 +222,7 @@ def quotation_detail(request, pk):
                             status='confirmed',
                             delivery_address=form.cleaned_data['delivery_address'],
                             billing_address=form.cleaned_data['billing_address'],
-                            deposit_amount=form.cleaned_data.get('deposit_amount') or 0,
+                            deposit_amount=Decimal('0.00'),
                             advance_payment_percentage=quotation.advance_payment_percentage,
                             advance_payment_amount=quotation.advance_payment_amount,
                         )
@@ -254,6 +255,52 @@ def quotation_detail(request, pk):
                         # Calculate totals
                         rental_order.calculate_totals()
                         
+                        # Handle Advance Payment (Invoice + Payment)
+                        if rental_order.advance_payment_amount > 0:
+                            # 1. Create Invoice for Advance
+                            invoice = Invoice.objects.create(
+                                invoice_number=f"INV-ADV-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                                rental_order=rental_order,
+                                customer=rental_order.customer,
+                                vendor=rental_order.vendor,
+                                status='paid',
+                                invoice_date=timezone.now().date(),
+                                due_date=timezone.now().date(),
+                                payment_terms='immediate',
+                                billing_name=rental_order.customer.get_full_name(),
+                                billing_gstin=rental_order.customer.customerprofile.gstin if hasattr(rental_order.customer, 'customerprofile') else '',
+                                billing_address=rental_order.billing_address,
+                                subtotal=rental_order.advance_payment_amount,
+                                total=rental_order.advance_payment_amount,
+                                paid_amount=rental_order.advance_payment_amount,
+                                balance_due=Decimal('0.00'),
+                            )
+                            
+                            # 2. Create Payment Record (Success)
+                            from billing.models import Payment
+                            Payment.objects.create(
+                                payment_number=f"PAY-ADV-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                                invoice=invoice,
+                                customer=rental_order.customer,
+                                amount=rental_order.advance_payment_amount,
+                                payment_method='upi', # Default to UPI for auto-collection demo
+                                payment_status='success',
+                                payment_date=timezone.now(),
+                                notes="Advance payment collected on quotation acceptance"
+                            )
+                            
+                            # Update Order Paid Amount
+                            rental_order.paid_amount = rental_order.advance_payment_amount
+                            rental_order.save()
+
+                            # Notify customer about invoice
+                            from rentals.notifications import notify_invoice_stage
+                            notify_invoice_stage(invoice)
+                            
+                            messages.success(request, f'Advance payment of ₹{rental_order.advance_payment_amount} recorded. Quotation accepted.')
+                        else:
+                            messages.success(request, 'Quotation accepted and order created.')
+
                         # Update quotation status
                         quotation.status = 'confirmed'
                         quotation.confirmed_at = timezone.now()
@@ -581,28 +628,16 @@ def complete_pickup(request, order_id):
                 
                 messages.success(request, 'Pickup recorded')
                 
-                # ERP Transition: Change order status to 'in_progress'
-                old_status = order.status
-                order.status = 'in_progress'
-                order.save()
-                
-                # ERP Transition: Change reservation status to 'active'
-                Reservation.objects.filter(
-                    rental_order_line__rental_order=order,
-                    status='confirmed'
-                ).update(status='active')
-                
-                AuditLog.log_action(
-                    user=request.user,
-                    action_type='state_change',
-                    model_instance=order,
-                    field_name='status',
-                    old_value=old_status,
-                    new_value='in_progress',
-                    description=f'Order fulfillment started. Items picked up.',
-                    request=request,
-                )
-                
+                # ERP Transition: Create Return Record automatically
+                from rentals.models import Return
+                if not hasattr(order, 'return_doc'):
+                    Return.objects.create(
+                        rental_order=order,
+                        return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                        scheduled_return_date=order.rental_end_date,
+                        status='pending'
+                    )
+
                 return redirect('rentals:order_detail', pk=order.id)
         
         except Exception as e:
@@ -615,52 +650,88 @@ def complete_pickup(request, order_id):
 
 
 @login_required
-@require_http_methods(["GET", "POST"])
-def schedule_return(request, order_id):
+@require_http_methods(["POST"])
+def pay_order_balance(request, order_id):
     """
-    Schedule return of rental items.
-    Business Use: Plan item collection after rental period.
+    Simulate payment of the remaining balance for an order.
+    Business Use: Allow customer to clear dues before/after return.
     """
     order = get_object_or_404(RentalOrder, pk=order_id)
     
-    if request.user != order.vendor:
-        return HttpResponseForbidden('Only vendor can schedule returns.')
+    if request.user != order.customer:
+        return HttpResponseForbidden('Only the customer can pay the balance.')
     
-    if request.method == 'POST':
-        form = ReturnScheduleForm(request.POST)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    return_record = Return.objects.create(
-                        rental_order=order,
-                        return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                        scheduled_return_date=form.cleaned_data['scheduled_return_date'],
-                    )
-                    
-                    AuditLog.log_action(
-                        user=request.user,
-                        action_type='create',
-                        model_instance=return_record,
-                        description=f'Return scheduled: {return_record.return_number}',
-                        request=request,
-                    )
-                    
-                    messages.success(request, 'Return scheduled successfully')
-                    return redirect('rentals:order_detail', pk=order.id)
+    balance = order.total - order.paid_amount
+    if balance <= 0:
+        messages.info(request, 'This order is already fully paid.')
+        return redirect('rentals:order_detail', pk=order.id)
+    
+    try:
+        from billing.models import Invoice, Payment
+        with transaction.atomic():
+            # 1. Ensure an invoice exists
+            invoice = order.invoices.first()
+            if not invoice:
+                # Create invoice if missing (should not happen in normal flow)
+                invoice = Invoice.objects.create(
+                    invoice_number=f"INV-GEN-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    rental_order=order,
+                    customer=order.customer,
+                    vendor=order.vendor,
+                    status='draft',
+                    invoice_date=timezone.now().date(),
+                    due_date=timezone.now().date(),
+                    payment_terms='immediate',
+                    billing_name=order.customer.get_full_name(),
+                    billing_address=order.billing_address,
+                    subtotal=order.subtotal,
+                    total=order.total,
+                )
             
-            except Exception as e:
-                messages.error(request, f'Failed to schedule return: {str(e)}')
-    else:
-        form = ReturnScheduleForm()
-    
-    return render(request, 'rentals/schedule_return.html', {
-        'order': order,
-        'form': form,
-    })
+            # 2. Record payment
+            Payment.objects.create(
+                payment_number=f"PAY-FULL-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                invoice=invoice,
+                customer=order.customer,
+                amount=balance,
+                payment_method='upi',
+                payment_status='success',
+                payment_date=timezone.now(),
+                notes="Remaining balance paid by customer"
+            )
+            
+            # 3. Synchronize Invoice
+            invoice.paid_amount += balance
+            invoice.balance_due = Decimal('0.00')
+            invoice.status = 'paid'
+            invoice.paid_at = timezone.now()
+            invoice.save()
+            
+            # 4. Synchronize Order
+            order.paid_amount += balance
+            order.save()
+            
+            AuditLog.log_action(
+                user=request.user,
+                action_type='create',
+                model_instance=order,
+                description=f'Full balance of ₹{balance} paid by customer',
+                request=request,
+            )
+            
+            messages.success(request, f'Payment of ₹{balance} successful. Order follows balance: ₹0.00')
+            
+    except Exception as e:
+        messages.error(request, f'Payment failed: {str(e)}')
+        
+    return redirect('rentals:order_detail', pk=order.id)
+
+
+# View removed, returns are now automatically scheduled upon pickup completion.
 
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def complete_return(request, order_id):
     """
     Record return completion with damage assessment.
@@ -671,63 +742,68 @@ def complete_return(request, order_id):
     if request.user != order.vendor:
         return HttpResponseForbidden('Only vendor can complete returns.')
     
-    form = ReturnCompletionForm(request.POST)
-    if form.is_valid():
-        try:
-            with transaction.atomic():
-                return_record = order.return_doc if hasattr(order, 'return_doc') else None
-                if not return_record:
-                    return_record = Return.objects.create(
-                        rental_order=order,
-                        return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+    if request.method == 'POST':
+        form = ReturnCompletionForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    return_record = order.return_doc if hasattr(order, 'return_doc') else None
+                    if not return_record:
+                        return_record = Return.objects.create(
+                            rental_order=order,
+                            return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                        )
+                    
+                    return_record.actual_return_date = form.cleaned_data['actual_return_date']
+                    return_record.all_items_returned = form.cleaned_data.get('all_items_returned', False)
+                    return_record.items_damaged = form.cleaned_data.get('items_damaged', False)
+                    return_record.damage_description = form.cleaned_data.get('damage_description', '')
+                    return_record.damage_cost = form.cleaned_data.get('damage_cost') or 0
+                    
+                    # Calculate late fees
+                    for order_line in order.order_lines.all():
+                        if return_record.actual_return_date > order_line.rental_end_date:
+                            order_line.is_late_return = True
+                            order_line.late_days = (return_record.actual_return_date - order_line.rental_end_date).days
+                            order_line.calculate_late_fee()
+                            order_line.save()
+                    
+                    return_record.save()
+                    order.calculate_totals()
+                    
+                    # Complete reservations
+                    Reservation.objects.filter(
+                        rental_order_line__rental_order=order,
+                        status__in=['confirmed', 'active']
+                    ).update(status='completed')
+                    
+                    messages.success(request, 'Return recorded and late fees calculated')
+                    
+                    # ERP Transition: Change order status to 'completed'
+                    old_status = order.status
+                    order.status = 'completed'
+                    order.completed_at = timezone.now()
+                    order.save()
+                    
+                    AuditLog.log_action(
+                        user=request.user,
+                        action_type='state_change',
+                        model_instance=order,
+                        field_name='status',
+                        old_value=old_status,
+                        new_value='completed',
+                        description=f'Order completed. Items returned and assessed.',
+                        request=request,
                     )
-                
-                return_record.actual_return_date = form.cleaned_data['actual_return_date']
-                return_record.all_items_returned = form.cleaned_data.get('all_items_returned', False)
-                return_record.items_damaged = form.cleaned_data.get('items_damaged', False)
-                return_record.damage_description = form.cleaned_data.get('damage_description', '')
-                return_record.damage_cost = form.cleaned_data.get('damage_cost') or 0
-                
-                # Calculate late fees
-                for order_line in order.order_lines.all():
-                    if return_record.actual_return_date > order_line.rental_end_date:
-                        order_line.is_late_return = True
-                        order_line.late_days = (return_record.actual_return_date - order_line.rental_end_date).days
-                        order_line.calculate_late_fee()
-                        order_line.save()
-                
-                return_record.save()
-                order.calculate_totals()
-                
-                # Complete reservations
-                Reservation.objects.filter(
-                    rental_order_line__rental_order=order,
-                    status__in=['confirmed', 'active']
-                ).update(status='completed')
-                
-                messages.success(request, 'Return recorded and late fees calculated')
-                
-                # ERP Transition: Change order status to 'completed'
-                old_status = order.status
-                order.status = 'completed'
-                order.completed_at = timezone.now()
-                order.save()
-                
-                AuditLog.log_action(
-                    user=request.user,
-                    action_type='state_change',
-                    model_instance=order,
-                    field_name='status',
-                    old_value=old_status,
-                    new_value='completed',
-                    description=f'Order completed. Items returned and assessed.',
-                    request=request,
-                )
-                
-                return redirect('rentals:order_detail', pk=order.id)
-        
-        except Exception as e:
-            messages.error(request, f'Failed to complete return: {str(e)}')
+                    
+                    return redirect('rentals:order_detail', pk=order.id)
+            
+            except Exception as e:
+                messages.error(request, f'Failed to complete return: {str(e)}')
+    
+    else:
+        # GET request: Show form with current time as default
+        form = ReturnCompletionForm(initial={'actual_return_date': timezone.now()})
     
     return render(request, 'rentals/complete_return.html', {
         'order': order,

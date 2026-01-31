@@ -226,6 +226,11 @@ class Invoice(models.Model):
         default=Decimal('0.00'),
         help_text="Final invoice total (subtotal - discount + tax + fees)"
     )
+
+    @property
+    def total_amount(self):
+        """Property alias for backward compatibility with notifications/templates"""
+        return self.total
     
     # Payment tracking
     paid_amount = models.DecimalField(

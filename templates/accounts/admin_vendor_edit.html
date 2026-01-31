@@ -303,6 +303,7 @@
                 <div class="form-group">
                     <label class="form-label">GSTIN</label>
                     {{ form.gstin }}
+                    <div id="gstin-status" data-verify-url="{% url 'accounts:verify_gstin_ajax' %}" style="margin-top: 8px; font-size: 13px;"></div>
                     <small class="help-text">Leave blank to keep current value</small>
                     {% if form.gstin.errors %}
                         <span class="form-error">{{ form.gstin.errors.0 }}</span>
@@ -361,4 +362,8 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/accounts/gstin-validation.js' %}"></script>
 {% endblock %}

@@ -186,31 +186,26 @@ def generate_rental_document(document_obj, doc_type='quotation'):
     
     # --- SUMMARY SECTION ---
     summary_data = [
-        ["", "", "", "<b>Subtotal:</b>", f"Rs. {document_obj.subtotal:,.2f}"],
-        ["", "", "", "<b>Discount:</b>", f"(Rs. {document_obj.discount_amount:,.2f})"],
-        ["", "", "", "<b>GST Total:</b>", f"Rs. {document_obj.tax_amount:,.2f}"],
+        ["", "", "", Paragraph("<b>Subtotal:</b>", styles['Normal']), f"Rs. {document_obj.subtotal:,.2f}"],
+        ["", "", "", Paragraph("<b>Discount:</b>", styles['Normal']), f"(Rs. {document_obj.discount_amount:,.2f})"],
+        ["", "", "", Paragraph("<b>GST Total:</b>", styles['Normal']), f"Rs. {document_obj.tax_amount:,.2f}"],
     ]
     
     if hasattr(document_obj, 'late_fee') and document_obj.late_fee > 0:
-        summary_data.append(["", "", "", "<b>Late Fees:</b>", f"Rs. {document_obj.late_fee:,.2f}"])
+        summary_data.append(["", "", "", Paragraph("<b>Late Fees:</b>", styles['Normal']), f"Rs. {document_obj.late_fee:,.2f}"])
         
     total_val = getattr(document_obj, 'total', getattr(document_obj, 'total_amount', Decimal('0.00')))
-    summary_data.append(["", "", "", "<b>Total Amount:</b>", f"<b>Rs. {total_val:,.2f}</b>"])
+    summary_data.append(["", "", "", Paragraph("<b>Total Amount:</b>", styles['Normal']), Paragraph(f"<b>Rs. {total_val:,.2f}</b>", styles['Normal'])])
     
     if hasattr(document_obj, 'advance_payment_amount') and document_obj.advance_payment_amount > 0:
         pct = document_obj.advance_payment_percentage
-        summary_data.append(["", "", "", f"<b>Advance Required ({pct}%):</b>", f"<b>Rs. {document_obj.advance_payment_amount:,.2f}</b>"])
+        summary_data.append(["", "", "", Paragraph(f"<b>Advance Required ({pct}%):</b>", styles['Normal']), Paragraph(f"<b>Rs. {document_obj.advance_payment_amount:,.2f}</b>", styles['Normal'])])
 
-    summary_table = Table(summary_data, colWidths=[6*cm, 5*cm, 1.5*cm, 3.5*cm, 1.5*cm])
+    summary_table = Table(summary_data, colWidths=[6*cm, 4*cm, 1.5*cm, 3.5*cm, 2*cm])
     summary_table.setStyle(TableStyle([
         ('ALIGN', (-2,0), (-1,-1), 'RIGHT'),
         ('FONTSIZE', (-2,0), (-1,-1), 10),
         ('TOPPADDING', (-2,-1), (-1,-1), 10),
-    ]))
-    # Adjust total colWidths if needed - wait, reportlab might need help
-    summary_table = Table(summary_data, colWidths=[6*cm, 5*cm, 1.5*cm, 3.5*cm, 3*cm])
-    summary_table.setStyle(TableStyle([
-         ('ALIGN', (-2,0), (-1,-1), 'RIGHT'),
     ]))
     elements.append(summary_table)
 

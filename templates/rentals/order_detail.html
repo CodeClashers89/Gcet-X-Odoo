@@ -383,10 +383,6 @@
         {% elif order.status == 'cancelled' %}
             <span class="order-status-badge status-cancelled">Cancelled</span>
         {% endif %}
-        
-        <a href="{% url 'rentals:download_order_pdf' order.id %}" class="btn btn-outline-light btn-sm ms-3">
-            <i class="fas fa-file-pdf"></i> Download PDF
-        </a>
     </div>
 
     {% if messages %}
@@ -396,6 +392,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         {% endfor %}
+    {% endif %}
+
+    {% if order.balance > 0 %}
+        {% if order.status == 'completed' %}
+            <div class="alert alert-danger" role="alert" style="border-radius: 12px; border: none; background: #fee2e2; color: #991b1b; padding: 15px; margin-bottom: 25px;">
+                <i class="fas fa-exclamation-triangle mr-2"></i> <strong>Payment Required:</strong> This order is completed, but a balance of <strong>₹{{ order.balance|floatformat:2 }}</strong> is still outstanding. Please clear it as soon as possible.
+            </div>
+        {% elif order.status == 'in_progress' %}
+            <div class="alert alert-warning" role="alert" style="border-radius: 12px; border: none; background: #fef3c7; color: #92400e; padding: 15px; margin-bottom: 25px;">
+                <i class="fas fa-clock mr-2"></i> <strong>Friendly Reminder:</strong> Your rental is currently active. Don't forget to pay the remaining balance of <strong>₹{{ order.balance|floatformat:2 }}</strong> before the return date.
+            </div>
+        {% endif %}
     {% endif %}
 
     <div class="detail-layout">
@@ -539,6 +547,31 @@
                 </div>
             </div>
 
+            <!-- Payment Summary -->
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Payment Status</h5>
+                </div>
+                <div class="card-modern-body">
+                    <div class="pricing-summary">
+                        <div class="pricing-row">
+                            <span class="pricing-label">Total Amount:</span>
+                            <span class="pricing-value" style="font-weight: 600;">₹{{ order.total|floatformat:2 }}</span>
+                        </div>
+                        <div class="pricing-row">
+                            <span class="pricing-label">Total Paid:</span>
+                            <span class="pricing-value" style="color: #27ae60; font-weight: 600;">₹{{ order.paid_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="pricing-row total" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e0e0e0;">
+                            <span class="pricing-label">Balance Due:</span>
+                            <span class="pricing-value {% if order.balance > 0 %}text-danger{% else %}text-success{% endif %}" style="font-weight: 800;">
+                                ₹{{ order.balance|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pickup & Return Status -->
             <div class="card-modern">
                 <div class="card-modern-header">
@@ -618,12 +651,12 @@
                         {% endif %}
 
                         {% if order.status == 'in_progress' %}
-                        <a href="{% url 'rentals:schedule_return' order.id %}" class="action-btn">
-                            📅 Schedule Return
+                        <a href="{% url 'rentals:complete_return' order.id %}" class="action-btn primary">
+                            ✓ Complete Return
                         </a>
                         {% endif %}
 
-                        {% if order.status == 'in_progress' or order.status == 'confirmed' %}
+                        {% if order.status == 'confirmed' %}
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="complete">
@@ -640,13 +673,44 @@
                         </div>
                     {% endif %}
 
+
+                    {% if user == order.customer %}
+                        {% if order.balance > 0 %}
+                        <form action="{% url 'rentals:pay_order_balance' order.id %}" method="post" class="mb-3">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn success" style="background: #27ae60; color: white;">
+                                <i class="fas fa-credit-card mr-2"></i> Pay Remaining Balance (₹{{ order.balance|floatformat:2 }})
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+
                     {% if invoice %}
                     <div style="margin: 20px 0; padding: 15px 0; border-top: 1px solid #e0e0e0;">
                         <div style="font-weight: 600; margin-bottom: 8px;">Invoice</div>
                         <div style="font-size: 13px; color: #7f8c8d;">{{ invoice.invoice_number }}</div>
                         <div style="font-size: 18px; font-weight: 700; color: #27ae60; margin-top: 8px;">₹{{ invoice.total|floatformat:2 }}</div>
+                        <a href="{% url 'billing:download_pdf' invoice.id %}" class="action-btn" style="background: #34495e; color: white; margin-top: 10px; display: inline-block; width: auto; font-size: 0.9em;">
+                            <i class="fas fa-file-invoice mr-2"></i> Download Invoice
+                        </a>
+                    </div>
+                    {% elif user == order.vendor or user.is_staff %}
+                    <div style="margin: 20px 0; padding: 15px 0; border-top: 1px solid #e0e0e0;">
+                        <div style="font-weight: 600; margin-bottom: 8px;">Billing</div>
+                        <p class="text-muted small">No invoice generated yet.</p>
+                        <form action="{% url 'billing:generate_invoice' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="rental_order_id" value="{{ order.id }}">
+                            <button type="submit" class="action-btn secondary" style="font-size: 0.9em;">
+                                <i class="fas fa-magic mr-2"></i> Generate Invoice
+                            </button>
+                        </form>
                     </div>
                     {% endif %}
+
+                    <a href="{% url 'rentals:download_order_pdf' order.id %}" class="action-btn" style="background: #ecf0f1; color: #2c3e50;">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
 
                     <a href="{% url 'rentals:order_list' %}" class="action-btn secondary">
                         ← Back to Orders

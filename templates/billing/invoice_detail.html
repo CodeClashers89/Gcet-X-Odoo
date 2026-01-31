@@ -383,8 +383,8 @@
                     <h5 class="card-title mb-0">Actions</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'billing:download_pdf' invoice.id %}" class="btn btn-secondary btn-sm w-100 mb-2" target="_blank">
-                        <i class="fas fa-download"></i> Download PDF
+                    <a href="{% url 'billing:download_pdf' invoice.id %}" class="action-btn" style="background: #ecf0f1; color: #2c3e50;" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
 
                     {% if invoice.status == 'draft' and user == invoice.vendor or user.is_staff %}

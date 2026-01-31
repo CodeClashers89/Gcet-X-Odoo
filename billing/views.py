@@ -95,10 +95,10 @@ def invoice_detail(request, pk):
 
 @login_required
 @require_http_methods(["POST"])
-def generate_invoice_ajax(request):
+def generate_invoice(request):
     """
-    AJAX endpoint to generate invoice from rental order.
-    Business Use: When order is completed, auto-generate invoice with all line items.
+    Endpoint to generate invoice from rental order.
+    Business Use: When order is confirmed/completed, generate invoice.
     
     POST Parameters:
     - rental_order_id: RentalOrder ID to generate invoice for
@@ -109,22 +109,33 @@ def generate_invoice_ajax(request):
     try:
         order_id = request.POST.get('rental_order_id')
         if not order_id:
-            return JsonResponse({'error': 'Missing rental_order_id'}, status=400)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Missing rental_order_id'}, status=400)
+            else:
+                messages.error(request, 'Missing Order ID')
+                return redirect('rentals:order_list')
         
         order = get_object_or_404(RentalOrder, pk=order_id)
         
         # Permission check - only vendor or admin can generate invoice
         if request.user != order.vendor and not request.user.is_staff:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Permission denied'}, status=403)
+            else:
+                return HttpResponseForbidden('Permission denied')
         
         # Check if invoice already exists
         existing_invoice = Invoice.objects.filter(rental_order=order).first()
         if existing_invoice:
-            return JsonResponse({
-                'success': True,
-                'invoice_id': existing_invoice.id,
-                'message': 'Invoice already exists'
-            })
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'invoice_id': existing_invoice.id,
+                    'message': 'Invoice already exists'
+                })
+            else:
+                messages.info(request, 'Invoice already exists.')
+                return redirect('rentals:order_detail', pk=order.id)
         
         with transaction.atomic():
             # Create invoice
@@ -203,17 +214,25 @@ def generate_invoice_ajax(request):
                 ip_address=get_client_ip(request),
             )
             
-            return JsonResponse({
-                'success': True,
-                'invoice_id': invoice.id,
-                'message': 'Invoice generated successfully'
-            })
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'invoice_id': invoice.id,
+                    'message': 'Invoice generated successfully'
+                })
+            else:
+                messages.success(request, 'Invoice generated successfully.')
+                return redirect('rentals:order_detail', pk=order.id)
     
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=400)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+        else:
+            messages.error(request, f'Failed to generate invoice: {str(e)}')
+            return redirect('rentals:order_detail', pk=order_id) if order_id else redirect('rentals:order_list')
 
 
 @login_required
@@ -305,9 +324,13 @@ def record_payment(request, pk):
     
     invoice = get_object_or_404(Invoice, pk=pk)
     
-    # Permission check - only vendor or admin
-    if request.user != invoice.vendor and not request.user.is_staff:
+    # Permission check - Customer can pay their own, Vendor/Admin can record any
+    if request.user.role == 'customer' and invoice.customer != request.user:
+        return HttpResponseForbidden('You do not have permission to pay this invoice.')
+    elif request.user.role == 'vendor' and invoice.vendor != request.user and not request.user.is_staff:
         return HttpResponseForbidden('You do not have permission to record payments for this invoice.')
+    elif not request.user.is_staff and request.user.role not in ['customer', 'vendor']:
+        return HttpResponseForbidden('Access denied.')
     
     try:
         amount = Decimal(request.POST.get('amount', 0))
@@ -350,6 +373,12 @@ def record_payment(request, pk):
                 invoice.status = 'partial'
             
             invoice.save()
+            
+            # Sync with Rental Order
+            if invoice.rental_order:
+                order = invoice.rental_order
+                order.paid_amount += amount
+                order.save()
             
             # Log action
             AuditLog.log_action(

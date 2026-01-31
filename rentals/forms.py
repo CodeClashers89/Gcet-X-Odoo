@@ -225,18 +225,6 @@ class ConfirmQuotationForm(forms.Form):
     Business Use: Convert quotation to rental order.
     """
     
-    deposit_amount = forms.DecimalField(
-        min_value=0,
-        decimal_places=2,
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'step': '0.01',
-            'placeholder': '0.00'
-        }),
-        label='Deposit Amount (if applicable)'
-    )
-    
     delivery_address = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',

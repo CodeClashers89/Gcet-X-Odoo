@@ -56,39 +56,68 @@ def verify_gstin_with_appyflow(gstin):
         
         if not config.enable_gstin_verification or not config.appyflow_api_key:
             # Fallback to format validation only
-            return True, "GSTIN format is valid (verification disabled)"
+            return True, "GSTIN format is valid (verification disabled)", {}
         
         # Call AppyFlow GSTIN verification API
-        # Note: This is a placeholder. Actual API details from AppyFlow documentation
-        api_url = "https://api.appyflow.in/v1/gstin/verify"
-        headers = {
-            'Authorization': f'Bearer {config.appyflow_api_key}',
-            'Content-Type': 'application/json'
+        api_url = "https://appyflow.in/api/verifyGST"
+        params = {
+            "gstNo": gstin,
+            "key_secret": config.appyflow_api_key
         }
-        payload = {'gstin': gstin}
         
-        response = requests.post(api_url, json=payload, headers=headers, timeout=10)
+        response = requests.get(api_url, params=params, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
-            if data.get('valid'):
-                company_name = data.get('legal_name', 'N/A')
-                return True, company_name
+            
+            # Check for error in response
+            if data.get('error'):
+                return False, data.get('message', 'GSTIN validation failed'), {}
+                
+            taxpayer_info = data.get('taxpayerInfo', {})
+            
+            if taxpayer_info:
+                # Extract details
+                trade_name = taxpayer_info.get('tradeNam', '')
+                legal_name = taxpayer_info.get('lgnm', '')
+                company_name = trade_name if trade_name else legal_name
+                
+                # Extract address
+                addr_obj = taxpayer_info.get('pradr', {}).get('addr', {})
+                
+                # Construct address parts
+                bno = addr_obj.get('bno', '')
+                st = addr_obj.get('st', '')
+                loc = addr_obj.get('loc', '')
+                dst = addr_obj.get('dst', '')
+                
+                address_parts = [part for part in [bno, st, loc, dst] if part]
+                business_address = ", ".join(address_parts)
+                
+                details = {
+                    'company_name': company_name,
+                    'business_address': business_address,
+                    'state': addr_obj.get('stcd', ''), # State Code (might need mapping or raw) - usually string name in some APIs, verify if code
+                    'city': dst, # District as City
+                    'pincode': addr_obj.get('pncd', '')
+                }
+                
+                return True, company_name, details
             else:
-                return False, data.get('message', 'GSTIN not found')
+                return False, "GSTIN not found", {}
         elif response.status_code == 401:
-            return False, "API authentication failed"
+            return False, "API authentication failed", {}
         elif response.status_code == 404:
-            return False, "GSTIN not found in government database"
+            return False, "GSTIN not found", {}
         else:
-            return False, f"Verification service error ({response.status_code})"
+            return False, f"Verification service error ({response.status_code})", {}
     
     except requests.exceptions.Timeout:
-        return False, "GSTIN verification service is slow. Please try again."
+        return False, "GSTIN verification service is slow. Please try again.", {}
     except requests.exceptions.ConnectionError:
-        return False, "Unable to connect to GSTIN verification service."
+        return False, "Unable to connect to GSTIN verification service.", {}
     except Exception as e:
-        return False, f"Verification error: {str(e)}"
+        return False, f"Verification error: {str(e)}", {}
 
 
 def send_email_verification(user, request):
@@ -737,13 +766,18 @@ def verify_gstin_ajax(request):
             'message': 'GSTIN must be 15 characters'
         })
     
-    is_valid, result = verify_gstin_with_appyflow(gstin)
+    is_valid, result, details = verify_gstin_with_appyflow(gstin)
     
-    return JsonResponse({
+    response_data = {
         'valid': is_valid,
-        'company_name': result if is_valid else None,
         'message': result
-    })
+    }
+    
+    if is_valid:
+        response_data['company_name'] = result
+        response_data.update(details)
+    
+    return JsonResponse(response_data)
 
 
 @login_required

@@ -71,6 +71,15 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    @property
+    def phone_number(self):
+        """Property alias for backward compatibility with older view/form code"""
+        return self.phone
+
+    @phone_number.setter
+    def phone_number(self, value):
+        self.phone = value
+    
     # Override username to use email as login credential
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']

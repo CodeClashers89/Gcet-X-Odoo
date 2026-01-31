@@ -179,6 +179,11 @@ class Quotation(models.Model):
         
         self.save()
 
+    @property
+    def total_amount(self):
+        """Property alias for backward compatibility with notifications/templates"""
+        return self.total
+
 
 class QuotationLine(models.Model):
     """
@@ -489,6 +494,33 @@ class RentalOrder(models.Model):
     def __str__(self):
         return f"{self.order_number} - {self.customer.get_full_name()} - ₹{self.total}"
     
+    @property
+    def rental_start_date(self):
+        """Property to get start date from first line item"""
+        first_line = self.order_lines.first()
+        return first_line.rental_start_date if first_line else None
+
+    @property
+    def rental_end_date(self):
+        """Property to get end date from first line item"""
+        first_line = self.order_lines.first()
+        return first_line.rental_end_date if first_line else None
+
+    @property
+    def total_amount(self):
+        """Property alias for backward compatibility with notifications/templates"""
+        return self.total
+
+    @property
+    def pickup_location(self):
+        """Property alias for delivery_address used in notifications"""
+        return self.delivery_address
+
+    @property
+    def balance(self):
+        """Calculate remaining balance"""
+        return self.total - self.paid_amount
+
     def is_payment_complete(self):
         """Check if order is fully paid"""
         return self.paid_amount >= self.total
@@ -517,9 +549,12 @@ class RentalOrder(models.Model):
 
         self.save()
     
-    def get_balance_due(self):
-        """Calculate remaining payment amount"""
         return max(Decimal('0.00'), self.total - self.paid_amount)
+
+    @property
+    def total_amount(self):
+        """Property alias for backward compatibility with notifications/templates"""
+        return self.total
 
 
 class RentalOrderLine(models.Model):

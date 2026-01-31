@@ -12,5 +12,5 @@ urlpatterns = [
     path('invoices/<int:pk>/payment/', views.record_payment, name='record_payment'),
     
     # AJAX endpoints
-    path('api/generate/', views.generate_invoice_ajax, name='generate_invoice'),
+    path('api/generate/', views.generate_invoice, name='generate_invoice'),
 ]
