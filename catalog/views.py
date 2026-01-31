@@ -5,7 +5,7 @@ from django.db.models import Q, Count, Prefetch, Min, Max
 from datetime import datetime, timedelta
 from django.utils import timezone
 
-from catalog.models import Product, ProductCategory, RentalPricing
+from catalog.models import Product, ProductCategory, RentalPricing, ProductVariant
 from rentals.models import Reservation
 from accounts.models import VendorProfile
 
@@ -425,6 +425,21 @@ def vendor_add_product(request):
             daily_price = request.POST.get('daily_price')
             quantity = request.POST.get('quantity')
             
+            # Get attributes data
+            attr_names = request.POST.getlist('attr_name[]')
+            attr_values = request.POST.getlist('attr_value[]')
+            
+            # Build attributes dictionary
+            attributes = {}
+            for i in range(len(attr_names)):
+                if attr_names[i] and attr_values[i]:  # Only add non-empty attributes
+                    attributes[attr_names[i].strip()] = attr_values[i].strip()
+            
+            # Get variants data
+            variant_names = request.POST.getlist('variant_name[]')
+            variant_quantities = request.POST.getlist('variant_quantity[]')
+            variant_prices = request.POST.getlist('variant_price[]')
+            
             # Calculate cost price (use 70% of daily rental price as default)
             daily_price_val = float(daily_price)
             cost_price = daily_price_val * 0.7
@@ -450,7 +465,8 @@ def vendor_add_product(request):
                 quantity_on_hand=int(quantity),
                 cost_price=cost_price,
                 is_rentable=True,
-                is_published=False  # Draft by default, admin can publish
+                is_published=False,  # Draft by default, admin can publish
+                attributes=attributes  # Save attributes as JSON
             )
             
             # Create rental pricing
@@ -460,6 +476,39 @@ def vendor_add_product(request):
                 duration_value=1,
                 price=float(daily_price)
             )
+            
+            # Create product variants if provided
+            if variant_names and len(variant_names) > 0:
+                for i in range(len(variant_names)):
+                    if variant_names[i] and variant_quantities[i] and variant_prices[i]:
+                        # Generate unique SKU for variant
+                        sku = f"{slug}-VAR-{i+1}"
+                        sku_counter = 1
+                        while ProductVariant.objects.filter(sku=sku).exists():
+                            sku = f"{slug}-VAR-{i+1}-{sku_counter}"
+                            sku_counter += 1
+                        
+                        # Calculate variant cost price
+                        variant_price_val = float(variant_prices[i])
+                        variant_cost = variant_price_val * 0.7
+                        
+                        # Create variant
+                        variant = ProductVariant.objects.create(
+                            product=product,
+                            variant_name=variant_names[i].strip(),
+                            sku=sku,
+                            quantity_on_hand=int(variant_quantities[i]),
+                            cost_price=variant_cost,
+                            is_active=True
+                        )
+                        
+                        # Create rental pricing for variant
+                        RentalPricing.objects.create(
+                            product_variant=variant,
+                            duration_type='daily',
+                            duration_value=1,
+                            price=variant_price_val
+                        )
             
             # Log creation
             from audit.models import AuditLog

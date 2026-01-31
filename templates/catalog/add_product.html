@@ -208,6 +208,92 @@
         background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
     }
 
+    .attribute-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+        margin-bottom: 12px;
+        align-items: end;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .attribute-row .form-control {
+        margin: 0;
+    }
+
+    .remove-attribute-btn {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        height: 42px;
+    }
+
+    .remove-attribute-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    }
+
+    .attribute-input-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .variant-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 12px;
+        margin-bottom: 12px;
+        align-items: end;
+        padding: 15px;
+        background: #fff3e0;
+        border-radius: 8px;
+        border-left: 4px solid #e67e22;
+        animation: slideIn 0.3s ease;
+    }
+
+    .variant-row .form-control {
+        margin: 0;
+    }
+
+    .remove-variant-btn {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(230, 126, 34, 0.3);
+        height: 42px;
+    }
+
+    .remove-variant-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+        background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+    }
+
     @media (max-width: 768px) {
         .product-form-container {
             padding: 15px 10px;
@@ -232,6 +318,24 @@
         .action-btn {
             width: 100%;
             justify-content: center;
+        }
+
+        .attribute-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .remove-attribute-btn {
+            width: 100%;
+        }
+
+        .variant-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .remove-variant-btn {
+            width: 100%;
         }
     }
 </style>
@@ -300,6 +404,34 @@
                         <input type="number" name="quantity" required min="1" class="form-control" placeholder="0">
                     </div>
                     
+                    <!-- Product Attributes Section -->
+                    <div class="form-group">
+                        <label class="form-label">Product Attributes</label>
+                        <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">Add custom attributes like Brand, Color, Size, Model, etc.</p>
+                        
+                        <div id="attributes-container">
+                            <!-- Attribute rows will be added here dynamically -->
+                        </div>
+                        
+                        <button type="button" onclick="addAttribute()" class="action-btn" style="margin-top: 10px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); box-shadow: 0 2px 5px rgba(155, 89, 182, 0.3);">
+                            + Add Attribute
+                        </button>
+                    </div>
+                    
+                    <!-- Product Variants Section -->
+                    <div class="form-group">
+                        <label class="form-label">Product Variants</label>
+                        <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">Add different variants of this product (e.g., Body Only, Kit with Lens, Pro Bundle)</p>
+                        
+                        <div id="variants-container">
+                            <!-- Variant rows will be added here dynamically -->
+                        </div>
+                        
+                        <button type="button" onclick="addVariant()" class="action-btn" style="margin-top: 10px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); box-shadow: 0 2px 5px rgba(230, 126, 34, 0.3);">
+                            + Add Variant
+                        </button>
+                    </div>
+                    
                     <div class="button-group">
                         <button type="submit" class="action-btn submit-btn">
                             ✓ Add Product
@@ -315,6 +447,129 @@
 </div>
 
 <script>
+// Attribute management
+let attributeCounter = 0;
+let variantCounter = 0;
+
+function addAttribute() {
+    const container = document.getElementById('attributes-container');
+    const attributeRow = document.createElement('div');
+    const currentId = `attribute-${attributeCounter}`;
+    attributeRow.className = 'attribute-row';
+    attributeRow.id = currentId;
+    
+    attributeRow.innerHTML = `
+        <div>
+            <label class="attribute-input-label">Attribute Name</label>
+            <input type="text" name="attr_name[]" class="form-control" placeholder="e.g., Brand, Color, Size">
+        </div>
+        <div>
+            <label class="attribute-input-label">Attribute Value</label>
+            <input type="text" name="attr_value[]" class="form-control" placeholder="e.g., Canon, Red, Large">
+        </div>
+        <div>
+            <button type="button" class="remove-attribute-btn" data-id="${currentId}">
+                ✕ Remove
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(attributeRow);
+    
+    // Add event listener to the remove button
+    const removeBtn = attributeRow.querySelector('.remove-attribute-btn');
+    removeBtn.addEventListener('click', function() {
+        removeAttribute(currentId);
+    });
+    
+    attributeCounter++;
+}
+
+function removeAttribute(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.error('Element not found:', id);
+        return;
+    }
+    
+    // Add animation class
+    element.style.opacity = '0';
+    element.style.transform = 'translateX(20px)';
+    element.style.transition = 'all 0.3s ease';
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        element.remove();
+    }, 300);
+}
+
+// Variant management
+function addVariant() {
+    const container = document.getElementById('variants-container');
+    const variantRow = document.createElement('div');
+    const currentId = `variant-${variantCounter}`;
+    variantRow.className = 'variant-row';
+    variantRow.id = currentId;
+    
+    variantRow.innerHTML = `
+        <div>
+            <label class="attribute-input-label">Variant Name</label>
+            <input type="text" name="variant_name[]" class="form-control" placeholder="e.g., Body Only, Kit with Lens, Pro Bundle">
+        </div>
+        <div>
+            <label class="attribute-input-label">Quantity</label>
+            <input type="number" name="variant_quantity[]" class="form-control" placeholder="0" min="0">
+        </div>
+        <div>
+            <label class="attribute-input-label">Daily Price (₹)</label>
+            <input type="number" name="variant_price[]" class="form-control" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+            <button type="button" class="remove-variant-btn" data-id="${currentId}">
+                ✕ Remove
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(variantRow);
+    
+    // Add event listener to the remove button
+    const removeBtn = variantRow.querySelector('.remove-variant-btn');
+    removeBtn.addEventListener('click', function() {
+        removeVariant(currentId);
+    });
+    
+    variantCounter++;
+}
+
+function removeVariant(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.error('Variant element not found:', id);
+        return;
+    }
+    
+    // Add animation
+    element.style.opacity = '0';
+    element.style.transform = 'translateX(20px)';
+    element.style.transition = 'all 0.3s ease';
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        element.remove();
+    }, 300);
+}
+
+// Add slideOut animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOut {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(20px); }
+    }
+`;
+document.head.appendChild(style);
+
 // Initialize form animations on page load
 document.addEventListener('DOMContentLoaded', function() {
     const formGroups = document.querySelectorAll('.form-group');
