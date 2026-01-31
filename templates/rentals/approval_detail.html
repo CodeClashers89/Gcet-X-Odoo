@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ approval.request_number }} - Approval Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                <i class="fas fa-file-contract"></i> Approval Details
+            </h1>
+            <p class="text-muted">Request {{ approval.request_number }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'rentals:approval_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Document Details -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        {% if approval.request_type == 'quotation' %}
+                            <i class="fas fa-quote-left"></i> Quotation Details
+                        {% else %}
+                            <i class="fas fa-shopping-cart"></i> Order Details
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if quotation %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Quotation Number:</strong> 
+                                <a href="{% url 'rentals:quotation_detail' quotation.id %}" class="text-decoration-none">
+                                    {{ quotation.quotation_number }}
+                                </a>
+                            </p>
+                            <p>
+                                <strong>Customer:</strong> {{ quotation.customer.get_full_name }}
+                            </p>
+                            <p>
+                                <strong>Email:</strong> {{ quotation.customer.email }}
+                            </p>
+                            <p>
+                                <strong>Valid Until:</strong> {{ quotation.valid_until|date:"d M Y" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Status:</strong> 
+                                <span class="badge bg-info">{{ quotation.get_status_display }}</span>
+                            </p>
+                            <p>
+                                <strong>Created:</strong> {{ quotation.created_at|date:"d M Y, H:i" }}
+                            </p>
+                            <p>
+                                <strong>Items:</strong> {{ quotation.quotation_lines.count }} items
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <hr>
+                    <h6 class="mb-3">Items in Quotation</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Duration</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in quotation.quotation_lines.all %}
+                                <tr>
+                                    <td>{{ line.product.name }}</td>
+                                    <td>{{ line.quantity }}</td>
+                                    <td>₹{{ line.unit_price|floatformat:2 }}</td>
+                                    <td>{{ line.duration_days }} days</td>
+                                    <td>₹{{ line.line_total|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pricing Summary -->
+                    <div class="row mt-3">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Subtotal:</strong></div>
+                                        <div class="col-6 text-end">₹{{ quotation.subtotal|floatformat:2 }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Discount:</strong></div>
+                                        <div class="col-6 text-end">-₹{{ quotation.discount_amount|floatformat:2 }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Tax:</strong></div>
+                                        <div class="col-6 text-end">₹{{ quotation.tax_amount|floatformat:2 }}</div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-6"><strong>Total:</strong></div>
+                                        <div class="col-6 text-end"><strong>₹{{ quotation.total|floatformat:2 }}</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% elif rental_order %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Order Number:</strong> 
+                                <a href="{% url 'rentals:order_detail' rental_order.id %}" class="text-decoration-none">
+                                    {{ rental_order.order_number }}
+                                </a>
+                            </p>
+                            <p>
+                                <strong>Customer:</strong> {{ rental_order.customer.get_full_name }}
+                            </p>
+                            <p>
+                                <strong>Vendor:</strong> {{ rental_order.vendor.get_full_name }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Status:</strong> 
+                                <span class="badge bg-warning">{{ rental_order.get_status_display }}</span>
+                            </p>
+                            <p>
+                                <strong>Created:</strong> {{ rental_order.created_at|date:"d M Y, H:i" }}
+                            </p>
+                            <p>
+                                <strong>Total:</strong> ₹{{ rental_order.total|floatformat:2 }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <hr>
+                    <h6 class="mb-3">Items in Order</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in rental_order.order_lines.all %}
+                                <tr>
+                                    <td>{{ line.product.name }}</td>
+                                    <td>{{ line.quantity }}</td>
+                                    <td>₹{{ line.unit_price|floatformat:2 }}</td>
+                                    <td>₹{{ line.line_total|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Approval Status Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks"></i> Approval Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Status:</strong><br>
+                                {% if approval.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark fs-6">Pending Review</span>
+                                {% elif approval.status == 'approved' %}
+                                    <span class="badge bg-success fs-6">Approved</span>
+                                {% elif approval.status == 'rejected' %}
+                                    <span class="badge bg-danger fs-6">Rejected</span>
+                                {% endif %}
+                            </p>
+                            <p>
+                                <strong>Requested By:</strong><br>
+                                {{ approval.requested_by.get_full_name|default:approval.requested_by.email }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Amount:</strong><br>
+                                <span class="fs-5">₹{{ approval.approval_amount|floatformat:2 }}</span>
+                            </p>
+                            <p>
+                                <strong>Created:</strong><br>
+                                {{ approval.created_at|date:"d M Y, H:i" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if approval.approved_by %}
+                    <hr>
+                    <p>
+                        <strong>Approved By:</strong><br>
+                        {{ approval.approved_by.get_full_name }}
+                    </p>
+                    <p>
+                        <strong>Approved At:</strong><br>
+                        {{ approval.approved_at|date:"d M Y, H:i" }}
+                    </p>
+                    {% if approval.approval_notes %}
+                    <p>
+                        <strong>Notes:</strong><br>
+                        <pre class="bg-light p-3 rounded">{{ approval.approval_notes }}</pre>
+                    </p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Panel -->
+        <div class="col-md-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if approval.status == 'pending' and user.role == 'admin' %}
+                    <form method="post" id="approval-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Decision Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                      placeholder="Add any notes about this approval..."></textarea>
+                            <small class="text-muted">Reason for approval or rejection</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Approve Request
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg" 
+                                    onclick="return confirm('Are you sure you want to reject this approval?');">
+                                <i class="fas fa-times"></i> Reject Request
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-info">
+                        {% if user.role != 'admin' %}
+                            <i class="fas fa-lock"></i> Only admins can approve requests.
+                        {% else %}
+                            <i class="fas fa-check-circle"></i> This approval has already been processed.
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sticky-top {
+    top: 20px !important;
+}
+
+@media (max-width: 768px) {
+    .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+</style>
+{% endblock %}

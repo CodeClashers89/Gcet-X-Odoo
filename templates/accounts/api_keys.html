@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}API Keys - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 40px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">🔑 API Keys</h1>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Manage your API keys for secure programmatic access.
+    </p>
+
+    {% if created_key %}
+    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #2e7d32; margin-bottom: 10px;">New API Key Created</h2>
+        <p style="color: #2e7d32; font-size: 13px; margin-bottom: 10px;">
+            Copy this key now. You won't be able to see it again.
+        </p>
+        <code style="display: block; background: #fff; padding: 10px; border-radius: 4px; font-size: 14px;">
+            {{ created_key }}
+        </code>
+    </div>
+    {% endif %}
+
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2 style="font-size: 16px; margin-bottom: 15px;">Create New API Key</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="name" style="display: block; margin-bottom: 6px; font-weight: 500;">Key Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g., Mobile App" required>
+                </div>
+                <div class="form-group">
+                    <label for="expires_in_days" style="display: block; margin-bottom: 6px; font-weight: 500;">Expires In (days)</label>
+                    <input type="number" id="expires_in_days" name="expires_in_days" class="form-control" placeholder="e.g., 90">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Create API Key</button>
+        </form>
+    </div>
+
+    <h2 style="font-size: 16px; margin-bottom: 15px;">Your API Keys</h2>
+
+    {% if api_keys %}
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f1f3f5; text-align: left;">
+                <th style="padding: 10px;">Name</th>
+                <th style="padding: 10px;">Key</th>
+                <th style="padding: 10px;">Created</th>
+                <th style="padding: 10px;">Last Used</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in api_keys %}
+            <tr style="border-bottom: 1px solid #dee2e6;">
+                <td style="padding: 10px;">{{ key.name }}</td>
+                <td style="padding: 10px; font-family: monospace;">{{ key.prefix }}****{{ key.last_four }}</td>
+                <td style="padding: 10px;">{{ key.created_at|date:"M d, Y" }}</td>
+                <td style="padding: 10px;">{% if key.last_used_at %}{{ key.last_used_at|date:"M d, Y H:i" }}{% else %}Never{% endif %}</td>
+                <td style="padding: 10px;">
+                    {% if key.is_active %}
+                        <span style="color: #28a745; font-weight: 500;">Active</span>
+                    {% else %}
+                        <span style="color: #dc3545; font-weight: 500;">Revoked/Expired</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px;">
+                    {% if key.is_active %}
+                    <form method="POST" action="{% url 'accounts:revoke_api_key' key.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Revoke this API key?');">Revoke</button>
+                    </form>
+                    {% else %}
+                        <span style="color: #6c757d;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p style="color: #6c757d;">No API keys created yet.</p>
+    {% endif %}
+
+    <div style="margin-top: 30px;">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">← Back to Profile</a>
+    </div>
+</div>
+{% endblock %}

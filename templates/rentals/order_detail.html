@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Order {{ order.order_number }} - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Order {{ order.order_number }}</h2>
+            <small class="text-muted">Created on {{ order.created_at|date:"d M Y H:i" }}</small>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if order.status == 'draft' %}
+                <span class="badge bg-secondary">Draft</span>
+            {% elif order.status == 'confirmed' %}
+                <span class="badge bg-info">Confirmed</span>
+            {% elif order.status == 'in_progress' %}
+                <span class="badge bg-warning">In Progress</span>
+            {% elif order.status == 'completed' %}
+                <span class="badge bg-success">Completed</span>
+            {% elif order.status == 'cancelled' %}
+                <span class="badge bg-danger">Cancelled</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Customer:</strong></p>
+                            <p>{{ order.customer.get_full_name }}<br/>
+                            {{ order.customer.email }}<br/>
+                            {% if order.customer.customerprofile %}
+                                {{ order.customer.customerprofile.phone }}
+                            {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Vendor:</strong></p>
+                            <p>
+                            {% if order.vendor %}
+                                {{ order.vendor.get_full_name }}<br/>
+                                {% if order.vendor.vendorprofile %}
+                                    {{ order.vendor.vendorprofile.company_name }}<br/>
+                                    {{ order.vendor.vendorprofile.phone }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3 pt-3 border-top">
+                        <div class="col-md-6">
+                            <p><strong>Delivery Address:</strong></p>
+                            <p class="text-muted">{{ order.delivery_address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Billing Address:</strong></p>
+                            <p class="text-muted">{{ order.billing_address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rental Items -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Rental Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Rental Period</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in order.rental_order_lines.all %}
+                                <tr>
+                                    <td>{{ line.product.product_name }}</td>
+                                    <td>
+                                        <small>
+                                            {{ line.rental_start_date|date:"d M Y" }} to {{ line.rental_end_date|date:"d M Y" }}
+                                        </small>
+                                    </td>
+                                    <td>{{ line.quantity }}</td>
+                                    <td>₹{{ line.unit_price|floatformat:2 }}</td>
+                                    <td><strong>₹{{ line.line_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% if line.late_fee_charged %}
+                                <tr class="table-warning">
+                                    <td colspan="4"><strong>Late Fee:</strong></td>
+                                    <td><strong>₹{{ line.late_fee_charged|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Summary -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Subtotal:</strong></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p>₹{{ order.subtotal|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    {% if order.late_fee_amount %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Late Fees:</strong></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p class="text-danger">₹{{ order.late_fee_amount|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if order.discount_amount %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Discount:</strong></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p>-₹{{ order.discount_amount|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if order.tax_amount %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tax (GST):</strong></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p>₹{{ order.tax_amount|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="row pt-3 border-top">
+                        <div class="col-md-6">
+                            <p><strong>Total Amount:</strong></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h5>₹{{ order.total_amount|floatformat:2 }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pickup & Return Status -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0">Pickup Status</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if pickup %}
+                                <p><strong>Pickup #:</strong> {{ pickup.pickup_number }}</p>
+                                <p><strong>Scheduled:</strong> {{ pickup.scheduled_pickup_date|date:"d M Y H:i" }}</p>
+                                {% if pickup.actual_pickup_date %}
+                                    <p><strong>Completed:</strong> {{ pickup.actual_pickup_date|date:"d M Y H:i" }}</p>
+                                    <p><strong>Items Checked:</strong> {% if pickup.items_checked %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</p>
+                                {% else %}
+                                    <p class="text-muted">Pending pickup</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">No pickup scheduled yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0">Return Status</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if return_record %}
+                                <p><strong>Return #:</strong> {{ return_record.return_number }}</p>
+                                <p><strong>Scheduled:</strong> {{ return_record.scheduled_return_date|date:"d M Y H:i" }}</p>
+                                {% if return_record.actual_return_date %}
+                                    <p><strong>Completed:</strong> {{ return_record.actual_return_date|date:"d M Y H:i" }}</p>
+                                    {% if return_record.items_damaged %}
+                                        <p class="text-danger"><strong>Damage Reported</strong></p>
+                                        <p class="text-muted">{{ return_record.damage_description }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-muted">Pending return</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">No return scheduled yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Panel -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if user == order.vendor %}
+                        {% if order.status == 'draft' %}
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="confirm">
+                            <button type="submit" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-check"></i> Confirm Order
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'confirmed' %}
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="start">
+                            <button type="submit" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-play"></i> Start Order
+                            </button>
+                        </form>
+                        <a href="{% url 'rentals:schedule_pickup' order.id %}" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-calendar"></i> Schedule Pickup
+                        </a>
+                        {% endif %}
+
+                        {% if order.status == 'in_progress' %}
+                        <a href="{% url 'rentals:schedule_return' order.id %}" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-calendar"></i> Schedule Return
+                        </a>
+                        {% endif %}
+
+                        {% if order.status == 'in_progress' or order.status == 'confirmed' %}
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="complete">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-flag-checkered"></i> Complete Order
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user == order.customer %}
+                        <div class="alert alert-info">
+                            <small>Your rental order is being managed by {{ order.vendor.get_full_name }}. You will be notified when pickup and return are scheduled.</small>
+                        </div>
+                    {% endif %}
+
+                    {% if invoice %}
+                    <hr>
+                    <p><strong>Invoice:</strong></p>
+                    <p><small>{{ invoice.invoice_number }}</small></p>
+                    <p><strong>₹{{ invoice.invoice_total|floatformat:2 }}</strong></p>
+                    {% endif %}
+
+                    <hr>
+
+                    <a href="{% url 'rentals:order_list' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-arrow-left"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

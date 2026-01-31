@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Rental ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-image-main {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+        background-color: #e9ecef;
+    }
+    
+    .product-image-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        border: 2px solid transparent;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-image-thumb.active {
+        border-color: #0d6efd;
+    }
+    
+    .product-image-thumb:hover {
+        border-color: #0d6efd;
+    }
+    
+    .pricing-table {
+        margin-bottom: 1.5rem;
+    }
+    
+    .pricing-table thead {
+        background-color: #f8f9fa;
+    }
+    
+    .variant-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .availability-form {
+        background-color: #f0f8ff;
+        padding: 1.5rem;
+        border-radius: 0.375rem;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .availability-result {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        display: none;
+    }
+    
+    .availability-result.success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+        display: block;
+    }
+    
+    .availability-result.error {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+        display: block;
+    }
+    
+    .section-title {
+        font-weight: 600;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #0d6efd;
+        padding-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary btn-sm mb-3">
+                <i class="fas fa-arrow-left"></i> Back to Products
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Product Image & Basic Info -->
+        <div class="col-lg-5">
+            <!-- Main Image -->
+            {% if product.image_main %}
+            <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="product-image-main" id="mainImage">
+            {% else %}
+            <div class="product-image-main bg-light d-flex align-items-center justify-content-center">
+                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+            </div>
+            {% endif %}
+
+            <!-- Vendor Info Card -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Vendor Information</h6>
+                </div>
+                <div class="card-body">
+                    {% if product.vendor %}
+                    <p><strong>{{ product.vendor.vendorprofile.company_name }}</strong></p>
+                    <p class="mb-1"><small>
+                        <i class="fas fa-phone"></i> {{ product.vendor.vendorprofile.phone }}
+                    </small></p>
+                    <p class="mb-0"><small>
+                        <i class="fas fa-envelope"></i> {{ product.vendor.email }}
+                    </small></p>
+                    {% else %}
+                    <p class="text-muted">Vendor information not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-lg-7">
+            <!-- Basic Info -->
+            <h2>{{ product.name }}</h2>
+            
+            {% if product.category %}
+            <p class="text-muted">
+                <i class="fas fa-tag"></i> 
+                <a href="{% url 'catalog:product_list' %}?category={{ product.category.slug }}">
+                    {{ product.category.name }}
+                </a>
+            </p>
+            {% endif %}
+
+            <!-- Stock Status -->
+            <div class="mb-3">
+                {% if product.quantity_on_hand > 10 %}
+                    <span class="badge bg-success">In Stock ({{ product.quantity_on_hand }} available)</span>
+                {% elif product.quantity_on_hand > 0 %}
+                    <span class="badge bg-warning text-dark">Low Stock ({{ product.quantity_on_hand }} available)</span>
+                {% else %}
+                    <span class="badge bg-danger">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Description</h6>
+                </div>
+                <div class="card-body">
+                    <p>{{ product.description }}</p>
+                </div>
+            </div>
+
+            <!-- Pricing Table -->
+            {% if daily_prices or weekly_prices or monthly_prices %}
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Rental Pricing</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Duration</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for price in daily_prices %}
+                                <tr>
+                                    <td>{{ price.duration_value }} Day(s)</td>
+                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% for price in weekly_prices %}
+                                <tr>
+                                    <td>{{ price.duration_value }} Week(s)</td>
+                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% for price in monthly_prices %}
+                                <tr>
+                                    <td>{{ price.duration_value }} Month(s)</td>
+                                    <td><strong>₹{{ price.price|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Variants -->
+            {% if product.variants.all %}
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Available Variants</h6>
+                </div>
+                <div class="card-body">
+                    <div class="variant-list">
+                        {% for variant in product.variants.all %}
+                        <div class="mb-2 p-2 border rounded">
+                            <p class="mb-1"><strong>{{ variant.variant_name }}</strong></p>
+                            <small class="text-muted d-block">SKU: {{ variant.sku }}</small>
+                            <small class="text-muted d-block">
+                                {% if variant.quantity_on_hand > 0 %}
+                                    <span class="badge bg-success">In Stock ({{ variant.quantity_on_hand }})</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Availability Checker -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Check Availability</h6>
+                </div>
+                <div class="card-body">
+                    <div class="availability-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label form-label-sm">Start Date</label>
+                                <input type="datetime-local" id="checkStartDate" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label form-label-sm">End Date</label>
+                                <input type="datetime-local" id="checkEndDate" class="form-control form-control-sm">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label form-label-sm">Quantity</label>
+                                <input type="number" id="checkQuantity" class="form-control form-control-sm" min="1" value="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label form-label-sm">&nbsp;</label>
+                                <button type="button" class="btn btn-primary btn-sm w-100" onclick="checkAvailability()">
+                                    <i class="fas fa-check"></i> Check Availability
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="availabilityResult" class="availability-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add to Quotation -->
+            <a href="{% url 'rentals:create_quotation' %}?product_id={{ product.id }}" class="btn btn-primary btn-lg w-100 mt-4">
+                <i class="fas fa-cart-plus"></i> Create Quotation with This Product
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function checkAvailability() {
+    const productId = {{ product.id }};
+    const startDate = document.getElementById('checkStartDate').value;
+    const endDate = document.getElementById('checkEndDate').value;
+    const quantity = document.getElementById('checkQuantity').value;
+
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+
+    const resultDiv = document.getElementById('availabilityResult');
+    resultDiv.className = 'availability-result';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking availability...';
+
+    fetch(`{% url 'catalog:check_availability' %}?product_id=${productId}&start_date=${startDate}&end_date=${endDate}&quantity=${quantity}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                resultDiv.className = 'availability-result success';
+                let html = `<strong><i class="fas fa-check-circle"></i> ${data.message}</strong>`;
+                if (data.pricing && data.pricing.daily_price) {
+                    html += `<br><small>₹${data.pricing.daily_price} per day × ${data.pricing.duration_days} days = ₹${data.pricing.total_price}</small>`;
+                }
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.className = 'availability-result error';
+                resultDiv.innerHTML = `<strong><i class="fas fa-times-circle"></i> ${data.message}</strong>`;
+            }
+        })
+        .catch(error => {
+            resultDiv.className = 'availability-result error';
+            resultDiv.innerHTML = `<strong><i class="fas fa-times-circle"></i> Error checking availability</strong>`;
+            console.error('Error:', error);
+        });
+}
+
+// Allow Enter key to check availability
+document.getElementById('checkQuantity').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        checkAvailability();
+    }
+});
+</script>
+{% endblock %}

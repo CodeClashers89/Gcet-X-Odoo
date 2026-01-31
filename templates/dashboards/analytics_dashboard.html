@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Analytics Dashboard - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                <i class="fas fa-chart-line"></i> Analytics Dashboard
+            </h1>
+            <p class="text-muted">Business intelligence and performance metrics</p>
+        </div>
+        <div class="col-md-4">
+            <form method="get" class="d-flex gap-2">
+                <select name="period" class="form-select" onchange="this.form.submit()">
+                    <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                    <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- KPI Cards Row 1 -->
+    <div class="row mb-4">
+        <!-- Total Revenue -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Total Revenue</p>
+                            <h3 class="mb-0">₹{{ total_revenue|floatformat:0|intcomma }}</h3>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up"></i> vs last period
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #4CAF50; opacity: 0.3;">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Total Orders</p>
+                            <h3 class="mb-0">{{ total_orders }}</h3>
+                            <small class="text-info">
+                                {{ confirmed_orders }} confirmed
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #2196F3; opacity: 0.3;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quotations -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Total Quotations</p>
+                            <h3 class="mb-0">{{ total_quotations }}</h3>
+                            <small class="text-warning">
+                                {{ conversion_rate }}% conversion
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #FF9800; opacity: 0.3;">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Pending Approvals</p>
+                            <h3 class="mb-0">{{ pending_approvals }}</h3>
+                            <small class="text-danger">
+                                <a href="{% url 'rentals:approval_list' %}" class="text-danger text-decoration-none">
+                                    Review <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #F44336; opacity: 0.3;">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards Row 2 -->
+    <div class="row mb-4">
+        <!-- Late Returns -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Late Returns</p>
+                            <h3 class="mb-0">{{ late_returns }}</h3>
+                            <small class="text-danger">
+                                <a href="{% url 'dashboards:late_returns_analytics' %}" class="text-danger text-decoration-none">
+                                    View analytics <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #F44336; opacity: 0.3;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Pending Payments</p>
+                            <h3 class="mb-0">₹{{ pending_payments|floatformat:0|intcomma }}</h3>
+                            <small class="text-warning">
+                                <a href="{% url 'billing:invoice_list' %}" class="text-warning text-decoration-none">
+                                    View invoices <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </small>
+                        </div>
+                        <div style="font-size: 2rem; color: #FF9800; opacity: 0.3;">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Analytics Links -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-external-link-alt"></i> Detailed Analytics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:quotation_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
+                                    <p class="small fw-bold">Quotations</p>
+                                    <small class="text-muted">Status & trends</small>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:order_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-pie fa-2x text-success mb-2"></i>
+                                    <p class="small fw-bold">Orders</p>
+                                    <small class="text-muted">Fulfillment stats</small>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:approval_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
+                                    <p class="small fw-bold">Approvals</p>
+                                    <small class="text-muted">Workflow stats</small>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:revenue_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                                    <p class="small fw-bold">Revenue</p>
+                                    <small class="text-muted">Financial data</small>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:inventory_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-boxes fa-2x text-secondary mb-2"></i>
+                                    <p class="small fw-bold">Inventory</p>
+                                    <small class="text-muted">Utilization</small>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'dashboards:late_returns_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                                    <p class="small fw-bold">Late Returns</p>
+                                    <small class="text-muted">Penalties & trends</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #4CAF50 !important;
+}
+
+.border-left-info {
+    border-left: 4px solid #2196F3 !important;
+}
+
+.border-left-warning {
+    border-left: 4px solid #FF9800 !important;
+}
+
+.border-left-danger {
+    border-left: 4px solid #F44336 !important;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

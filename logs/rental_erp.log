@@ -1,0 +1,224 @@
+WARNING 2026-01-31 12:48:15,099 encryption 29240 10944 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 12:49:08,402 encryption 22836 8232 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 12:50:58,386 encryption 27948 27740 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 12:50:58,388 encryption 27948 27740 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:50:58,389 encryption 27948 27740 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:50:58,390 encryption 27948 27740 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:50:58,391 encryption 27948 27740 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:50:58,392 encryption 27948 27740 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:50:58,432 encryption 27948 27740 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:50:58,433 encryption 27948 27740 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:50:58,434 encryption 27948 27740 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:50:58,436 encryption 27948 27740 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:50:58,436 encryption 27948 27740 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:51:34,604 encryption 28400 26880 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 12:51:34,607 encryption 28400 26880 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:51:34,608 encryption 28400 26880 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:51:34,609 encryption 28400 26880 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:51:34,609 encryption 28400 26880 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:51:34,610 encryption 28400 26880 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:51:34,611 encryption 28400 26880 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:51:34,612 encryption 28400 26880 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:51:34,613 encryption 28400 26880 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:51:34,614 encryption 28400 26880 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:51:34,615 encryption 28400 26880 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:53:16,667 encryption 9548 17864 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 12:53:16,669 encryption 9548 17864 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:53:16,670 encryption 9548 17864 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:53:16,672 encryption 9548 17864 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:53:16,673 encryption 9548 17864 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:53:16,674 encryption 9548 17864 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:53:16,675 encryption 9548 17864 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:53:16,676 encryption 9548 17864 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:53:16,677 encryption 9548 17864 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:53:16,678 encryption 9548 17864 Encryption not available, returning plaintext
+WARNING 2026-01-31 12:53:16,679 encryption 9548 17864 Encryption not available, returning ciphertext
+WARNING 2026-01-31 12:56:55,796 encryption 29256 23760 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:38:22,856 encryption 25260 11496 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:38:30,151 encryption 26148 22092 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:38:30,398 log 26148 22092 Too Many Requests: /accounts/login/
+WARNING 2026-01-31 13:40:13,008 encryption 13728 132 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:43:32,325 encryption 12128 16988 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:44:09,131 encryption 5124 16152 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:44:36,748 encryption 28080 17012 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:50:57,161 encryption 28444 27296 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:51:03,727 encryption 14488 8692 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:52:02,839 encryption 28064 6408 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:55:42,912 encryption 24036 7572 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:55:43,115 mfa 24036 7572 pyotp library not installed. TOTP functionality will be limited.
+WARNING 2026-01-31 13:56:10,264 encryption 13020 5592 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:56:10,488 mfa 13020 5592 pyotp library not installed. TOTP functionality will be limited.
+WARNING 2026-01-31 13:56:49,900 mfa 6896 8368 pyotp library not installed. TOTP functionality will be limited.
+WARNING 2026-01-31 13:56:51,613 encryption 6896 8368 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:57:20,348 mfa 21892 7044 pyotp library not installed. TOTP functionality will be limited.
+WARNING 2026-01-31 13:57:21,946 encryption 21892 7044 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 13:58:06,826 encryption 28004 20596 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 13:58:07,319 log 28004 20596 Internal Server Error: /accounts/2fa/setup/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\mfa_views.py", line 66, in setup_2fa
+    AuditLog.objects.create(
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\query.py", line 677, in create
+    obj = self.model(**kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\base.py", line 567, in __init__
+    raise TypeError(
+TypeError: AuditLog() got unexpected keyword arguments: 'details'
+ERROR 2026-01-31 13:58:07,630 log 28004 20596 Internal Server Error: /accounts/2fa/manage/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\mfa_views.py", line 120, in manage_2fa
+    AuditLog.objects.create(
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\query.py", line 677, in create
+    obj = self.model(**kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\db\models\base.py", line 567, in __init__
+    raise TypeError(
+TypeError: AuditLog() got unexpected keyword arguments: 'details'
+WARNING 2026-01-31 13:59:48,380 encryption 24804 16900 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 13:59:49,305 log 24804 16900 Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\rental_erp\security.py", line 287, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\views.py", line 324, in login_view
+    AuditLog.log_action(
+TypeError: AuditLog.log_action() got an unexpected keyword argument 'model_name'
+WARNING 2026-01-31 14:00:19,569 encryption 23128 25612 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 14:00:20,468 log 23128 25612 Internal Server Error: /accounts/2fa/verify/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\verify_2fa_view.py", line 55, in verify_2fa
+    AuditLog.log_action(
+TypeError: AuditLog.log_action() got an unexpected keyword argument 'model_name'
+WARNING 2026-01-31 14:00:39,351 encryption 26668 8532 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 14:00:40,189 log 26668 8532 Internal Server Error: /accounts/2fa/verify/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\verify_2fa_view.py", line 74, in verify_2fa
+    return redirect(next_url)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 49, in redirect
+    return redirect_class(resolve_url(to, *args, **kwargs))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 180, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+WARNING 2026-01-31 14:02:29,371 encryption 28872 1020 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 14:02:30,249 log 28872 1020 Internal Server Error: /accounts/2fa/verify/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\verify_2fa_view.py", line 74, in verify_2fa
+    return redirect(next_url)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 49, in redirect
+    return redirect_class(resolve_url(to, *args, **kwargs))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 180, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+WARNING 2026-01-31 14:03:30,878 encryption 4968 18816 ENCRYPTION_KEY not configured in settings
+ERROR 2026-01-31 14:03:31,755 log 4968 18816 Internal Server Error: /accounts/2fa/verify/
+Traceback (most recent call last):
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\GCETxOdoo\accounts\verify_2fa_view.py", line 74, in verify_2fa
+    return redirect(next_url)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 49, in redirect
+    return redirect_class(resolve_url(to, *args, **kwargs))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\shortcuts.py", line 180, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Neel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+WARNING 2026-01-31 14:03:55,919 encryption 27428 18492 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:07:25,425 encryption 17900 27764 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:07:33,190 encryption 24016 2740 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:08:27,639 encryption 28072 27988 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:11:07,796 encryption 25956 21832 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:11:24,164 encryption 4392 20648 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:13:39,255 encryption 27024 5152 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:14:33,094 encryption 23072 5592 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:19:19,806 encryption 27584 26112 ENCRYPTION_KEY not configured in settings
+WARNING 2026-01-31 14:19:23,045 log 27584 6224 Not Found: /favicon.ico
+WARNING 2026-01-31 14:19:23,046 basehttp 27584 6224 "GET /favicon.ico HTTP/1.1" 404 3296

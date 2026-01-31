@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invoices - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Invoices</h2>
+        </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">Filter by Status:</span>
+                <select class="form-select" onchange="filterByStatus(this.value)">
+                    <option value="">All Statuses</option>
+                    <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent</option>
+                    <option value="partial" {% if status == 'partial' %}selected{% endif %}>Partial</option>
+                    <option value="paid" {% if status == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    {% if invoices %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Paid</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>
+                        <strong>{{ invoice.invoice_number }}</strong>
+                    </td>
+                    <td>{{ invoice.customer.get_full_name }}</td>
+                    <td>
+                        <strong>₹{{ invoice.total|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        ₹{{ invoice.paid_amount|floatformat:2 }}
+                        {% if invoice.balance_due > 0 %}
+                            <small class="text-muted">(₹{{ invoice.balance_due|floatformat:2 }} due)</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if invoice.status == 'draft' %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% elif invoice.status == 'sent' %}
+                            <span class="badge bg-info">Sent</span>
+                        {% elif invoice.status == 'partial' %}
+                            <span class="badge bg-warning">Partial</span>
+                        {% elif invoice.status == 'paid' %}
+                            <span class="badge bg-success">Paid</span>
+                        {% elif invoice.status == 'overdue' %}
+                            <span class="badge bg-danger">Overdue</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'billing:invoice_detail' invoice.id %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'billing:download_pdf' invoice.id %}" class="btn btn-sm btn-secondary" target="_blank">
+                            <i class="fas fa-download"></i> PDF
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        No invoices found.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterByStatus(status) {
+    if (status) {
+        window.location.href = "{% url 'billing:invoice_list' %}?status=" + status;
+    } else {
+        window.location.href = "{% url 'billing:invoice_list' %}";
+    }
+}
+</script>
+{% endblock %}

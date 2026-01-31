@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}My Data - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 40px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">My Personal Data</h1>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Under GDPR Article 15, you have the right to access all personal data we hold about you.
+    </p>
+
+    <!-- Basic Information -->
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; color: #2c3e50; margin-bottom: 15px;">Basic Information</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <label style="color: #666; font-size: 13px;">Email</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.email }}</p>
+            </div>
+            <div>
+                <label style="color: #666; font-size: 13px;">Role</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.role|title }}</p>
+            </div>
+            <div>
+                <label style="color: #666; font-size: 13px;">Full Name</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.first_name }} {{ user_data.basic_info.last_name }}</p>
+            </div>
+            <div>
+                <label style="color: #666; font-size: 13px;">Phone</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.phone|default:"Not provided" }}</p>
+            </div>
+            <div>
+                <label style="color: #666; font-size: 13px;">Member Since</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.date_joined|date:"F j, Y" }}</p>
+            </div>
+            <div>
+                <label style="color: #666; font-size: 13px;">Last Login</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ user_data.basic_info.last_login|date:"F j, Y, g:i A"|default:"Never" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Information -->
+    {% if user_data.profile %}
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; color: #2c3e50; margin-bottom: 15px;">Profile Information</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            {% for key, value in user_data.profile.items %}
+            <div>
+                <label style="color: #666; font-size: 13px;">{{ key|title|replace:"_":" " }}</label>
+                <p style="margin: 5px 0; font-weight: 500;">{{ value|default:"Not provided" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Activity Summary -->
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; color: #2c3e50; margin-bottom: 15px;">Activity Summary</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+            <div style="text-align: center;">
+                <p style="font-size: 28px; font-weight: 700; color: #3498db; margin: 0;">{{ user_data.quotations_count }}</p>
+                <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">Quotations</p>
+            </div>
+            <div style="text-align: center;">
+                <p style="font-size: 28px; font-weight: 700; color: #2ecc71; margin: 0;">{{ user_data.orders_count }}</p>
+                <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">Orders</p>
+            </div>
+            <div style="text-align: center;">
+                <p style="font-size: 28px; font-weight: 700; color: #e67e22; margin: 0;">{{ user_data.invoices_count }}</p>
+                <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">Invoices</p>
+            </div>
+            <div style="text-align: center;">
+                <p style="font-size: 28px; font-weight: 700; color: #9b59b6; margin: 0;">{{ user_data.audit_logs_count }}</p>
+                <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">Audit Logs</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consents -->
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; color: #2c3e50; margin-bottom: 15px;">Active Consents</h2>
+        {% if user_data.consents %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #dee2e6;">
+                    <th style="text-align: left; padding: 10px; color: #666; font-size: 13px;">Consent Type</th>
+                    <th style="text-align: left; padding: 10px; color: #666; font-size: 13px;">Granted On</th>
+                    <th style="text-align: left; padding: 10px; color: #666; font-size: 13px;">Policy Version</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consent in user_data.consents %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 12px;">{{ consent.type|title|replace:"_":" " }}</td>
+                    <td style="padding: 12px;">{{ consent.granted_at|date:"F j, Y" }}</td>
+                    <td style="padding: 12px;">{{ consent.policy_version }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #6c757d;">No active consents recorded.</p>
+        {% endif %}
+    </div>
+
+    <!-- Data Subject Rights Actions -->
+    <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; color: #856404; margin-bottom: 15px;">Your Data Rights</h2>
+        <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
+            Under GDPR, you have the following rights regarding your personal data:
+        </p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{% url 'accounts:export_my_data' %}" class="btn btn-primary" style="background: #3498db;">
+                <span style="font-size: 16px;">📥</span> Export My Data
+            </a>
+            <a href="{% url 'accounts:request_data_deletion' %}" class="btn btn-secondary" style="background: #e74c3c; color: white;">
+                <span style="font-size: 16px;">🗑️</span> Request Data Deletion
+            </a>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

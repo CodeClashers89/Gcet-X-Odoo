@@ -1,0 +1,401 @@
+YOUR ROLE
+You are a senior ERP architect, Django expert, and real-world business consultant with deep expertise in building production-ready enterprise systems.
+MY GOAL
+I am participating in the Odoo Hackathon with one objective: WIN by building a real-world, ERP-grade Rental Management System that solves actual business problems—not just a demo application.
+PROVIDED MATERIALS
+
+Detailed Problem Statement PDF (Rental Management System requirements)
+UI/UX Mockup: https://link.excalidraw.com/l/65VNwvy7c4X/3tAPpflFLrG
+
+YOU MUST strictly follow the PDF requirements, implement real-life business logic, and adhere to the provided UI flow.
+
+🎯 BUSINESS CONTEXT (CRITICAL)
+Target Users
+This system will serve real rental businesses including:
+
+Equipment rental companies (construction, power tools)
+Camera & event rental shops (audio/visual equipment)
+Furniture & machinery rental vendors
+
+Real Business Problems This System MUST Solve
+ProblemImpactOur SolutionManual quotationsErrors, time wasteAutomated quotation generationOverbookingRefunds, lost trustReal-time reservation blockingUnclear inventory availabilityLost sales, customer frustrationLive availability trackingLate returns unpunalizedLost revenueAutomatic late fee calculationComplex partial payments & depositsTracking nightmaresStructured payment workflowVendor earnings opacityPoor decisionsDetailed earnings dashboardsAdmin insight gapStrategic blindnessComprehensive reporting & analytics
+Design every feature to FIX these problems.
+
+📋 PROBLEM STATEMENT SUMMARY
+Build a Rental Management System that enables businesses to rent products online while managing:
+✅ Quotations
+✅ Rental Orders
+✅ Inventory & Reservations
+✅ Invoicing & Payments
+✅ Pickup & Return Workflows
+✅ Dashboards & Reports
+Complete ERP Rental Lifecycle
+Quotation → Order → Reservation → Pickup → Return → Invoice → Reporting
+
+🛠️ TECH STACK (STRICT REQUIREMENTS - NO EXCEPTIONS)
+Backend
+
+Django (latest version)
+Django ORM (no raw SQL unless absolutely necessary)
+SQLite (development database)
+
+Frontend
+
+Django Templates (server-side rendering)
+HTML5 (semantic markup)
+CSS3 (custom only—NO frameworks)
+Vanilla JavaScript (no jQuery/libraries)
+
+❌ DO NOT USE
+
+React / Vue / Angular
+Bootstrap / Tailwind CSS
+Mobile applications
+REST API initially (focus on MVP)
+
+
+👥 USER ROLES (MANDATORY IMPLEMENTATION)
+RolePermissions & AccessCustomerBrowse products, create quotations, place orders, track rentals, download invoicesVendorManage products, confirm orders, process pickups/returns, view earningsAdminFull system access, settings configuration, analytics, user management
+Implement proper role-based access control (RBAC) using Django's permission system.
+
+🧩 CORE ERP MODULES (MUST MATCH PDF REQUIREMENTS)
+1️⃣ AUTHENTICATION & USER MANAGEMENT
+Features:
+
+Login (email + password)
+Signup form fields:
+
+Full Name
+Email Address
+Company Name
+GSTIN (mandatory for GST invoicing)
+Password + Confirmation
+
+
+Forgot password (email verification flow)
+Coupon code support during signup
+
+
+2️⃣ RENTAL PRODUCT MANAGEMENT
+Product Configuration:
+
+Mark products as "Rentable"
+Rental pricing tiers:
+
+Hourly rate
+Daily rate
+Weekly rate
+Custom duration pricing
+
+
+Inventory tracking:
+
+Quantity on hand
+Reserved quantity
+Available quantity (calculated)
+
+
+Cost price vs. rental price
+Publish/Unpublish status
+Product attributes (Brand, Color, Size, Model, etc.)
+Variant-based pricing (e.g., "Canon EOS R5 Body" vs. "Canon EOS R5 + 24-70mm Lens Kit")
+Configurable attributes from Settings panel
+
+
+3️⃣ RENTAL QUOTATION & ORDER FLOW
+Quotation Stage
+
+Created automatically when customer adds items to cart
+Remains editable until confirmation
+Shows estimated rental costs
+
+Rental Order Stage
+
+Created upon quotation confirmation
+Automatically reserves stock for rental period
+Prevents double-booking
+
+Order Status Progression:
+Draft → Sent → Confirmed → In Progress → Completed
+Critical Business Rules:
+
+Reserved products cannot be double-booked for overlapping dates
+Each order line has:
+
+Rental start date/time
+Rental end date/time
+Quantity reserved
+
+
+Availability calculation must account for:
+
+Active rentals
+Pending returns
+Pickup windows
+
+
+
+
+4️⃣ PICKUP, DELIVERY & RETURN WORKFLOWS
+Pickup Process
+
+Pickup Document auto-generated on order confirmation
+Stock status changes to "With Customer"
+Pickup instructions visible to vendor
+Customer notification sent
+
+Return Process
+
+Return Document generated after rental period ends
+Stock restored to inventory after return confirmation
+Late return fees calculated automatically:
+
+Grace period (configurable)
+Penalty rate per day/hour
+
+
+Damage assessment option
+
+Notifications & Reminders
+
+Pre-return reminder (e.g., 24 hours before due date)
+Late return alerts (to customer and vendor)
+Email/SMS integration points
+
+
+5️⃣ INVOICING & PAYMENTS
+Invoice Lifecycle:
+
+Draft invoice created from confirmed rental order
+Auto-populated with:
+
+Line items (products + rental duration)
+GST calculation (CGST/SGST or IGST based on state)
+Discounts
+Late fees (if applicable)
+
+
+
+Payment Options:
+
+Full payment upfront
+Partial payment + security deposit
+Payment against invoice after return
+
+Features:
+
+Invoice state management (Draft → Sent → Paid → Cancelled)
+Print & export (PDF)
+Payment gateway integration (Razorpay/Stripe placeholder)
+Payment history tracking
+Refund handling
+
+
+6️⃣ WEBSITE & CUSTOMER PORTAL
+Public Website
+
+Product listing page with filters:
+
+Category
+Price range
+Availability date
+Vendor
+
+
+Product detail page:
+
+Image gallery
+Rental pricing calculator
+Date range selector
+Real-time availability check
+
+
+Shopping cart with rental period summary
+Checkout flow:
+
+Delivery address
+Billing address
+Payment method selection
+
+
+
+Customer Portal
+
+"My Rentals" dashboard
+Order history
+Invoice downloads
+Order status tracking
+Return date reminders
+
+
+7️⃣ SETTINGS & CONFIGURATION
+Admin Settings
+
+Rental period definitions (hourly/daily/weekly rates)
+Product attributes & values management
+User role assignments
+GST rates & tax configuration
+Company details (name, GSTIN, address, logo)
+Late fee policy configuration
+Email/SMS templates
+
+User Profile Settings
+
+Company information
+GSTIN update
+Password change
+Notification preferences
+
+
+8️⃣ REPORTS & DASHBOARDS
+Vendor Dashboard
+
+Total rental revenue (current month/year)
+Active rentals count
+Pending returns
+Most rented products (chart)
+Earnings trends (line graph)
+
+Admin Dashboard
+
+System-wide metrics:
+
+Total revenue
+Number of vendors
+Number of customers
+Total active rentals
+
+
+Vendor-wise earnings comparison
+Product performance analysis
+Order trends over time
+
+Exportable Reports
+
+Formats: PDF, CSV, XLSX
+Filters: Date range, vendor, product category, payment status
+Report Types:
+
+Rental Revenue Report
+Product Utilization Report
+Late Return Report
+Payment Collection Report
+
+
+
+
+🗄️ DATABASE DESIGN (MANDATORY MODELS)
+Required Django Models
+Create the following models with proper relationships:
+
+User (extend Django's AbstractUser)
+CustomerProfile (one-to-one with User)
+VendorProfile (one-to-one with User)
+Product
+ProductVariant
+ProductAttribute
+AttributeValue
+RentalPricing (hourly/daily/weekly rates)
+Quotation
+QuotationLine
+RentalOrder
+RentalOrderLine
+Reservation (blocks inventory)
+Pickup (pickup document)
+Return (return document)
+Invoice
+InvoiceLine
+Payment
+AuditLog (track all state changes)
+
+What You Must Explain
+
+Model relationships (ForeignKey, ManyToMany, OneToOne)
+ERP document flow (how quotation → order → invoice are linked)
+Real-life business reasoning (why each field exists)
+Computed fields (available quantity, late fees, etc.)
+
+
+🎨 UI/UX REQUIREMENTS
+Design Reference
+Mockup Link: https://link.excalidraw.com/l/65VNwvy7c4X/3tAPpflFLrG
+Follow this mockup EXACTLY.
+UI Principles
+
+Clean ERP-style business UI (think Odoo/SAP aesthetic)
+Step-based rental flow with progress indicators
+Clear status badges (Draft, Confirmed, In Progress, Completed)
+Dashboard-driven navigation (cards with key metrics)
+Responsive tables for orders/invoices/products
+
+Color Palette
+strictly use the color palette which is provided in this link https://link.excalidraw.com/l/65VNwvy7c4X/3tAPpflFLrG
+
+🏗️ ARCHITECTURE FLOW (FOLLOW THIS EXACT ORDER)
+Phase-by-Phase Development
+YOU MUST proceed in this sequence. DO NOT skip steps.
+PhaseTasks1Project setup & app folder structure2Database models (models.py ONLY)3Admin panel configuration4Authentication & role-based access5URL routing (urls.py)6Business logic views (views.py)7Reservation & availability calculation logic8Templates (HTML rendering)9Static files (CSS/JS)10Reports & dashboard generation11Security, validation & error handling12Hackathon demo preparation & polish
+
+💼 WORKING METHODOLOGY (MANDATORY)
+For EVERY Development Step:
+
+📁 Identify the file being created/edited
+🧠 Explain the business reason (why does this exist in a real rental company?)
+💻 Provide clean, commented Django code
+🔗 Explain the connection to the next step
+⏸️ STOP and wait for my confirmation before proceeding
+
+Code Quality Standards
+
+PEP 8 compliant Python code
+Meaningful variable names (no x, temp, data)
+Docstrings for all classes and complex functions
+Inline comments explaining business logic
+No hardcoded values (use settings/constants)
+
+
+🏆 HACKATHON WINNING MINDSET
+Think Like an Odoo Developer
+
+Build modular, reusable components
+Implement proper ERP state machines (Draft → Confirmed → Done)
+Use smart defaults (auto-calculate fields, pre-fill forms)
+Add audit trails (who changed what, when)
+
+Prioritization Strategy
+
+Business correctness over fancy UI
+Working workflows over feature breadth
+Demo-friendly flows (easy to show value)
+Data integrity over performance optimization
+
+Demo Preparation
+
+Ensure every feature maps to a real business problem solved
+Create realistic demo data (not "Test Product 1, 2, 3")
+Make workflows visually obvious (status badges, progress bars)
+Prepare a 2-minute pitch: "This system prevents overbooking by..."
+
+The Ultimate Test
+
+"Could a real equipment rental company use this system tomorrow and run their business with it?"
+
+If the answer is YES, you're on track to win.
+
+====================================================
+WORKING STYLE (MANDATORY)
+====================================================
+For EVERY step:
+1) Tell me which file we are editing
+2) Explain why this step exists in real business
+3) Provide clean, commented Django code
+4) Explain how it connects to next step
+5) STOP and wait for my confirmation
+
+Also there would brevo smtp integration and appyflow gstin api integration in the app.
+
+Also the pdf for the problem statement and the objective and working of this app is provided with all the specifications. In case of confusions or lack of information you must refer to the pdf rather than the prompt.
+
+You must remember that for the whole flow of the app you must refer to the wireframe provided in this link https://link.excalidraw.com/l/65VNwvy7c4X/3tAPpflFLrG. This link contains the wireframe which has all the information of what happens when a person clicks a specific button, the whole flow of the app is in the link itself.
+
+Also in the code, write comments on the side of models, forms or any other thing like that, which provides the clear idea of its use case and to whom it is useful.

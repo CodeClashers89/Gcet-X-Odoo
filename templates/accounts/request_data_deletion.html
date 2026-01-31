@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Request Data Deletion - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 40px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">Request Data Deletion</h1>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        GDPR Article 17 - Right to Erasure ("Right to be Forgotten")
+    </p>
+
+    {% if existing_request %}
+    <!-- Existing Request -->
+    <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #856404; margin-bottom: 10px;">You have a pending deletion request</h2>
+        <p style="color: #856404; margin: 0;">
+            <strong>Status:</strong> {{ existing_request.status|title }}<br>
+            <strong>Requested on:</strong> {{ existing_request.request_date|date:"F j, Y" }}<br>
+            {% if existing_request.reason %}
+            <strong>Reason:</strong> {{ existing_request.reason }}
+            {% endif %}
+        </p>
+    </div>
+    <p style="color: #6c757d; margin-bottom: 20px;">
+        Your request is being reviewed. We will contact you within 30 days as required by GDPR.
+    </p>
+    {% else %}
+    <!-- Request Form -->
+    <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #721c24; margin-bottom: 10px;">⚠️ Important Information</h2>
+        <p style="color: #721c24; margin: 0; font-size: 14px;">
+            Deleting your data is permanent and cannot be undone. This action will:
+        </p>
+        <ul style="color: #721c24; margin: 10px 0 0 0; padding-left: 20px;">
+            <li>Remove all your personal information</li>
+            <li>Delete your account and profile</li>
+            <li>Remove access to all quotations and orders</li>
+            <li>Cancel any pending transactions</li>
+        </ul>
+        <p style="color: #721c24; margin: 10px 0 0 0; font-size: 14px;">
+            <strong>Note:</strong> Some data may be retained for legal compliance (e.g., tax records) as permitted by GDPR Article 17(3).
+        </p>
+    </div>
+
+    <form method="POST" style="margin-top: 30px;">
+        {% csrf_token %}
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="reason" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                Reason for deletion (optional)
+            </label>
+            <textarea 
+                id="reason"
+                name="reason"
+                rows="4"
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"
+                placeholder="Please tell us why you're requesting data deletion..."
+            ></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" required id="confirm" style="width: 18px; height: 18px;">
+                <span style="color: #333;">
+                    I understand that this action is permanent and will result in the deletion of all my data.
+                </span>
+            </label>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="background: #e74c3c;">
+                Request Data Deletion
+            </button>
+            <a href="{% url 'accounts:my_data' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    {% endif %}
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+        <p style="color: #6c757d; font-size: 13px;">
+            <strong>Processing Time:</strong> We will respond to your request within 30 days as required by GDPR.<br>
+            <strong>Legal Basis:</strong> GDPR Article 17 - Right to Erasure<br>
+            <strong>Questions?</strong> Contact our Data Protection Officer at <a href="mailto:dpo@rentalerp.com">dpo@rentalerp.com</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

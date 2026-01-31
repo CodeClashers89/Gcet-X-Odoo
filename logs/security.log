@@ -1,0 +1,7 @@
+WARNING 2026-01-31 13:38:30,398 security 26148 22092 Rate limit exceeded for 127.0.0.1 on /accounts/login/
+WARNING 2026-01-31 13:59:49,251 compliance 24804 16900 ISO27001 Critical Operation: {"timestamp": "2026-01-31T13:59:49.251358", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}
+WARNING 2026-01-31 14:00:20,413 compliance 23128 25612 ISO27001 Critical Operation: {"timestamp": "2026-01-31T14:00:20.413819", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}
+WARNING 2026-01-31 14:00:40,130 compliance 26668 8532 ISO27001 Critical Operation: {"timestamp": "2026-01-31T14:00:40.130252", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}
+WARNING 2026-01-31 14:02:30,193 compliance 28872 1020 ISO27001 Critical Operation: {"timestamp": "2026-01-31T14:02:30.193005", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}
+WARNING 2026-01-31 14:03:31,696 compliance 4968 18816 ISO27001 Critical Operation: {"timestamp": "2026-01-31T14:03:31.696727", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}
+WARNING 2026-01-31 14:03:56,673 compliance 27428 18492 ISO27001 Critical Operation: {"timestamp": "2026-01-31T14:03:56.673911", "user": "anonymous", "ip_address": "127.0.0.1", "path": "/accounts/login/", "method": "POST", "user_agent": ""}

@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendor Sign Up - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="text-align: center; margin-bottom: 10px; color: #2c3e50;">Create Vendor Account</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 30px;">Sign up to list and manage your rental inventory</p>
+    
+    <form method="POST" class="signup-form">
+        {% csrf_token %}
+        
+        <!-- Section: Personal Information -->
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Personal Information</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <!-- First Name -->
+            <div class="form-group">
+                <label for="id_first_name">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Last Name -->
+            <div class="form-group">
+                <label for="id_last_name">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Email -->
+        <div class="form-group">
+            <label for="id_email">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Section: Business Information -->
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Business Information</h3>
+        
+        <!-- Company Name -->
+        <div class="form-group">
+            <label for="id_company_name">{{ form.company_name.label }}</label>
+            {{ form.company_name }}
+            {% if form.company_name.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.company_name.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- GSTIN -->
+        <div class="form-group">
+            <label for="id_gstin">{{ form.gstin.label }}</label>
+            {{ form.gstin }}
+            <div id="gstin-status" style="margin-top: 8px; font-size: 13px;"></div>
+            {% if form.gstin.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.gstin.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- State -->
+        <div class="form-group">
+            <label for="id_state">{{ form.state.label }}</label>
+            {{ form.state }}
+            {% if form.state.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.state.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- City -->
+        <div class="form-group">
+            <label for="id_city">{{ form.city.label }}</label>
+            {{ form.city }}
+            {% if form.city.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.city.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pincode -->
+        <div class="form-group">
+            <label for="id_pincode">{{ form.pincode.label }}</label>
+            {{ form.pincode }}
+            {% if form.pincode.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.pincode.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Business Address -->
+        <div class="form-group">
+            <label for="id_business_address">{{ form.business_address.label }}</label>
+            {{ form.business_address }}
+            {% if form.business_address.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.business_address.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Section: Banking Details -->
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Banking Information</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Used for payout of rental earnings</p>
+        
+        <!-- Bank Name -->
+        <div class="form-group">
+            <label for="id_bank_name">{{ form.bank_name.label }}</label>
+            {{ form.bank_name }}
+            {% if form.bank_name.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.bank_name.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Account Number -->
+        <div class="form-group">
+            <label for="id_bank_account_number">{{ form.bank_account_number.label }}</label>
+            {{ form.bank_account_number }}
+            {% if form.bank_account_number.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.bank_account_number.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- IFSC Code -->
+        <div class="form-group">
+            <label for="id_bank_ifsc_code">{{ form.bank_ifsc_code.label }}</label>
+            {{ form.bank_ifsc_code }}
+            {% if form.bank_ifsc_code.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.bank_ifsc_code.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Section: Password -->
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Password</h3>
+        
+        <!-- Password -->
+        <div class="form-group">
+            <label for="id_password">{{ form.password.label }}</label>
+            {{ form.password }}
+            <small class="form-text">{{ form.password.help_text }}</small>
+            {% if form.password.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="id_password_confirmation">{{ form.password_confirmation.label }}</label>
+            {{ form.password_confirmation }}
+            {% if form.password_confirmation.errors %}
+                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
+                    {% for error in form.password_confirmation.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Terms -->
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0; font-size: 13px; color: #666;">
+            <p style="margin: 0;">
+                <strong>Note:</strong> Your vendor account will require admin approval before you can start listing products. 
+                You will receive an email notification once approved.
+            </p>
+        </div>
+        
+        <!-- Submit -->
+        <div style="margin-top: 30px;">
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 12px;">Create Vendor Account</button>
+        </div>
+        
+        <!-- Links -->
+        <p style="text-align: center; margin-top: 20px; color: #666;">
+            Already have an account? <a href="{% url 'accounts:login' %}">Login here</a>
+        </p>
+    </form>
+</div>
+
+<script>
+    // GSTIN real-time validation
+    document.getElementById('id_gstin').addEventListener('blur', function() {
+        const gstin = this.value.toUpperCase();
+        const statusDiv = document.getElementById('gstin-status');
+        
+        if (gstin.length !== 15) {
+            statusDiv.innerHTML = '<span style="color: #ffc107;">GSTIN must be 15 characters</span>';
+            return;
+        }
+        
+        // Show loading state
+        statusDiv.innerHTML = '<span style="color: #17a2b8;">Verifying GSTIN...</span>';
+        
+        // Call AJAX endpoint
+        fetch(`/accounts/api/verify-gstin/?gstin=${gstin}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    statusDiv.innerHTML = `<span style="color: #28a745;">✓ Valid - ${data.company_name}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #dc3545;">✗ ${data.message}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<span style="color: #dc3545;">Verification error. Check manually.</span>';
+                console.error(error);
+            });
+    });
+</script>
+{% endblock %}

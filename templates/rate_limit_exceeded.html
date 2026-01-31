@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Too Many Requests - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 40px auto; background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #fff3cd; display: flex; align-items: center; justify-content: center; border: 1px solid #ffeeba; color: #856404; font-weight: 700;">!</div>
+        <div>
+            <h1 style="margin: 0; color: #2c3e50; font-size: 22px;">Too Many Requests</h1>
+            <p style="margin: 6px 0 0 0; color: #6c757d;">Please slow down. Our system is protecting your account.</p>
+        </div>
+    </div>
+
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid #e9ecef;">
+        <p style="margin: 0 0 8px 0; color: #495057;">You have exceeded the allowed request limit for this action.</p>
+        <p style="margin: 0; color: #495057;">
+            Try again in <strong>{{ retry_after_seconds }}</strong> seconds.
+        </p>
+    </div>
+
+    <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+        <a href="/" class="btn btn-primary">Return to Home</a>
+    </div>
+</div>
+{% endblock %}

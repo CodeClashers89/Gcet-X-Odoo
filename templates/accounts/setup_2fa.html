@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Two-Factor Authentication - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">🔐 Two-Factor Authentication</h1>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Add an extra layer of security to your account
+    </p>
+
+    {% if step == 'start' %}
+    <!-- Step 1: Introduction -->
+    <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #0d47a1; margin-bottom: 10px;">What is 2FA?</h2>
+        <p style="color: #1565c0; margin: 0; font-size: 14px;">
+            Two-Factor Authentication (2FA) requires both your password and a time-based code from your phone to login. 
+            This makes your account significantly more secure.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 15px; margin-bottom: 10px;">You'll need:</h3>
+        <ul style="color: #333; line-height: 1.8;">
+            <li>A smartphone with an authenticator app installed</li>
+            <li>Recommended apps: Google Authenticator, Microsoft Authenticator, Authy</li>
+        </ul>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="generate">
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Get Started →
+        </button>
+    </form>
+
+    {% elif step == 'verify' %}
+    <!-- Step 2: Scan QR Code & Verify -->
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #856404; margin-bottom: 10px;">Step 1: Scan QR Code</h2>
+        <p style="color: #856404; margin: 0; font-size: 14px;">
+            Open your authenticator app and scan this QR code
+        </p>
+    </div>
+
+    {% if qr_code %}
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ qr_code }}" alt="QR Code" style="max-width: 250px; border: 2px solid #ddd; padding: 10px; background: white;">
+    </div>
+    {% endif %}
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">
+            <strong>Can't scan?</strong> Enter this code manually:
+        </p>
+        <code style="background: white; padding: 8px 12px; display: block; border-radius: 4px; font-size: 14px;">
+            {{ secret }}
+        </code>
+    </div>
+
+    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #2e7d32; margin-bottom: 10px;">Step 2: Save Backup Codes</h2>
+        <p style="color: #2e7d32; margin: 0 0 10px 0; font-size: 14px;">
+            Save these codes in a safe place. You can use them to access your account if you lose your phone.
+        </p>
+        <div style="background: white; padding: 15px; border-radius: 4px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            {% for code in backup_codes %}
+            <code style="background: #f8f9fa; padding: 6px 10px; border-radius: 3px; font-size: 13px;">
+                {{ code }}
+            </code>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin-bottom: 20px;">
+        <h2 style="font-size: 16px; color: #856404; margin-bottom: 10px;">Step 3: Verify</h2>
+        <p style="color: #856404; margin: 0; font-size: 14px;">
+            Enter the 6-digit code from your authenticator app
+        </p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="verify">
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="token" style="display: block; margin-bottom: 8px; font-weight: 500;">
+                Verification Code
+            </label>
+            <input 
+                type="text" 
+                id="token"
+                name="token"
+                class="form-control"
+                placeholder="000000"
+                required
+                maxlength="6"
+                pattern="[0-9]{6}"
+                style="font-size: 24px; text-align: center; letter-spacing: 8px; font-family: monospace;"
+                autocomplete="off"
+            >
+            <small style="color: #6c757d; font-size: 12px;">Enter the 6-digit code from your authenticator app</small>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                Enable 2FA
+            </button>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

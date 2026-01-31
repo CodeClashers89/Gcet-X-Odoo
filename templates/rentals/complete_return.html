@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Record Return Completion - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <h2 class="mb-4">Record Return Completion</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Order {{ order.order_number }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <p class="mb-1"><strong>Customer:</strong> {{ order.customer.get_full_name }}</p>
+                        <p class="mb-1"><strong>Items:</strong> {{ order.rental_order_lines.count }} line(s)</p>
+                        <p class="mb-1"><strong>Rental Period:</strong> 
+                            {% if order.rental_order_lines.exists %}
+                                {% with first=order.rental_order_lines.first %}
+                                    {{ first.rental_start_date|date:"d M Y" }} to {{ first.rental_end_date|date:"d M Y" }}
+                                {% endwith %}
+                            {% endif %}
+                        </p>
+                        <p class="mb-0"><strong>Total Amount:</strong> ₹{{ order.total_amount|floatformat:2 }}</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.actual_return_date.id_for_label }}" class="form-label">
+                                Actual Return Date & Time <span class="text-danger">*</span>
+                            </label>
+                            {{ form.actual_return_date }}
+                            {% if form.actual_return_date.errors %}
+                                <div class="text-danger mt-1">{{ form.actual_return_date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Return Verification</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    {{ form.all_items_returned }}
+                                    <label class="form-check-label" for="{{ form.all_items_returned.id_for_label }}">
+                                        All items have been returned
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Damage Assessment</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    {{ form.items_damaged }}
+                                    <label class="form-check-label" for="{{ form.items_damaged.id_for_label }}">
+                                        Items have been damaged
+                                    </label>
+                                </div>
+
+                                <div id="damage-section" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="{{ form.damage_description.id_for_label }}" class="form-label">
+                                            Damage Description <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.damage_description }}
+                                        {% if form.damage_description.errors %}
+                                            <div class="text-danger mt-1">{{ form.damage_description.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ form.damage_cost.id_for_label }}" class="form-label">
+                                            Damage Cost (₹) <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.damage_cost }}
+                                        {% if form.damage_cost.errors %}
+                                            <div class="text-danger mt-1">{{ form.damage_cost.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle"></i> Confirm Return
+                            </button>
+                            <a href="{% url 'rentals:order_detail' order.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const damageCheckbox = document.getElementById('{{ form.items_damaged.id_for_label }}');
+    const damageSection = document.getElementById('damage-section');
+    
+    function toggleDamageSection() {
+        if (damageCheckbox.checked) {
+            damageSection.style.display = 'block';
+        } else {
+            damageSection.style.display = 'none';
+        }
+    }
+    
+    damageCheckbox.addEventListener('change', toggleDamageSection);
+    
+    // Initial state
+    toggleDamageSection();
+});
+</script>
+
+<style>
+    .form-control, .form-select, textarea {
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}

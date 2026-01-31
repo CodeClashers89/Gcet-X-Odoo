@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Rental Orders - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Rental Orders</h2>
+        </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">Filter by Status:</span>
+                <select class="form-select" onchange="filterByStatus(this.value)">
+                    <option value="">All Statuses</option>
+                    <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Rental Period</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <strong>{{ order.order_number }}</strong>
+                    </td>
+                    <td>{{ order.customer.get_full_name }}</td>
+                    <td>
+                        {% if order.rental_order_lines.exists %}
+                            {% with first_line=order.rental_order_lines.first %}
+                                {{ first_line.rental_start_date|date:"d M Y" }} to {{ first_line.rental_end_date|date:"d M Y" }}
+                            {% endwith %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>₹{{ order.total_amount|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        {% if order.status == 'draft' %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% elif order.status == 'confirmed' %}
+                            <span class="badge bg-info">Confirmed</span>
+                        {% elif order.status == 'in_progress' %}
+                            <span class="badge bg-warning">In Progress</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"d M Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'rentals:order_detail' order.id %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        No rental orders found.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterByStatus(status) {
+    if (status) {
+        window.location.href = "{% url 'rentals:order_list' %}?status=" + status;
+    } else {
+        window.location.href = "{% url 'rentals:order_list' %}";
+    }
+}
+</script>
+{% endblock %}

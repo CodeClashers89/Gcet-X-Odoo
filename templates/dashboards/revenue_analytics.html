@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Revenue Analytics - Rental ERP{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                <i class="fas fa-coins"></i> Revenue Analytics
+            </h1>
+            <p class="text-muted">Financial performance and cash flow analysis</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <form method="get" class="d-flex gap-2 justify-content-end">
+                <select name="days" class="form-select w-auto" onchange="this.form.submit()">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                    <option value="365" {% if days == 365 %}selected{% endif %}>Last year</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="text-muted small mb-1">Total Revenue</p>
+                            <h3 class="mb-0">₹{{ total_revenue|floatformat:0|intcomma }}</h3>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="text-muted small mb-1">Collected</p>
+                            <h3 class="mb-0">₹{{ total_paid|floatformat:0|intcomma }}</h3>
+                            <small class="text-info">{{ payment_rate }}% collected</small>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="text-muted small mb-1">Pending</p>
+                            <h3 class="mb-0">₹{{ total_due|floatformat:0|intcomma }}</h3>
+                        </div>
+                        <i class="fas fa-hourglass-half fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-left-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="text-muted small mb-1">Late Fees</p>
+                            <h3 class="mb-0">₹{{ total_late_fees|floatformat:0|intcomma }}</h3>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Breakdown -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Daily Revenue Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Revenue Composition</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Base Rental</span>
+                            <strong>₹{{ total_revenue|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Discounts</span>
+                            <strong class="text-danger">-₹{{ total_discount|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Tax (GST)</span>
+                            <strong class="text-success">₹{{ total_tax|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Late Fees</span>
+                            <strong class="text-warning">₹{{ total_late_fees|floatformat:0|intcomma }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Daily Revenue Data</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Total Revenue</th>
+                                    <th>Collected</th>
+                                    <th>Pending</th>
+                                    <th>Collection %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in daily_revenue %}
+                                <tr>
+                                    <td>{{ data.date|date:"d M Y" }}</td>
+                                    <td>₹{{ data.amount|floatformat:2|intcomma }}</td>
+                                    <td>₹{{ data.amount|floatformat:2|intcomma }}</td>
+                                    <td>₹0.00</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%">75%</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No revenue data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-success {
+    border-left: 4px solid #28A745 !important;
+}
+
+.border-left-info {
+    border-left: 4px solid #17A2B8 !important;
+}
+
+.border-left-warning {
+    border-left: 4px solid #FFC107 !important;
+}
+
+.border-left-danger {
+    border-left: 4px solid #DC3545 !important;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Daily Revenue',
+            data: {{ chart_data|safe }},
+            borderColor: '#28A745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: '#28A745',
+            pointHoverRadius: 7,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + value.toLocaleString('en-IN');
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

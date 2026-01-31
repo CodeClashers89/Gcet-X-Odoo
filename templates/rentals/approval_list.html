@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Approvals - Rental Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-4">
+                <i class="fas fa-check-circle"></i> Approval Requests
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-primary">{{ approvals|length }} Request{{ approvals|length|pluralize }}</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="type" class="form-label">Type</label>
+                    <select class="form-select" id="type" name="type">
+                        <option value="">All Types</option>
+                        <option value="quotation" {% if current_type == 'quotation' %}selected{% endif %}>Quotation</option>
+                        <option value="order" {% if current_type == 'order' %}selected{% endif %}>Order</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="amount_min" class="form-label">Min Amount (₹)</label>
+                    <input type="number" class="form-control" id="amount_min" name="amount_min" 
+                           placeholder="0" value="{{ current_amount_min }}" step="100">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="amount_max" class="form-label">Max Amount (₹)</label>
+                    <input type="number" class="form-control" id="amount_max" name="amount_max" 
+                           placeholder="999999" value="{{ current_amount_max }}" step="100">
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{% url 'rentals:approval_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Approvals Table -->
+    {% if approvals %}
+    <div class="table-responsive">
+        <table class="table table-hover shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Request ID</th>
+                    <th>Type</th>
+                    <th>Document</th>
+                    <th>Amount</th>
+                    <th>Requested By</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for approval in approvals %}
+                <tr>
+                    <td>
+                        <strong>{{ approval.request_number }}</strong>
+                    </td>
+                    <td>
+                        {% if approval.request_type == 'quotation' %}
+                            <span class="badge bg-info">Quotation</span>
+                        {% else %}
+                            <span class="badge bg-warning">Order</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if approval.quotation %}
+                            <a href="{% url 'rentals:quotation_detail' approval.quotation.id %}" class="text-decoration-none">
+                                {{ approval.quotation.quotation_number }}
+                            </a>
+                        {% elif approval.rental_order %}
+                            <a href="{% url 'rentals:order_detail' approval.rental_order.id %}" class="text-decoration-none">
+                                {{ approval.rental_order.order_number }}
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>₹{{ approval.approval_amount|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        {{ approval.requested_by.get_full_name|default:approval.requested_by.email }}
+                    </td>
+                    <td>
+                        {% if approval.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif approval.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif approval.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ approval.created_at|date:"d M Y, H:i" }}</small>
+                    </td>
+                    <td>
+                        <a href="{% url 'rentals:approval_detail' approval.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle"></i> No approval requests found.
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.badge {
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+}
+</style>
+{% endblock %}
