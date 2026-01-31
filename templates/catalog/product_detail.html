@@ -495,7 +495,8 @@
         {% endif %}
     </div>
 
-    <!-- Availability Checker -->
+    <!-- Availability Checker (Hidden for Vendors) -->
+    {% if user.role != 'vendor' %}
     <div class="availability-section">
         <h3 class="section-header">Check Availability</h3>
 
@@ -524,6 +525,7 @@
             🛒 Add to Cart
         </a>
     </div>
+    {% endif %}
 </div>
 
 <script>

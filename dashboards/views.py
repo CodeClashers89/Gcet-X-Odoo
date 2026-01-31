@@ -30,6 +30,44 @@ def dashboard(request):
         ).order_by('-created_at')[:5]
         return render(request, 'dashboards/customer_dashboard.html', context)
     elif user.role == 'vendor':
+        from catalog.models import Product
+        from rentals.models import RentalOrder
+        
+        # Active Listings
+        context['active_listings_count'] = Product.objects.filter(
+            vendor=user, 
+            is_published=True
+        ).count()
+        
+        # Total Rentals
+        context['total_rentals_count'] = RentalOrder.objects.filter(
+            vendor=user
+        ).count()
+        
+        # Total Revenue
+        context['total_revenue'] = RentalOrder.objects.filter(
+            vendor=user
+        ).aggregate(Sum('total'))['total__sum'] or Decimal('0.00')
+        
+        # Pending Returns (In Progress but End Date passed or approaching)
+        context['pending_returns_count'] = RentalOrder.objects.filter(
+            vendor=user,
+            status='in_progress'
+        ).count()
+        
+        # Monthly Earnings
+        month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        context['monthly_earnings'] = RentalOrder.objects.filter(
+            vendor=user,
+            created_at__gte=month_start,
+            status__in=['confirmed', 'in_progress', 'completed', 'invoiced']
+        ).aggregate(Sum('total'))['total__sum'] or Decimal('0.00')
+        
+        # Recent Orders
+        context['recent_orders'] = RentalOrder.objects.filter(
+            vendor=user
+        ).order_by('-created_at')[:5]
+        
         return render(request, 'dashboards/vendor_dashboard.html', context)
     elif user.role == 'admin':
         from accounts.models import VendorProfile
@@ -489,4 +527,51 @@ def late_returns_analytics(request):
     }
     
     return render(request, 'dashboards/late_returns_analytics.html', context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def vendor_financials(request):
+    """
+    Detailed financial report for vendors.
+    Business Use: Track earnings, pending payments, and security deposits.
+    """
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden("Only vendors can view financial reports")
+    
+    from billing.models import Invoice, Payment
+    from rentals.models import RentalOrder
+    
+    user = request.user
+    
+    # Get all invoices for this vendor
+    invoices = Invoice.objects.filter(vendor=user).order_by('-created_at')
+    
+    # Calculate aggregates
+    stats = invoices.aggregate(
+        total_revenue=Sum('total'),
+        total_paid=Sum('paid_amount'),
+        total_due=Sum('balance_due'),
+        total_deposits=Sum('deposit_collected'),
+        total_refunded=Sum('deposit_refunded')
+    )
+    
+    # Security deposits currently held (collected but not yet refunded)
+    deposits_held = (stats['total_deposits'] or Decimal('0.00')) - (stats['total_refunded'] or Decimal('0.00'))
+    
+    # Recent payments
+    recent_payments = Payment.objects.filter(
+        invoice__vendor=user,
+        payment_status='success'
+    ).order_by('-payment_date')[:10]
+    
+    context = {
+        'invoices': invoices,
+        'stats': stats,
+        'deposits_held': deposits_held,
+        'recent_payments': recent_payments,
+        'user': user
+    }
+    
+    return render(request, 'dashboards/vendor_financials.html', context)
 

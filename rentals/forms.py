@@ -3,6 +3,7 @@ from django.forms import inlineformset_factory
 from decimal import Decimal
 from catalog.models import Product, ProductVariant, RentalPricing
 from rentals.models import Quotation, QuotationLine, RentalOrder, RentalOrderLine, Pickup, Return
+from accounts.models import VendorProfile
 
 
 class QuotationLineForm(forms.ModelForm):
@@ -201,6 +202,20 @@ class SendQuotationForm(forms.Form):
             'placeholder': 'Optional message to include with quotation'
         }),
         label='Message'
+    )
+    
+    advance_payment_type = forms.ChoiceField(
+        choices=VendorProfile.ADVANCE_PAYMENT_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Advance Payment Requirement'
+    )
+    
+    advance_payment_percentage = forms.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 25.00'}),
+        label='Custom Advance % (if applicable)'
     )
 
 

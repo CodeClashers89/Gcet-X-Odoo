@@ -4,37 +4,190 @@
 {% block title %}Query {{ quotation.quotation_number }} - Rental ERP{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
+<style>
+    .detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "📝";
+        font-size: 32px;
+    }
+
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+    }
+
+    .status-badge-modern::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-draft { background-color: #f0f0f0; color: #6c757d; }
+    .status-draft::before { background-color: #6c757d; }
+    .status-sent { background-color: #d1ecf1; color: #0c5460; }
+    .status-sent::before { background-color: #17a2b8; }
+    .status-confirmed { background-color: #d4edda; color: #155724; }
+    .status-confirmed::before { background-color: #28a745; }
+    .status-cancelled { background-color: #f8d7da; color: #721c24; }
+    .status-cancelled::before { background-color: #dc3545; }
+
+    .card-modern {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .card-modern-header {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+        padding: 18px 25px;
+    }
+
+    .card-modern-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-modern-body { padding: 25px; }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value { color: #555; line-height: 1.6; }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .items-table th {
+        background: #f8f9fa;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        border-bottom: 2px solid #eee;
+    }
+
+    .items-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+    }
+
+    .pricing-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .pricing-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+    }
+
+    .pricing-row.total {
+        margin-top: 10px;
+        padding-top: 15px;
+        border-top: 2px solid #eee;
+        font-weight: 700;
+        font-size: 18px;
+        color: #2c3e50;
+    }
+
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s;
+        margin-bottom: 15px;
+        border: none;
+    }
+
+    .btn-confirm { background: #27ae60; color: white; }
+    .btn-confirm:hover { background: #219150; transform: translateY(-2px); }
+    .btn-download { background: #ecf0f1; color: #2c3e50; }
+    .btn-download:hover { background: #bdc3c7; }
+</style>
+
+<div class="detail-container">
+    <div class="page-header">
+        <div>
             <h2>Query {{ quotation.quotation_number }}</h2>
-            <small class="text-muted">Created on {{ quotation.created_at|date:"d M Y H:i" }}</small>
+            <div style="margin-top: 8px; opacity: 0.9;">Created on {{ quotation.created_at|date:"d M Y H:i" }}</div>
         </div>
-        <div class="col-md-4 text-end">
-            <div class="mb-2">
-                {% if quotation.status == 'draft' %}
-                    <span class="badge bg-secondary">Draft</span>
-                {% elif quotation.status == 'sent' %}
-                    <span class="badge bg-info">Sent</span>
-                {% elif quotation.status == 'confirmed' %}
-                    <span class="badge bg-success">Confirmed</span>
-                {% elif quotation.status == 'cancelled' %}
-                    <span class="badge bg-danger">Cancelled</span>
-                {% endif %}
-                
-                <!-- Approval Status Badge -->
-                {% if quotation.approval_status and quotation.approval_status != 'not_required' %}
-                    <br><small class="mt-2 d-block">
-                        {% if quotation.approval_status == 'pending' %}
-                            <span class="badge bg-warning text-dark">Pending Approval</span>
-                        {% elif quotation.approval_status == 'approved' %}
-                            <span class="badge bg-success">Approved</span>
-                        {% elif quotation.approval_status == 'rejected' %}
-                            <span class="badge bg-danger">Rejected</span>
-                        {% endif %}
-                    </small>
-                {% endif %}
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+            <div class="status-badge-modern status-{{ quotation.status }}">
+                {{ quotation.get_status_display }}
             </div>
+            {% if quotation.approval_status and quotation.approval_status != 'not_required' %}
+                <div class="badge {% if quotation.approval_status == 'pending' %}bg-warning text-dark{% elif quotation.approval_status == 'approved' %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ quotation.get_approval_status_display }}
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -49,138 +202,116 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <!-- Query Summary -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Query Summary</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Query Summary</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>From:</strong></p>
-                            {% if vendor %}
-                                <p>{{ vendor.first_name }} {{ vendor.last_name }}<br/>
-                                {% if vendor.vendorprofile %}
-                                    {{ vendor.vendorprofile.company_name }}<br/>
-                                    {{ vendor.vendorprofile.phone }}
+                <div class="card-modern-body">
+                    <div class="info-grid">
+                        <div>
+                            <div class="info-label">From:</div>
+                            <div class="info-value">
+                                {% if vendor %}
+                                    <strong>{{ vendor.first_name }} {{ vendor.last_name }}</strong><br>
+                                    {% if vendor.vendorprofile %}
+                                        {{ vendor.vendorprofile.company_name }}<br>
+                                        {{ vendor.vendorprofile.phone }}
+                                    {% endif %}
+                                {% else %}
+                                    Rental ERP System
                                 {% endif %}
-                                </p>
-                            {% else %}
-                                <p>Rental ERP System</p>
-                            {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>To:</strong></p>
-                            <p>{{ quotation.customer.get_full_name }}<br/>
-                            {{ quotation.customer.email }}<br/>
-                            {% if quotation.customer.customerprofile %}
-                                {{ quotation.customer.customerprofile.phone }}
-                            {% endif %}
-                            </p>
+                        <div>
+                            <div class="info-label">To:</div>
+                            <div class="info-value">
+                                <strong>{{ quotation.customer.get_full_name }}</strong><br>
+                                {{ quotation.customer.email }}<br>
+                                {% if quotation.customer.customerprofile %}
+                                    {{ quotation.customer.customerprofile.phone }}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-
                     {% if quotation.notes %}
-                    <div class="mt-3 pt-3 border-top">
-                        <p><strong>Special Requirements:</strong></p>
-                        <p class="text-muted">{{ quotation.notes }}</p>
-                    </div>
+                    <div class="divider-line" style="margin: 25px 0; border-top: 1px solid #eee;"></div>
+                    <div class="info-label">Special Requirements:</div>
+                    <div class="info-value" style="font-style: italic;">{{ quotation.notes }}</div>
                     {% endif %}
-
-                    <div class="mt-3 pt-3 border-top">
-                        <p><strong>Valid Until:</strong> 
-                            {{ quotation.valid_until|date:"d M Y" }}
-                            {% if quotation.valid_until < now %}
-                                <span class="badge bg-danger">Expired</span>
-                            {% endif %}
-                        </p>
+                    <div class="divider-line" style="margin: 25px 0; border-top: 1px solid #eee;"></div>
+                    <div class="info-grid">
+                        <div>
+                            <div class="info-label">Valid Until</div>
+                            <div class="info-value">
+                                {{ quotation.valid_until|date:"d M Y" }}
+                                {% if quotation.valid_until < now %}
+                                    <span class="badge bg-danger ms-2">Expired</span>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Line Items -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Rental Items</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Rental Items</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Variant</th>
-                                    <th>Rental Period</th>
-                                    <th>Qty</th>
-                                    <th>Unit Price</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for line in quotation.quotation_lines.all %}
-                                <tr>
-                                    <td>{{ line.product.product_name }}</td>
-                                    <td>
-                                        {% if line.product_variant %}
-                                            {{ line.product_variant.variant_name }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <small>
-                                            {{ line.rental_start_date|date:"d M Y" }} to {{ line.rental_end_date|date:"d M Y" }}
-                                        </small>
-                                    </td>
-                                    <td>{{ line.quantity }}</td>
-                                    <td>₹{{ line.unit_price|floatformat:2 }}</td>
-                                    <td><strong>₹{{ line.line_total|floatformat:2 }}</strong></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-modern-body" style="padding: 0;">
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Variant</th>
+                                <th>Period</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in quotation.quotation_lines.all %}
+                            <tr>
+                                <td><strong>{{ line.product.product_name }}</strong></td>
+                                <td>{{ line.product_variant.variant_name|default:"-" }}</td>
+                                <td><small>{{ line.rental_start_date|date:"d M Y" }} - {{ line.rental_end_date|date:"d M Y" }}</small></td>
+                                <td style="text-align: center;">{{ line.quantity }}</td>
+                                <td style="text-align: right; font-weight: 600;">₹{{ line.line_total|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Pricing Summary -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Subtotal:</strong></p>
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <div class="pricing-summary">
+                        <div class="pricing-row">
+                            <span class="info-label">Subtotal</span>
+                            <span class="info-value">₹{{ quotation.subtotal|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <p>₹{{ quotation.subtotal|floatformat:2 }}</p>
+                        {% if quotation.discount_amount %}
+                        <div class="pricing-row">
+                            <span class="info-label">Discount</span>
+                            <span class="info-value text-danger">-₹{{ quotation.discount_amount|floatformat:2 }}</span>
                         </div>
-                    </div>
-                    {% if quotation.discount_amount %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Discount:</strong></p>
+                        {% endif %}
+                        {% if quotation.tax_amount %}
+                        <div class="pricing-row">
+                            <span class="info-label">Tax (GST)</span>
+                            <span class="info-value">₹{{ quotation.tax_amount|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <p>-₹{{ quotation.discount_amount|floatformat:2 }}</p>
+                        {% endif %}
+                        <div class="pricing-row total">
+                            <span>Total Amount</span>
+                            <span>₹{{ quotation.total_amount|floatformat:2 }}</span>
                         </div>
-                    </div>
-                    {% endif %}
-                    {% if quotation.tax_amount %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Tax (GST):</strong></p>
+                        {% if quotation.advance_payment_amount %}
+                        <div class="pricing-row" style="color: #2980b9; font-weight: 600;">
+                            <span>Advance Required ({{ quotation.advance_payment_percentage }}%)</span>
+                            <span>₹{{ quotation.advance_payment_amount|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <p>₹{{ quotation.tax_amount|floatformat:2 }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                    <div class="row pt-3 border-top">
-                        <div class="col-md-6">
-                            <p><strong>Total Amount:</strong></p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <h5>₹{{ quotation.total_amount|floatformat:2 }}</h5>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -287,6 +418,20 @@
                                 {% endif %}
                             </div>
 
+                            <div class="mb-3">
+                                <label for="{{ send_form.advance_payment_type.id_for_label }}" class="form-label">
+                                    Advance Payment Terms
+                                </label>
+                                {{ send_form.advance_payment_type }}
+                            </div>
+
+                            <div id="custom-percentage-div" class="mb-3" style="display: none;">
+                                <label for="{{ send_form.advance_payment_percentage.id_for_label }}" class="form-label">
+                                    Custom Advance %
+                                </label>
+                                {{ send_form.advance_payment_percentage }}
+                            </div>
+
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="fas fa-envelope"></i> Send Quotation
                             </button>
@@ -317,4 +462,24 @@
         font-size: 0.95rem;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('id_advance_payment_type');
+        const customDiv = document.getElementById('custom-percentage-div');
+        
+        if (typeSelect && customDiv) {
+            function toggleCustom() {
+                if (typeSelect.value === 'custom') {
+                    customDiv.style.display = 'block';
+                } else {
+                    customDiv.style.display = 'none';
+                }
+            }
+            
+            typeSelect.addEventListener('change', toggleCustom);
+            toggleCustom(); // Init on load
+        }
+    });
+</script>
 {% endblock %}

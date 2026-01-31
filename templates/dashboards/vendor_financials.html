@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Financial Report - Vendor Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-blue: #0d6efd;
+        --success-green: #198754;
+        --warning-yellow: #ffc107;
+        --danger-red: #dc3545;
+        --info-cyan: #0dcaf0;
+        --dark-bg: #1e1e2d;
+        --card-bg: #ffffff;
+        --text-muted: #6c757d;
+    }
+
+    .earnings-container {
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: calc(100vh - 60px);
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .header-title h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .header-title p {
+        color: var(--text-muted);
+        margin: 5px 0 0;
+    }
+
+    .stats-carousel {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .stat-trend {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .trend-up { color: var(--success-green); }
+    .trend-down { color: var(--danger-red); }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .data-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .table-container {
+        padding: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #fcfcfc;
+        text-align: left;
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f9f9f9;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        padding: 0.4em 0.8em;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .badge-paid { background: #e6f4ea; color: #1e7e34; }
+    .badge-pending { background: #fff4e5; color: #b7791f; }
+    .badge-overdue { background: #fde8e8; color: #c81e1e; }
+
+    .btn-export {
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .btn-export:hover {
+        background: #0b5ed7;
+    }
+
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .payment-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f9f9f9;
+    }
+
+    .payment-info h4 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .payment-info p {
+        margin: 4px 0 0;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .payment-amount {
+        font-weight: 700;
+        color: var(--success-green);
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="earnings-container">
+    <div class="page-header">
+        <div class="header-title">
+            <h1>Earnings Report</h1>
+            <p>Financial visibility and performance tracking for {{ user.get_full_name }}</p>
+        </div>
+        <div class="header-actions">
+            <!-- ERP Requirement: Earnings Report Download -->
+            <button onclick="window.print()" class="btn-export">
+                <span>📄</span> Export to PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-carousel">
+        <div class="stat-card">
+            <p class="stat-label">Total Revenue</p>
+            <div class="stat-value">₹{{ stats.total_revenue|default:"0.00"|floatformat:2 }}</div>
+            <div class="stat-trend trend-up">↑ Lifetime Earnings</div>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Total Realized (Paid)</p>
+            <div class="stat-value" style="color: var(--success-green);">₹{{ stats.total_paid|default:"0.00"|floatformat:2 }}</div>
+            <div class="stat-trend trend-up">✓ Successfully Cleared</div>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Pending Balance</p>
+            <div class="stat-value" style="color: var(--warning-yellow);">₹{{ stats.total_due|default:"0.00"|floatformat:2 }}</div>
+            <div class="stat-trend">⏳ Awaiting Collection</div>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Security Deposits Held</p>
+            <div class="stat-value" style="color: var(--info-cyan);">₹{{ deposits_held|default:"0.00"|floatformat:2 }}</div>
+            <div class="stat-trend">🛡️ Collateral for Active Rentals</div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Invoices List -->
+        <div class="data-card">
+            <div class="card-header">
+                <h3 class="card-title">Detailed Invoices</h3>
+                <a href="{% url 'billing:invoice_list' %}" style="font-size: 0.8rem; color: var(--primary-blue);">View All →</a>
+            </div>
+            <div class="table-container">
+                {% if invoices %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td><a href="{% url 'billing:invoice_detail' invoice.id %}" style="font-weight: 700;">{{ invoice.invoice_number }}</a></td>
+                            <td>{{ invoice.billing_name }}</td>
+                            <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+                            <td style="font-weight: 600;">₹{{ invoice.total }}</td>
+                            <td>
+                                <span class="badge {% if invoice.status == 'paid' %}badge-paid{% elif invoice.status == 'overdue' %}badge-overdue{% else %}badge-pending{% endif %}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    No invoices generated yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="data-card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Payments</h3>
+            </div>
+            <div class="payments-list">
+                {% if recent_payments %}
+                    {% for payment in recent_payments %}
+                    <div class="payment-item">
+                        <div class="payment-info">
+                            <h4>{{ payment.invoice.invoice_number }}</h4>
+                            <p>{{ payment.payment_date|date:"d M Y, h:i A" }} via {{ payment.get_payment_method_display }}</p>
+                        </div>
+                        <div class="payment-amount">+₹{{ payment.amount }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    No payments received yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

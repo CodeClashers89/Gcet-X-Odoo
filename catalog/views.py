@@ -461,6 +461,16 @@ def vendor_add_product(request):
                 price=float(daily_price)
             )
             
+            # Log creation
+            from audit.models import AuditLog
+            AuditLog.log_action(
+                user=request.user,
+                action_type='create',
+                model_instance=product,
+                description=f'Product created by vendor: {product.name}',
+                request=request
+            )
+            
             return render(request, 'catalog/add_product.html', {
                 'success': True,
                 'product': product,
@@ -552,6 +562,16 @@ def vendor_edit_product(request, product_id):
                 pricing.price = daily_price
                 pricing.save()
             
+            # Log edit
+            from audit.models import AuditLog
+            AuditLog.log_action(
+                user=request.user,
+                action_type='update',
+                model_instance=product,
+                description=f'Product updated by vendor: {product.name}',
+                request=request
+            )
+            
             return redirect('catalog:vendor_manage_products')
             
         except Exception as e:
@@ -585,7 +605,21 @@ def vendor_delete_product(request, product_id):
     
     # Get product and verify ownership
     product = get_object_or_404(Product, id=product_id, vendor=request.user)
-    product.delete()
+    
+    # Soft delete: de-list and make un-rentable instead of hard delete
+    product.is_published = False
+    product.is_rentable = False
+    product.save()
+    
+    # Log deletion
+    from audit.models import AuditLog
+    AuditLog.log_action(
+        user=request.user,
+        action_type='delete',
+        model_instance=product,
+        description=f'Product de-listed (soft deleted) by vendor: {product.name}',
+        request=request
+    )
     
     return redirect('catalog:vendor_manage_products')
 

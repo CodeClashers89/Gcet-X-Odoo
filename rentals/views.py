@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.contrib import messages
@@ -25,6 +25,9 @@ from .forms import (
     ReturnScheduleForm,
     ReturnCompletionForm,
 )
+from io import BytesIO
+from .pdf_utils import generate_rental_document
+from .notifications import notify_quotation_stage, notify_order_stage
 
 
 def get_client_ip(request):
@@ -219,6 +222,8 @@ def quotation_detail(request, pk):
                             delivery_address=form.cleaned_data['delivery_address'],
                             billing_address=form.cleaned_data['billing_address'],
                             deposit_amount=form.cleaned_data.get('deposit_amount') or 0,
+                            advance_payment_percentage=quotation.advance_payment_percentage,
+                            advance_payment_amount=quotation.advance_payment_amount,
                         )
                         
                         # Copy quotation lines to order lines
@@ -266,6 +271,8 @@ def quotation_detail(request, pk):
                             request=request,
                         )
                         
+                        notify_order_stage(rental_order, 'confirmed')
+                        
                         messages.success(
                             request,
                             f'Order {rental_order.order_number} created successfully!'
@@ -279,7 +286,21 @@ def quotation_detail(request, pk):
             # Admin/vendor sends quotation to customer
             form = SendQuotationForm(request.POST)
             if form.is_valid():
-                # TODO: Send email via Brevo
+                # Save advance payment terms to quotation
+                adv_type = form.cleaned_data['advance_payment_type']
+                if adv_type == 'none':
+                    quotation.advance_payment_percentage = Decimal('0.00')
+                elif adv_type == 'half':
+                    quotation.advance_payment_percentage = Decimal('50.00')
+                elif adv_type == 'full':
+                    quotation.advance_payment_percentage = Decimal('100.00')
+                else:
+                    quotation.advance_payment_percentage = form.cleaned_data.get('advance_payment_percentage') or Decimal('0.00')
+                
+                quotation.calculate_totals() # This will update advance_payment_amount
+                
+                # Send email via Notification Service
+                notify_quotation_stage(quotation, 'sent')
                 messages.success(request, 'Quotation sent to customer')
                 
                 # Log sending
@@ -558,15 +579,30 @@ def complete_pickup(request, order_id):
                 pickup.pickup_notes = form.cleaned_data.get('pickup_notes', '')
                 pickup.save()
                 
+                messages.success(request, 'Pickup recorded')
+                
+                # ERP Transition: Change order status to 'in_progress'
+                old_status = order.status
+                order.status = 'in_progress'
+                order.save()
+                
+                # ERP Transition: Change reservation status to 'active'
+                Reservation.objects.filter(
+                    rental_order_line__rental_order=order,
+                    status='confirmed'
+                ).update(status='active')
+                
                 AuditLog.log_action(
                     user=request.user,
-                    action_type='update',
-                    model_instance=pickup,
-                    description='Pickup completed',
+                    action_type='state_change',
+                    model_instance=order,
+                    field_name='status',
+                    old_value=old_status,
+                    new_value='in_progress',
+                    description=f'Order fulfillment started. Items picked up.',
                     request=request,
                 )
                 
-                messages.success(request, 'Pickup recorded')
                 return redirect('rentals:order_detail', pk=order.id)
         
         except Exception as e:
@@ -669,15 +705,25 @@ def complete_return(request, order_id):
                     status__in=['confirmed', 'active']
                 ).update(status='completed')
                 
+                messages.success(request, 'Return recorded and late fees calculated')
+                
+                # ERP Transition: Change order status to 'completed'
+                old_status = order.status
+                order.status = 'completed'
+                order.completed_at = timezone.now()
+                order.save()
+                
                 AuditLog.log_action(
                     user=request.user,
-                    action_type='update',
-                    model_instance=return_record,
-                    description='Return completed, late fees calculated',
+                    action_type='state_change',
+                    model_instance=order,
+                    field_name='status',
+                    old_value=old_status,
+                    new_value='completed',
+                    description=f'Order completed. Items returned and assessed.',
                     request=request,
                 )
                 
-                messages.success(request, 'Return recorded and late fees calculated')
                 return redirect('rentals:order_detail', pk=order.id)
         
         except Exception as e:
@@ -989,3 +1035,46 @@ def reject_request(request, approval_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@login_required
+@require_http_methods(["GET"])
+def download_quotation_pdf(request, pk):
+    """
+    Generate and download Quotation PDF.
+    """
+    quotation = get_object_or_404(Quotation, pk=pk)
+    
+    # Permission check
+    if request.user.role == 'customer' and quotation.customer != request.user:
+        return HttpResponseForbidden('You do not have access to this quotation.')
+    elif request.user.role == 'vendor':
+        vendor_has_line = quotation.quotation_lines.filter(product__vendor=request.user).exists()
+        if not vendor_has_line:
+            return HttpResponseForbidden('You do not have access to this quotation.')
+    elif not request.user.is_staff and request.user != quotation.customer:
+        return HttpResponseForbidden('You do not have access to this quotation.')
+        
+    pdf_content = generate_rental_document(quotation, doc_type='quotation')
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Quotation_{quotation.quotation_number}.pdf"'
+    return response
+
+@login_required
+@require_http_methods(["GET"])
+def download_order_pdf(request, pk):
+    """
+    Generate and download Rental Order PDF.
+    """
+    order = get_object_or_404(RentalOrder, pk=pk)
+    
+    # Permission check
+    if request.user.role == 'customer' and order.customer != request.user:
+        return HttpResponseForbidden('You do not have access to this order.')
+    elif request.user.role == 'vendor' and order.vendor != request.user:
+        return HttpResponseForbidden('You do not have access to this order.')
+    elif not request.user.is_staff and request.user not in [order.customer, order.vendor]:
+        return HttpResponseForbidden('You do not have access to this order.')
+        
+    pdf_content = generate_rental_document(order, doc_type='order')
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Order_{order.order_number}.pdf"'
+    return response

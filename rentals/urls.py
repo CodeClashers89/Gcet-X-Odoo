@@ -8,11 +8,13 @@ urlpatterns = [
     path('quotation/create/', views.create_quotation, name='create_quotation'),
     path('quotation/list/', views.quotation_list, name='quotation_list'),
     path('quotation/<int:pk>/', views.quotation_detail, name='quotation_detail'),
+    path('quotation/<int:pk>/download/', views.download_quotation_pdf, name='download_quotation_pdf'),
     path('queries/vendor/', views.vendor_query_list, name='vendor_query_list'),
     
     # Order URLs
     path('order/list/', views.order_list, name='order_list'),
     path('order/<int:pk>/', views.order_detail, name='order_detail'),
+    path('order/<int:pk>/download/', views.download_order_pdf, name='download_order_pdf'),
     
     # Pickup URLs
     path('order/<int:order_id>/pickup/schedule/', views.schedule_pickup, name='schedule_pickup'),

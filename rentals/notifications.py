@@ -16,29 +16,35 @@ class NotificationService:
     """Service for sending notifications to customers and vendors"""
     
     @staticmethod
-    def send_email(subject, recipient_email, template_name, context):
+    def send_email(subject, recipient_email, template_name, context, attachments=None):
         """
-        Send email notification
+        Send email notification with optional attachments
         
         Args:
             subject: Email subject
             recipient_email: Recipient email address
             template_name: Path to email template
             context: Template context variables
+            attachments: List of tuples (filename, content, mimetype)
         """
         try:
+            from django.core.mail import EmailMessage
             # Render HTML email from template
             html_message = render_to_string(template_name, context)
-            plain_message = strip_tags(html_message)
             
-            send_mail(
+            email = EmailMessage(
                 subject=subject,
-                message=plain_message,
+                body=html_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient_email],
-                html_message=html_message,
-                fail_silently=False
+                to=[recipient_email],
             )
+            email.content_subtype = "html"  # Main content is now text/html
+            
+            if attachments:
+                for filename, content, mimetype in attachments:
+                    email.attach(filename, content, mimetype)
+            
+            email.send(fail_silently=False)
             logger.info(f"Email sent to {recipient_email}: {subject}")
             return True
         except Exception as e:
@@ -156,11 +162,19 @@ class RentalWorkflowNotifications:
             'quotation_url': f'/rentals/quotation/{quotation.id}/',
         }
         
+        # Generate PDF for attachment
+        from rentals.pdf_utils import generate_rental_document
+        pdf_content = generate_rental_document(quotation, doc_type='quotation')
+        attachments = [
+            (f"Quotation_{quotation.quotation_number}.pdf", pdf_content, 'application/pdf')
+        ]
+        
         NotificationService.send_email(
             subject=f'Your Quotation is Ready - {quotation.quotation_number}',
             recipient_email=quotation.customer.email,
             template_name='rentals/emails/quotation_sent.html',
-            context=context
+            context=context,
+            attachments=attachments
         )
     
     # Stage 5: Customer accepts quotation
@@ -195,11 +209,19 @@ class RentalWorkflowNotifications:
             'order_url': f'/rentals/order/{rental_order.id}/',
         }
         
+        # Generate PDF for attachment
+        from rentals.pdf_utils import generate_rental_document
+        pdf_content = generate_rental_document(rental_order, doc_type='order')
+        attachments = [
+            (f"Order_{rental_order.order_number}.pdf", pdf_content, 'application/pdf')
+        ]
+        
         NotificationService.send_email(
             subject=f'Rental Order Confirmed - {rental_order.order_number}',
             recipient_email=rental_order.customer.email,
             template_name='rentals/emails/order_confirmed.html',
-            context=context
+            context=context,
+            attachments=attachments
         )
     
     @staticmethod
@@ -268,11 +290,19 @@ class RentalWorkflowNotifications:
             'invoice_url': f'/rentals/invoice/{invoice.id}/',
         }
         
+        # Generate PDF for attachment
+        from rentals.pdf_utils import generate_rental_document
+        pdf_content = generate_rental_document(invoice, doc_type='invoice')
+        attachments = [
+            (f"Invoice_{invoice.invoice_number}.pdf", pdf_content, 'application/pdf')
+        ]
+        
         NotificationService.send_email(
             subject=f'Invoice Generated - {invoice.invoice_number}',
             recipient_email=invoice.rental_order.customer.email,
             template_name='rentals/emails/invoice_generated.html',
-            context=context
+            context=context,
+            attachments=attachments
         )
     
     # Stage 9: Rental period reminder

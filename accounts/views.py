@@ -564,7 +564,7 @@ def profile(request):
         # Check if updating vendor profile with encrypted fields
         if user.role == 'vendor' and 'update_vendor_profile' in request.POST:
             vendor_profile = VendorProfile.objects.get(user=user)
-            vendor_form = VendorProfileUpdateForm(request.POST, instance=vendor_profile)
+            vendor_form = VendorProfileUpdateForm(request.POST, request.FILES, instance=vendor_profile)
             
             if vendor_form.is_valid():
                 vendor_form.save()
@@ -977,7 +977,7 @@ def admin_vendor_edit(request, pk):
     vendor_profile = VendorProfile.objects.select_related('user').get(pk=pk)
     
     if request.method == 'POST':
-        form = AdminVendorEditForm(request.POST, instance=vendor_profile)
+        form = AdminVendorEditForm(request.POST, request.FILES, instance=vendor_profile)
         if form.is_valid():
             # Handle encrypted fields - only update if new value provided
             if form.cleaned_data.get('gstin'):

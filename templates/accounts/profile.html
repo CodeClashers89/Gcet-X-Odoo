@@ -347,8 +347,7 @@
     <!-- Profile Wrapper -->
     <div class="profile-wrapper">
         <div class="profile-content">
-        <div class="profile-content">
-            <form method="POST" class="profile-form">
+            <form method="POST" class="profile-form" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <!-- Basic Information -->
@@ -422,10 +421,42 @@
                     <div class="profile-section">
                         <h3 class="section-header">Business Information</h3>
                         
-                        <div class="form-group">
-                            <label class="info-label">Company Name</label>
-                            <p class="info-value">{{ profile.company_name }}</p>
+                        <div class="form-group mb-4">
+                            <label class="info-label">Current Company Logo</label>
+                            {% if profile.vendor_logo %}
+                                <div class="mt-2 mb-2">
+                                    <img src="{{ profile.vendor_logo.url }}" alt="Logo" style="max-height: 100px; border-radius: 8px;">
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No logo uploaded</p>
+                            {% endif %}
                         </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">{{ vendor_form.vendor_logo.label }}</label>
+                                {{ vendor_form.vendor_logo }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Company Name</label>
+                                <p class="info-value">{{ profile.company_name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid mt-4">
+                            <div class="form-group">
+                                <label class="form-label">{{ vendor_form.advance_payment_type.label }}</label>
+                                {{ vendor_form.advance_payment_type }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">{{ vendor_form.advance_payment_percentage.label }}</label>
+                                {{ vendor_form.advance_payment_percentage }}
+                            </div>
+                        </div>
+
+                        <div class="divider-line"></div>
                         
                         <div class="form-group">
                             <label class="info-label">
@@ -473,7 +504,7 @@
                                 <label class="info-label">Approval Status</label>
                                 <p class="info-value">
                                     {% if profile.is_approved %}
-                                        <span class="status-badge status-approved">Approved</span>
+                                        <span class="status-badge status-verified">Approved</span>
                                     {% else %}
                                         <span class="status-badge status-pending">Pending Approval</span>
                                     {% endif %}
@@ -497,6 +528,8 @@
                                 <p class="info-value" style="color: #27ae60;">₹{{ profile.total_revenue }}</p>
                             </div>
                         </div>
+                        
+                        <input type="hidden" name="update_vendor_profile" value="1">
                     </div>
                     {% endif %}
                 {% endif %}

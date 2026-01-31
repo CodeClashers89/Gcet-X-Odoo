@@ -80,6 +80,21 @@ class Quotation(models.Model):
         help_text="Final quotation amount (subtotal - discount + tax)"
     )
     
+    # Advance Payment Terms
+    advance_payment_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Required advance payment % for this quotation"
+    )
+    
+    advance_payment_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Calculated advance amount to be paid"
+    )
+    
     # Notes and terms
     notes = models.TextField(
         blank=True,
@@ -158,6 +173,10 @@ class Quotation(models.Model):
         tax_rate = Decimal('0.18')  # 18% GST (will be configurable)
         self.tax_amount = (self.subtotal - self.discount_amount) * tax_rate
         self.total = self.subtotal - self.discount_amount + self.tax_amount
+        
+        # Calculate advance amount
+        self.advance_payment_amount = (self.total * self.advance_payment_percentage) / Decimal('100.00')
+        
         self.save()
 
 
@@ -372,6 +391,21 @@ class RentalOrder(models.Model):
         help_text="Final order total including all fees"
     )
     
+    # Advance Payment Tracking
+    advance_payment_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Required advance payment % for this order"
+    )
+    
+    advance_payment_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Calculated advance amount expected"
+    )
+    
     # Payment tracking
     deposit_amount = models.DecimalField(
         max_digits=12,
@@ -474,7 +508,10 @@ class RentalOrder(models.Model):
             self.late_fee = Decimal('0.00')
 
         self.total = self.subtotal - self.discount_amount + self.tax_amount + self.late_fee
-
+        
+        # Calculate advance amount
+        self.advance_payment_amount = (self.total * self.advance_payment_percentage) / Decimal('100.00')
+        
         if self.paid_amount is None:
             self.paid_amount = Decimal('0.00')
 

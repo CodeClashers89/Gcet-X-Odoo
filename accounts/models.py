@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import EmailValidator, RegexValidator
 from django.utils import timezone
+from decimal import Decimal
 
 
 class User(AbstractUser):
@@ -115,14 +116,18 @@ class CustomerProfile(models.Model):
     
     company_name = models.CharField(
         max_length=255,
-        help_text="Registered business name for invoicing"
+        blank=True,
+        null=True,
+        help_text="Registered business name for invoicing (optional for individuals)"
     )
     
     # Encrypted fields (Phase 10 - Task 2)
     gstin = models.CharField(
         max_length=255,  # Increased for encrypted data
+        blank=True,
+        null=True,
         unique=True,
-        help_text="GST Identification Number - mandatory for tax invoices (encrypted)"
+        help_text="GST Identification Number - mandatory for tax invoices (encrypted, optional for individuals)"
     )
     
     billing_address = models.TextField(
@@ -251,7 +256,36 @@ class VendorProfile(models.Model):
         max_length=255,  # Increased for encrypted data
         blank=True,
         null=True,
-        help_text="IFSC code for bank transfers (encrypted)"
+        help_text="Bank branch code (encrypted)"
+    )
+    
+    vendor_logo = models.ImageField(
+        upload_to='vendors/logos/',
+        blank=True,
+        null=True,
+        help_text="Vendor's business logo for documents"
+    )
+    
+    # Financial Terms
+    ADVANCE_PAYMENT_CHOICES = [
+        ('none', 'No Advance Required'),
+        ('half', '50% Advance Required'),
+        ('full', '100% Advance Required'),
+        ('custom', 'Custom Percentage Advance'),
+    ]
+    
+    advance_payment_type = models.CharField(
+        max_length=20,
+        choices=ADVANCE_PAYMENT_CHOICES,
+        default='none',
+        help_text="Standard advance payment policy for this vendor"
+    )
+    
+    advance_payment_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.00,
+        help_text="Percentage of total to be paid as advance (for 'custom' type)"
     )
     
     upi_id = models.CharField(

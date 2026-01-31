@@ -49,33 +49,8 @@
             {% endif %}
         </div>
         
-        <!-- Section: Company Information -->
-        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Company Information</h3>
-        
-        <!-- Company Name -->
-        <div class="form-group">
-            <label for="id_company_name">{{ form.company_name.label }}</label>
-            {{ form.company_name }}
-            <small class="form-text">{{ form.company_name.help_text }}</small>
-            {% if form.company_name.errors %}
-                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.company_name.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        
-        <!-- GSTIN -->
-        <div class="form-group">
-            <label for="id_gstin">{{ form.gstin.label }}</label>
-            {{ form.gstin }}
-            <small class="form-text">{{ form.gstin.help_text }}</small>
-            <div id="gstin-status" data-verify-url="{% url 'accounts:verify_gstin_ajax' %}" style="margin-top: 8px; font-size: 13px;"></div>
-            {% if form.gstin.errors %}
-                <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.gstin.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
+        <!-- Section: Address Information -->
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; color: #2c3e50;">Address Information</h3>
         
         <!-- State -->
         <div class="form-group">
@@ -126,23 +101,23 @@
         
         <!-- Password -->
         <div class="form-group">
-            <label for="id_password">{{ form.password.label }}</label>
-            {{ form.password }}
-            <small class="form-text">{{ form.password.help_text }}</small>
-            {% if form.password.errors %}
+            <label for="id_password1">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            <small class="form-text">{{ form.password1.help_text }}</small>
+            {% if form.password1.errors %}
                 <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    {% for error in form.password1.errors %}{{ error }}{% endfor %}
                 </div>
             {% endif %}
         </div>
         
         <!-- Confirm Password -->
         <div class="form-group">
-            <label for="id_password_confirmation">{{ form.password_confirmation.label }}</label>
-            {{ form.password_confirmation }}
-            {% if form.password_confirmation.errors %}
+            <label for="id_password2">{{ form.password2.label }}</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
                 <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.password_confirmation.errors %}{{ error }}{% endfor %}
+                    {% for error in form.password2.errors %}{{ error }}{% endfor %}
                 </div>
             {% endif %}
         </div>

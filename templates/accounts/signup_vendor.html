@@ -161,23 +161,23 @@
         
         <!-- Password -->
         <div class="form-group">
-            <label for="id_password">{{ form.password.label }}</label>
-            {{ form.password }}
-            <small class="form-text">{{ form.password.help_text }}</small>
-            {% if form.password.errors %}
+            <label for="id_password1">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            <small class="form-text">{{ form.password1.help_text }}</small>
+            {% if form.password1.errors %}
                 <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    {% for error in form.password1.errors %}{{ error }}{% endfor %}
                 </div>
             {% endif %}
         </div>
         
         <!-- Confirm Password -->
         <div class="form-group">
-            <label for="id_password_confirmation">{{ form.password_confirmation.label }}</label>
-            {{ form.password_confirmation }}
-            {% if form.password_confirmation.errors %}
+            <label for="id_password2">{{ form.password2.label }}</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
                 <div style="color: #dc3545; font-size: 13px; margin-top: 6px;">
-                    {% for error in form.password_confirmation.errors %}{{ error }}{% endfor %}
+                    {% for error in form.password2.errors %}{{ error }}{% endfor %}
                 </div>
             {% endif %}
         </div>

@@ -6,6 +6,8 @@ from django.db import transaction
 from django.contrib import messages
 from datetime import datetime, timedelta
 from django.utils import timezone
+from rentals.pdf_utils import generate_rental_document
+from rentals.notifications import notify_invoice_stage
 from decimal import Decimal
 from io import BytesIO
 from reportlab.lib.pagesizes import letter, A4
@@ -188,6 +190,9 @@ def generate_invoice_ajax(request):
             invoice.balance_due = invoice.total - invoice.paid_amount
             invoice.save()
             
+            # Notify customer with PDF
+            notify_invoice_stage(invoice)
+            
             # Log invoice generation
             AuditLog.log_action(
                 user=request.user,
@@ -230,154 +235,12 @@ def download_invoice_pdf(request, pk):
         return HttpResponseForbidden('You do not have access to this invoice.')
     
     try:
-        # Create PDF in memory
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
-        styles = getSampleStyleSheet()
-        
-        # Custom styles
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#0d6efd'),
-            spaceAfter=30,
-            alignment=TA_CENTER
-        )
-        
-        heading_style = ParagraphStyle(
-            'CustomHeading',
-            parent=styles['Heading2'],
-            fontSize=12,
-            textColor=colors.HexColor('#0d6efd'),
-            spaceAfter=10
-        )
-        
-        normal_style = styles['Normal']
-        normal_style.fontSize = 9
-        
-        # Title
-        elements.append(Paragraph('TAX INVOICE', title_style))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Invoice info
-        info_data = [
-            ['Invoice #', invoice.invoice_number, 'Invoice Date', invoice.invoice_date.strftime('%d %b %Y')],
-            ['Order #', invoice.rental_order.order_number if invoice.rental_order else '-', 'Due Date', invoice.due_date.strftime('%d %b %Y')],
-        ]
-        
-        info_table = Table(info_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch])
-        info_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ]))
-        elements.append(info_table)
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Bill From / Bill To
-        from_to_data = [
-            ['BILL FROM', '', 'BILL TO'],
-            [
-                f"{invoice.vendor_name}\n{invoice.vendor_gstin}\n{invoice.vendor_address}",
-                '',
-                f"{invoice.billing_name}\n{invoice.billing_gstin}\n{invoice.billing_address}"
-            ],
-        ]
-        
-        from_to_table = Table(from_to_data, colWidths=[2.5*inch, 0.5*inch, 2.5*inch])
-        from_to_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('FONTWEIGHT', (0, 0), (-1, 0), 'bold'),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ]))
-        elements.append(from_to_table)
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Line items table
-        line_data = [
-            ['Description', 'Qty', 'Unit Price', 'Amount'],
-        ]
-        
-        for line in invoice.invoice_lines.all():
-            line_data.append([
-                line.description,
-                str(line.quantity),
-                f"₹{line.unit_price:,.2f}",
-                f"₹{line.line_total:,.2f}",
-            ])
-        
-        lines_table = Table(line_data, colWidths=[3.5*inch, 0.8*inch, 1.2*inch, 1.2*inch])
-        lines_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
-            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
-        elements.append(lines_table)
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Totals
-        totals_data = [
-            ['', 'Subtotal', f"₹{invoice.subtotal:,.2f}"],
-            ['', 'Discount', f"-₹{invoice.discount_amount:,.2f}"],
-            ['', 'Tax (GST)', f"₹{invoice.tax_amount:,.2f}"],
-            ['', 'Late Fees', f"₹{invoice.late_fee:,.2f}"],
-            ['', 'TOTAL', f"₹{invoice.total:,.2f}"],
-        ]
-        
-        totals_table = Table(totals_data, colWidths=[3.5*inch, 1.2*inch, 1.2*inch])
-        totals_table.setStyle(TableStyle([
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f0f0f0')),
-        ]))
-        elements.append(totals_table)
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Payment info
-        if invoice.status == 'paid':
-            elements.append(Paragraph(
-                f'<b>Payment Status:</b> PAID on {invoice.paid_at.strftime("%d %b %Y")} | Paid Amount: ₹{invoice.paid_amount:,.2f}',
-                normal_style
-            ))
-        else:
-            elements.append(Paragraph(
-                f'<b>Payment Status:</b> {invoice.status.upper()} | Balance Due: ₹{invoice.balance_due:,.2f}',
-                normal_style
-            ))
-        
-        # Build PDF
-        doc.build(elements)
-        buffer.seek(0)
-        
-        # Return PDF
-        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        pdf_content = generate_rental_document(invoice, doc_type='invoice')
+        response = HttpResponse(pdf_content, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.invoice_number}.pdf"'
         return response
-    
     except Exception as e:
-        messages.error(request, f'Error generating PDF: {str(e)}')
-        return redirect('billing:invoice_detail', pk=invoice.id)
-
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @login_required
 @require_http_methods(["POST"])

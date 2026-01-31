@@ -328,9 +328,14 @@
 
 <div class="dashboard-container">
     <!-- Page Header -->
-    <div class="page-header">
-        <h2>Vendor Dashboard</h2>
-        <p class="page-subtitle">Manage your inventory and track earnings</p>
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2>Vendor Dashboard</h2>
+            <p class="page-subtitle">Manage your inventory and track earnings</p>
+        </div>
+        <a href="{% url 'dashboards:vendor_financials' %}" class="quick-action-card" style="margin: 0; padding: 10px 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem;">
+            <span>📊</span> View Earnings Report
+        </a>
     </div>
 
     <!-- Status Alert -->
@@ -345,32 +350,32 @@
     <div class="stats-grid">
         <!-- Active Listings -->
         <div class="stat-card">
-            <h3 class="stat-value">0</h3>
+            <h3 class="stat-value">{{ active_listings_count }}</h3>
             <p class="stat-label">Active Listings</p>
         </div>
         
         <!-- Total Rentals -->
         <div class="stat-card">
-            <h3 class="stat-value">0</h3>
+            <h3 class="stat-value">{{ total_rentals_count }}</h3>
             <p class="stat-label">Total Rentals</p>
         </div>
         
         <!-- Total Revenue -->
         <div class="stat-card">
-            <h3 class="stat-value" style="color: #27ae60;">₹0</h3>
+            <h3 class="stat-value" style="color: #27ae60;">₹{{ total_revenue|floatformat:2 }}</h3>
             <p class="stat-label">Total Revenue</p>
         </div>
+
+        <!-- Monthly Earnings -->
+        <div class="stat-card">
+            <h3 class="stat-value" style="color: #17a2b8;">₹{{ monthly_earnings|floatformat:2 }}</h3>
+            <p class="stat-label">Earnings (This Month)</p>
+        </div>
         
-        <!-- Approval Status -->
-        <div class="stat-card {% if user.vendorprofile.is_approved %}approved{% else %}pending{% endif %}">
-            <div>
-                {% if user.vendorprofile.is_approved %}
-                    <span class="status-badge status-approved">Approved</span>
-                {% else %}
-                    <span class="status-badge status-pending">Pending</span>
-                {% endif %}
-            </div>
-            <p class="stat-label" style="margin-top: 8px;">Approval Status</p>
+        <!-- Pending Returns -->
+        <div class="stat-card pending">
+            <h3 class="stat-value">{{ pending_returns_count }}</h3>
+            <p class="stat-label">Active Rentals (Pending Return)</p>
         </div>
     </div>
 
@@ -410,10 +415,47 @@
         <h2 class="section-title">Recent Orders</h2>
         <div class="orders-wrapper">
             <div class="orders-content">
+                {% if recent_orders %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                            <th style="padding: 12px; font-size: 14px; color: #7f8c8d;">Order #</th>
+                            <th style="padding: 12px; font-size: 14px; color: #7f8c8d;">Customer</th>
+                            <th style="padding: 12px; font-size: 14px; color: #7f8c8d;">Total</th>
+                            <th style="padding: 12px; font-size: 14px; color: #7f8c8d;">Status</th>
+                            <th style="padding: 12px; font-size: 14px; color: #7f8c8d;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr style="border-bottom: 1px solid #f9f9f9;">
+                            <td style="padding: 12px; font-weight: 600;">{{ order.order_number }}</td>
+                            <td style="padding: 12px;">{{ order.customer.get_full_name }}</td>
+                            <td style="padding: 12px; color: #27ae60; font-weight: 600;">₹{{ order.total }}</td>
+                            <td style="padding: 12px;">
+                                <span class="badge" style="
+                                    padding: 5px 10px; 
+                                    border-radius: 12px; 
+                                    font-size: 11px;
+                                    {% if order.status == 'confirmed' %}background: #e3f2fd; color: #1976d2;
+                                    {% elif order.status == 'in_progress' %}background: #e8f5e9; color: #2e7d32;
+                                    {% elif order.status == 'completed' %}background: #f3e5f5; color: #7b1fa2;
+                                    {% else %}background: #eee; color: #666;{% endif %}
+                                ">{{ order.get_status_display }}</span>
+                            </td>
+                            <td style="padding: 12px;">
+                                <a href="{% url 'rentals:order_detail' order.id %}" style="color: #3498db; font-size: 13px; font-weight: 600;">View →</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
                 <div class="empty-state">
                     <div class="empty-state-icon">📭</div>
                     <p class="empty-state-text">No orders yet. Start listing products to get rental requests from customers!</p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

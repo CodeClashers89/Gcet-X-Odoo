@@ -356,9 +356,11 @@
                                 <a href="{% url 'catalog:product_detail' product.id %}" class="btn btn-soft btn-sm">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
+                                {% if user.role != 'vendor' %}
                                 <a href="{% url 'rentals:create_quotation' %}?product_id={{ product.id }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-cart-plus"></i> Add to Cart
                                 </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

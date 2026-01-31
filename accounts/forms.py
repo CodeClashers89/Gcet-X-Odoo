@@ -9,8 +9,6 @@ class CustomerRegistrationForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
-    company_name = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    gstin = forms.CharField(max_length=15, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     state = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
     city = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     pincode = forms.CharField(max_length=6, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -37,8 +35,6 @@ class CustomerRegistrationForm(UserCreationForm):
             # Create customer profile
             CustomerProfile.objects.create(
                 user=user,
-                company_name=self.cleaned_data.get('company_name', ''),
-                gstin=self.cleaned_data.get('gstin', ''),
                 billing_address=self.cleaned_data['billing_address'],
                 state=self.cleaned_data['state'],
                 city=self.cleaned_data.get('city', ''),
@@ -166,7 +162,10 @@ class VendorProfileUpdateForm(forms.ModelForm):
     """Form for vendors to update their profile"""
     class Meta:
         model = VendorProfile
-        fields = ('company_name', 'business_address', 'state', 'city', 'pincode', 'bank_name')
+        fields = (
+            'company_name', 'business_address', 'state', 'city', 'pincode', 
+            'bank_name', 'vendor_logo', 'advance_payment_type', 'advance_payment_percentage'
+        )
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
             'business_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -174,6 +173,9 @@ class VendorProfileUpdateForm(forms.ModelForm):
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'pincode': forms.TextInput(attrs={'class': 'form-control'}),
             'bank_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'vendor_logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'advance_payment_type': forms.Select(attrs={'class': 'form-select'}),
+            'advance_payment_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
 
@@ -233,6 +235,9 @@ class AdminVendorEditForm(forms.ModelForm):
             'bank_name',
             'upi_id',
             'business_address',
+            'vendor_logo',
+            'advance_payment_type',
+            'advance_payment_percentage',
             'is_approved',
         ]
         widgets = {
@@ -242,6 +247,9 @@ class AdminVendorEditForm(forms.ModelForm):
             'bank_name': forms.TextInput(attrs={'class': 'form-control'}),
             'upi_id': forms.TextInput(attrs={'class': 'form-control'}),
             'business_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'vendor_logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'advance_payment_type': forms.Select(attrs={'class': 'form-select'}),
+            'advance_payment_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
