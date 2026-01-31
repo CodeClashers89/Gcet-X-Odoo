@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Product Approvals - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">Product Approvals 📦</h1>
+        <a href="{% url 'dashboards:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <a href="{% url 'accounts:admin_product_list' %}" class="btn {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 8px 16px;">All Products</a>
+            <a href="{% url 'accounts:admin_product_list' %}?status=pending" class="btn {% if current_status == 'pending' %}btn-warning{% else %}btn-secondary{% endif %}" style="padding: 8px 16px;">Pending Approval</a>
+            <a href="{% url 'accounts:admin_product_list' %}?status=published" class="btn {% if current_status == 'published' %}btn-success{% else %}btn-secondary{% endif %}" style="padding: 8px 16px;">Published</a>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div style="background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead style="background: #2c3e50; color: white;">
+                <tr>
+                    <th style="padding: 15px;">Product</th>
+                    <th style="padding: 15px;">Vendor</th>
+                    <th style="padding: 15px;">Category</th>
+                    <th style="padding: 15px;">Price</th>
+                    <th style="padding: 15px;">Quantity</th>
+                    <th style="padding: 15px;">Status</th>
+                    <th style="padding: 15px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 15px;">
+                        <strong>{{ product.name }}</strong><br>
+                        <small style="color: #666;">Created: {{ product.created_at|date:"M d, Y" }}</small>
+                    </td>
+                    <td style="padding: 12px 15px;">{{ product.vendor.email }}</td>
+                    <td style="padding: 12px 15px;">{{ product.category.name|default:"Uncategorized" }}</td>
+                    <td style="padding: 12px 15px;">₹{{ product.cost_price }}</td>
+                    <td style="padding: 12px 15px;">{{ product.quantity_on_hand }}</td>
+                    <td style="padding: 12px 15px;">
+                        {% if product.is_published %}
+                            <span style="color: #28a745; font-weight: 600;">● Published</span>
+                        {% else %}
+                            <span style="color: #ffc107; font-weight: 600;">● Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 15px; text-align: right;">
+                        {% if not product.is_published %}
+                            <form method="POST" action="{% url 'accounts:publish_product' product.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success" style="padding: 5px 15px; font-size: 13px;">Publish</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{% url 'accounts:unpublish_product' product.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning" style="padding: 5px 15px; font-size: 13px;">Unpublish</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 50px; text-align: center; color: #999; font-style: italic;">
+                        No products found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -38,6 +38,10 @@ urlpatterns = [
     # Billing (invoicing, payments)
     path('billing/', include('billing.urls')),
     
+    # Custom Admin components
+    path('config/', include('system_settings.urls')),
+    path('audit/', include('audit.urls')),
+    
     # Public landing page (redirect to login by default)
     path('', login_view, name='home'),
 ]

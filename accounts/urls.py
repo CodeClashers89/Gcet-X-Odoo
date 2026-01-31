@@ -36,4 +36,14 @@ urlpatterns = [
     
     # AJAX endpoints
     path('api/verify-gstin/', views.verify_gstin_ajax, name='verify_gstin_ajax'),
+    
+    # Custom Admin - Vendor Management
+    path('admin/vendors/', views.admin_vendor_list, name='admin_vendor_list'),
+    path('admin/vendors/<int:pk>/approve/', views.approve_vendor, name='approve_vendor'),
+    path('admin/vendors/<int:pk>/reject/', views.reject_vendor, name='reject_vendor'),
+    path('admin/vendors/<int:pk>/profile/', views.admin_vendor_profile, name='admin_vendor_profile'),
+    path('admin/vendors/<int:pk>/edit/', views.admin_vendor_edit, name='admin_vendor_edit'),
+    path('admin/products/', views.admin_product_list, name='admin_product_list'),
+    path('admin/products/<int:pk>/publish/', views.publish_product, name='publish_product'),
+    path('admin/products/<int:pk>/unpublish/', views.unpublish_product, name='unpublish_product'),
 ]

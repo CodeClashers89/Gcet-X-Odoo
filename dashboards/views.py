@@ -32,6 +32,8 @@ def dashboard(request):
     elif user.role == 'vendor':
         return render(request, 'dashboards/vendor_dashboard.html', context)
     elif user.role == 'admin':
+        from accounts.models import VendorProfile
+        context['pending_vendors'] = VendorProfile.objects.filter(is_approved=False).count()
         return render(request, 'dashboards/admin_dashboard.html', context)
     
     # Fallback

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">{{ title }}</h1>
+        <a href="{% url 'system_settings:admin_gst_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Category & HSN -->
+            <h3 style="color: #2c3e50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">Classification</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Product Category *</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.category.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">HSN Code *</label>
+                    {{ form.hsn_code }}
+                    {% if form.hsn_code.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.hsn_code.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tax Rates -->
+            <h3 style="color: #2c3e50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">Tax Rates (%)</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">CGST Rate *</label>
+                    {{ form.cgst_rate }}
+                    {% if form.cgst_rate.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.cgst_rate.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">SGST Rate *</label>
+                    {{ form.sgst_rate }}
+                    {% if form.sgst_rate.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.sgst_rate.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">IGST Rate *</label>
+                    {{ form.igst_rate }}
+                    {% if form.igst_rate.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.igst_rate.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dates & Status -->
+            <h3 style="color: #2c3e50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">Validity & Status</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Effective From *</label>
+                    {{ form.effective_from }}
+                    {% if form.effective_from.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.effective_from.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Effective Until</label>
+                    {{ form.effective_until }}
+                    {% if form.effective_until.errors %}
+                        <span style="color: #dc3545; font-size: 13px;">{{ form.effective_until.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    {{ form.is_active }}
+                    <span style="font-weight: 500;">Active Configuration</span>
+                </label>
+                <small style="color: #666; font-size: 12px; margin-left: 30px;">Only active configurations are used for tax calculations.</small>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Save Configuration</button>
+                <a href="{% url 'system_settings:admin_gst_list' %}" class="btn btn-secondary" style="padding: 12px 30px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+</style>
+{% endblock %}

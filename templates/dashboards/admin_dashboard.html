@@ -17,7 +17,7 @@
         
         <!-- Pending Vendors -->
         <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107;">
-            <h3 style="color: #ffc107; margin: 0; font-size: 24px; margin-bottom: 5px;">--</h3>
+            <h3 style="color: #ffc107; margin: 0; font-size: 24px; margin-bottom: 5px;">{{ pending_vendors }}</h3>
             <p style="margin: 0; color: #666; font-size: 14px;">Pending Vendors</p>
         </div>
         
@@ -38,9 +38,9 @@
     <div style="margin-bottom: 40px;">
         <h2 style="color: #2c3e50; margin-bottom: 15px;">Management</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-            <a href="/admin/" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Go to Admin Panel</a>
+            <a href="{% url 'accounts:admin_vendor_list' %}" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Manage Vendors</a>
             <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Reports</a>
-            <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">System Settings</a>
+            <a href="{% url 'system_settings:admin_system_config' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">System Settings</a>
             <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Change Password</a>
         </div>
     </div>
@@ -51,19 +51,27 @@
         <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <ul style="list-style: none; padding: 0; margin: 0;">
                 <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="/admin/accounts/vendorprofile/" style="color: #2c3e50; text-decoration: none; font-weight: 500;">👤 Approve Vendors</a>
+                    <a href="{% url 'accounts:admin_vendor_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">👤 Manage Vendors</a>
                     <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Review and approve pending vendor registrations</p>
                 </li>
                 <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="/admin/system_settings/systemconfiguration/" style="color: #2c3e50; text-decoration: none; font-weight: 500;">⚙️ System Configuration</a>
+                    <a href="{% url 'accounts:admin_product_list' %}?status=pending" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📦 Product Approvals</a>
+                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Review and publish vendor products</p>
+                </li>
+                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
+                    <a href="{% url 'system_settings:admin_gst_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">⚖️ GST Rates & HSN</a>
+                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Manage category-specific tax rates and HSN codes</p>
+                </li>
+                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
+                    <a href="{% url 'system_settings:admin_system_config' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">⚙️ System Configuration</a>
                     <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Configure API keys, email templates, tax rates, etc.</p>
                 </li>
                 <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="/admin/audit/auditlog/" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📋 Audit Trail</a>
+                    <a href="{% url 'audit:admin_audit_log_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📋 Audit Trail</a>
                     <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">View all user activities and system changes</p>
                 </li>
                 <li style="padding: 12px 0;">
-                    <a href="/admin/system_settings/emailtemplate/" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📧 Email Templates</a>
+                    <a href="{% url 'system_settings:admin_email_template_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📧 Email Templates</a>
                     <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Customize notification and welcome emails</p>
                 </li>
             </ul>

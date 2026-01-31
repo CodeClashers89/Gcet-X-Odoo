@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -25,6 +26,7 @@ from system_settings.models import SystemConfiguration, EmailTemplate
 from audit.models import AuditLog
 from rental_erp.encryption import encryption_manager, mask_gstin, mask_bank_account, mask_upi
 from rental_erp.security import rate_limit_view
+from .decorators import role_required
 
 
 def get_client_ip(request):
@@ -744,27 +746,283 @@ def verify_gstin_ajax(request):
     })
 
 
-def role_required(allowed_roles):
+@login_required
+@role_required(['admin'])
+def admin_vendor_list(request):
     """
-    Decorator to restrict view access by user role.
-    Business Use: RBAC enforcement (customer-only views, vendor-only views, etc.)
+    List all vendors for admin review and management.
+    Business Use: Dashboard for managing marketplace participant approvals.
+    """
+    vendors = VendorProfile.objects.select_related('user').all().order_by('-created_at')
     
-    Usage:
-    @role_required(['customer'])
-    def view_func(request):
-        ...
-    """
-    def decorator(view_func):
-        def wrapper(request, *args, **kwargs):
-            if not request.user.is_authenticated:
-                return redirect('accounts:login')
-            
-            if request.user.role not in allowed_roles:
-                return HttpResponseForbidden('You do not have access to this page.')
-            
-            return view_func(request, *args, **kwargs)
+    # Filter by approval status
+    status = request.GET.get('status')
+    if status == 'pending':
+        vendors = vendors.filter(is_approved=False)
+    elif status == 'approved':
+        vendors = vendors.filter(is_approved=True)
         
-        wrapper.__name__ = view_func.__name__
-        return wrapper
+    return render(request, 'accounts/admin_vendor_list.html', {'vendors': vendors, 'current_status': status})
+
+
+@login_required
+@role_required(['admin'])
+@require_http_methods(["POST"])
+def approve_vendor(request, pk):
+    """
+    Approve a vendor registration.
+    Business Flow: Marks vendor as approved, allowing them to list products.
+    """
+    try:
+        vendor = VendorProfile.objects.get(pk=pk)
+        vendor.is_approved = True
+        vendor.approved_at = timezone.now()
+        vendor.user.is_active = True
+        vendor.user.save()
+        vendor.save()
+        
+        # Log approval
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            model_instance=vendor,
+            field_name='is_approved',
+            old_value='False',
+            new_value='True',
+            description=f'Vendor approved: {vendor.user.email}',
+            request=request,
+        )
+        
+        messages.success(request, f'Vendor {vendor.company_name} has been approved.')
+    except VendorProfile.DoesNotExist:
+        messages.error(request, 'Vendor not found.')
+        
+    return redirect('accounts:admin_vendor_list')
+
+
+@login_required
+@role_required(['admin'])
+@require_http_methods(["POST"])
+def reject_vendor(request, pk):
+    """
+    Deactivate/Reject a vendor registration.
+    """
+    try:
+        vendor = VendorProfile.objects.get(pk=pk)
+        vendor.is_approved = False
+        vendor.user.is_active = False
+        vendor.user.save()
+        vendor.save()
+        
+        # Log rejection
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            model_instance=vendor,
+            field_name='is_approved',
+            old_value='True',
+            new_value='False',
+            description=f'Vendor rejected/deactivated: {vendor.user.email}',
+            request=request,
+        )
+        
+        messages.warning(request, f'Vendor {vendor.company_name} has been deactivated.')
+    except VendorProfile.DoesNotExist:
+        messages.error(request, 'Vendor not found.')
+        
+    return redirect('accounts:admin_vendor_list')
+
+
+@login_required
+@role_required(['admin'])
+def admin_vendor_profile(request, pk):
+    """
+    View detailed vendor profile information.
+    Business Use: Admin can review vendor details before approval.
+    """
+    from rental_erp.encryption import encryption_manager, mask_gstin, mask_bank_account
+    vendor_profile = VendorProfile.objects.select_related('user').get(pk=pk)
     
-    return decorator
+    # Decrypt and mask sensitive data
+    masked_data = {}
+    if vendor_profile.gstin:
+        try:
+            gstin_decrypted = encryption_manager.decrypt(vendor_profile.gstin)
+            masked_data['masked_gstin'] = mask_gstin(gstin_decrypted)
+        except:
+            masked_data['masked_gstin'] = '****ENCRYPTED'
+    
+    if vendor_profile.bank_account_number:
+        try:
+            bank_decrypted = encryption_manager.decrypt(vendor_profile.bank_account_number)
+            masked_data['masked_bank_account'] = mask_bank_account(bank_decrypted)
+        except:
+            masked_data['masked_bank_account'] = '****ENCRYPTED'
+    
+    # Get vendor's products
+    from catalog.models import Product
+    products = Product.objects.filter(vendor=vendor_profile.user).order_by('-created_at')[:10]
+    
+    return render(request, 'accounts/admin_vendor_profile.html', {
+        'vendor': vendor_profile,
+        'masked_data': masked_data,
+        'products': products
+    })
+
+
+@login_required
+@role_required(['admin'])
+def admin_product_list(request):
+    """
+    List all products with approval management.
+    Business Use: Admin reviews and approves vendor products before they go live.
+    """
+    from catalog.models import Product
+    
+    products = Product.objects.select_related('vendor', 'category').all().order_by('-created_at')
+    
+    # Filter by publication status
+    status = request.GET.get('status')
+    if status == 'pending':
+        products = products.filter(is_published=False)
+    elif status == 'published':
+        products = products.filter(is_published=True)
+    
+    # Filter by vendor
+    vendor_id = request.GET.get('vendor')
+    if vendor_id:
+        products = products.filter(vendor_id=vendor_id)
+        
+    return render(request, 'catalog/admin_product_list.html', {
+        'products': products,
+        'current_status': status,
+        'current_vendor': vendor_id
+    })
+
+
+@login_required
+@role_required(['admin'])
+@require_http_methods(["POST"])
+def publish_product(request, pk):
+    """
+    Approve/publish a vendor product.
+    Business Flow: Makes product visible to customers.
+    """
+    from catalog.models import Product
+    try:
+        product = Product.objects.get(pk=pk)
+        product.is_published = True
+        product.save()
+        
+        # Log approval
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            model_instance=product,
+            field_name='is_published',
+            old_value='False',
+            new_value='True',
+            description=f'Product approved: {product.name} (Vendor: {product.vendor.email})',
+            request=request,
+        )
+        
+        messages.success(request, f'Product "{product.name}" has been published.')
+    except Product.DoesNotExist:
+        messages.error(request, 'Product not found.')
+        
+    return redirect('accounts:admin_product_list')
+
+
+@login_required
+@role_required(['admin'])
+@require_http_methods(["POST"])
+def unpublish_product(request, pk):
+    """
+    Unpublish/hide a product from customers.
+    """
+    from catalog.models import Product
+    try:
+        product = Product.objects.get(pk=pk)
+        product.is_published = False
+        product.save()
+        
+        # Log action
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            model_instance=product,
+            field_name='is_published',
+            old_value='True',
+            new_value='False',
+            description=f'Product unpublished: {product.name}',
+            request=request,
+        )
+        
+        messages.warning(request, f'Product "{product.name}" has been unpublished.')
+    except Product.DoesNotExist:
+        messages.error(request, 'Product not found.')
+        
+    return redirect('accounts:admin_product_list')
+
+
+@login_required
+@role_required(['admin'])
+def admin_vendor_edit(request, pk):
+    """
+    Edit vendor profile information.
+    Business Use: Admin can update vendor details and approval status.
+    """
+    from .forms import AdminVendorEditForm
+    
+    vendor_profile = VendorProfile.objects.select_related('user').get(pk=pk)
+    
+    if request.method == 'POST':
+        form = AdminVendorEditForm(request.POST, instance=vendor_profile)
+        if form.is_valid():
+            # Handle encrypted fields - only update if new value provided
+            if form.cleaned_data.get('gstin'):
+                vendor_profile.gstin = encryption_manager.encrypt(form.cleaned_data['gstin'])
+            if form.cleaned_data.get('bank_account_number'):
+                vendor_profile.bank_account_number = encryption_manager.encrypt(form.cleaned_data['bank_account_number'])
+            if form.cleaned_data.get('upi_id'):
+                vendor_profile.upi_id = encryption_manager.encrypt(form.cleaned_data['upi_id'])
+            
+            form.save()
+            
+            # Log the edit
+            AuditLog.log_action(
+                user=request.user,
+                action_type='update',
+                model_instance=vendor_profile,
+                description=f'Updated vendor profile: {vendor_profile.company_name}',
+                request=request,
+            )
+            
+            messages.success(request, 'Vendor profile updated successfully.')
+            return redirect('accounts:admin_vendor_profile', pk=vendor_profile.pk)
+    else:
+        form = AdminVendorEditForm(instance=vendor_profile)
+        
+        # Decrypt encrypted fields for editing
+        if vendor_profile.gstin:
+            try:
+                form.fields['gstin'].initial = encryption_manager.decrypt(vendor_profile.gstin)
+            except:
+                form.fields['gstin'].initial = ''
+        
+        if vendor_profile.bank_account_number:
+            try:
+                form.fields['bank_account_number'].initial = encryption_manager.decrypt(vendor_profile.bank_account_number)
+            except:
+                form.fields['bank_account_number'].initial = ''
+                
+        if vendor_profile.upi_id:
+            try:
+                form.fields['upi_id'].initial = encryption_manager.decrypt(vendor_profile.upi_id)
+            except:
+                form.fields['upi_id'].initial = ''
+    
+    return render(request, 'accounts/admin_vendor_edit.html', {
+        'vendor': vendor_profile,
+        'form': form
+    })

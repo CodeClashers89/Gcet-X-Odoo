@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}System Configuration - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">System Configuration ⚙️</h1>
+        <a href="{% url 'dashboards:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <!-- Left Column -->
+            <div>
+                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; color: #2c3e50;">Company Info</h3>
+                {% for field in form %}
+                    {% if field.name in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
+                        <div class="form-group">
+                            <label>{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small style="color: #666;">{{ field.help_text }}</small>
+                            {% endif %}
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; color: #2c3e50;">Operational Settings</h3>
+                
+                <!-- Quick Link to Categorical GST -->
+                <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+                    <p style="margin: 0; font-size: 13px; color: #004085;">
+                        Looking for <strong>Categorical GST & HSN</strong>? 
+                        <a href="{% url 'system_settings:admin_gst_list' %}" style="font-weight: 600; color: #007bff;">Manage Rates →</a>
+                    </p>
+                </div>
+
+                {% for field in form %}
+                    {% if field.name not in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
+                        <div class="form-group">
+                            <label>{{ field.label }}</label>
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    {{ field }}
+                                    <span style="font-size: 14px; color: #666;">{{ field.help_text }}</span>
+                                </div>
+                            {% else %}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small style="color: #666;">{{ field.help_text }}</small>
+                                {% endif %}
+                            {% endif %}
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; text-align: right;">
+            <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Save Configuration</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: #444; }
+    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+</style>
+{% endblock %}

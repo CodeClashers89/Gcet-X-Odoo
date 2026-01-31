@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendor Profile - {{ vendor.company_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">Vendor Profile</h1>
+        <a href="{% url 'accounts:admin_vendor_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <!-- Vendor Info Card -->
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">Company Information</h3>
+                <p><strong>Company Name:</strong> {{ vendor.company_name }}</p>
+                <p><strong>Email:</strong> {{ vendor.user.email }}</p>
+                <p><strong>Phone:</strong> {{ vendor.user.phone }}</p>
+                <p><strong>GSTIN:</strong> {{ masked_data.masked_gstin|default:"Not provided" }}</p>
+            </div>
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">Status</h3>
+                <p><strong>Approval Status:</strong> 
+                    {% if vendor.is_approved %}
+                        <span style="color: #28a745;">✓ Approved</span>
+                    {% else %}
+                        <span style="color: #ffc107;">⏳ Pending</span>
+                    {% endif %}
+                </p>
+                <p><strong>Account Active:</strong> 
+                    {% if vendor.user.is_active %}
+                        <span style="color: #28a745;">Yes</span>
+                    {% else %}
+                        <span style="color: #dc3545;">No</span>
+                    {% endif %}
+                </p>
+                <p><strong>Registered:</strong> {{ vendor.created_at|date:"M d, Y" }}</p>
+                {% if vendor.approved_at %}
+                    <p><strong>Approved:</strong> {{ vendor.approved_at|date:"M d, Y" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bank Details -->
+        {% if vendor.bank_account_number %}
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">Payment Information</h3>
+            <p><strong>Bank Account:</strong> {{ masked_data.masked_bank_account }}</p>
+            <p><strong>UPI ID:</strong> {{ vendor.upi_id|default:"Not provided" }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Approval Actions -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; gap: 10px;">
+            <a href="{% url 'accounts:admin_vendor_edit' vendor.pk %}" class="btn btn-primary" style="padding: 10px 30px; text-decoration: none; color: white;">Edit Profile</a>
+            {% if not vendor.is_approved %}
+            <form method="POST" action="{% url 'accounts:approve_vendor' vendor.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" style="padding: 10px 30px;">Approve Vendor</button>
+            </form>
+            <form method="POST" action="{% url 'accounts:reject_vendor' vendor.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding: 10px 30px;">Reject</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h3 style="color: #2c3e50; margin-bottom: 20px;">Recent Products ({{ products|length }})</h3>
+        
+        {% if products %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <tr>
+                    <th style="padding: 12px; text-align: left;">Product Name</th>
+                    <th style="padding: 12px; text-align: left;">Category</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
+                    <th style="padding: 12px; text-align: right;">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px;">{{ product.name }}</td>
+                    <td style="padding: 12px;">{{ product.category.name|default:"Uncategorized" }}</td>
+                    <td style="padding: 12px;">
+                        {% if product.is_published %}
+                            <span style="color: #28a745;">Published</span>
+                        {% else %}
+                            <span style="color: #ffc107;">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; text-align: right;">₹{{ product.cost_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #999; font-style: italic;">No products listed yet.</p>
+        {% endif %}
+        
+        <a href="{% url 'accounts:admin_product_list' %}?vendor={{ vendor.user.id }}" style="display: inline-block; margin-top: 15px; color: #007bff;">View all products from this vendor →</a>
+    </div>
+</div>
+{% endblock %}

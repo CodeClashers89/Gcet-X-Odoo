@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}GST Configurations - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">GST Configurations 🏛️</h1>
+        <div>
+            <a href="{% url 'system_settings:admin_gst_add' %}" class="btn btn-primary">Add New Rate</a>
+            <a href="{% url 'system_settings:admin_system_config' %}" class="btn btn-secondary">Back to Settings</a>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #007bff;">
+        <p style="margin: 0; color: #004085; font-size: 14px;">
+            <strong>Note:</strong> These rates apply to specific product categories and override the global default GST rates. 
+            HSN codes are mandatory for GST-compliant invoicing.
+        </p>
+    </div>
+
+    <!-- GST Table -->
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Category</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">HSN Code</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">CGST (%)</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">SGST (%)</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">IGST (%)</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Total GST</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Status</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Effective From</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for config in gst_configs %}
+                <tr style="border-bottom: 1px solid #f8f9fa; transition: background 0.2s;" onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 15px; font-weight: 500;">{{ config.category.name }}</td>
+                    <td style="padding: 15px; font-family: monospace;">{{ config.hsn_code }}</td>
+                    <td style="padding: 15px;">{{ config.cgst_rate }}%</td>
+                    <td style="padding: 15px;">{{ config.sgst_rate }}%</td>
+                    <td style="padding: 15px;">{{ config.igst_rate }}%</td>
+                    <td style="padding: 15px; font-weight: 600; color: #2c3e50;">
+                        {{ config.cgst_rate|add:config.sgst_rate }}%
+                    </td>
+                    <td style="padding: 15px;">
+                        {% if config.is_active %}
+                            <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">ACTIVE</span>
+                        {% else %}
+                            <span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">INACTIVE</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; font-size: 13px; color: #666;">{{ config.effective_from|date:"M d, Y" }}</td>
+                    <td style="padding: 15px;">
+                        <a href="{% url 'system_settings:admin_gst_edit' config.pk %}" class="btn btn-warning" style="padding: 5px 12px; font-size: 12px;">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="padding: 40px; text-align: center; color: #999; font-style: italic;">
+                        No category-specific GST rates configured yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

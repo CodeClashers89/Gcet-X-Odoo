@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Vendors - Rental ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">Manage Vendors 👤</h1>
+        <a href="{% url 'dashboards:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Filters -->
+    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center;">
+        <span style="font-weight: 500; color: #666;">Filter by Status:</span>
+        <a href="{% url 'accounts:admin_vendor_list' %}" class="btn {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">All</a>
+        <a href="{% url 'accounts:admin_vendor_list' %}?status=pending" class="btn {% if current_status == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">Pending Approval</a>
+        <a href="{% url 'accounts:admin_vendor_list' %}?status=approved" class="btn {% if current_status == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">Approved</a>
+    </div>
+
+    <!-- Vendor Table -->
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Company Name</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Contact Person</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Email</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">GSTIN (Masked)</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Status</th>
+                    <th style="padding: 15px; color: #666; font-weight: 600;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                <tr style="border-bottom: 1px solid #f8f9fa; transition: background 0.2s;" onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 15px; font-weight: 500;">{{ vendor.company_name }}</td>
+                    <td style="padding: 15px;">{{ vendor.user.get_full_name }}</td>
+                    <td style="padding: 15px;">{{ vendor.user.email }}</td>
+                    <td style="padding: 15px; font-family: monospace; color: #666;">
+                        {{ vendor.gstin|slice:":2" }}*********{{ vendor.gstin|slice:"-3:" }} (Masked)
+                    </td>
+                    <td style="padding: 15px;">
+                        {% if vendor.is_approved %}
+                            <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Approved</span>
+                        {% else %}
+                            <span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; display: flex; gap: 8px;">
+                        <a href="{% url 'accounts:admin_vendor_profile' vendor.pk %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">View Profile</a>
+                        <a href="{% url 'accounts:admin_vendor_edit' vendor.pk %}" class="btn btn-warning" style="padding: 6px 12px; font-size: 12px;">Edit</a>
+                        
+                        {% if not vendor.is_approved %}
+                            <form method="POST" action="{% url 'accounts:approve_vendor' vendor.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Approve this vendor?')">Approve</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{% url 'accounts:reject_vendor' vendor.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deactivate this vendor?')">Deactivate</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: #999;">
+                        No vendors found matching your criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
