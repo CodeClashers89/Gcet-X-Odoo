@@ -8,6 +8,7 @@ urlpatterns = [
     path('quotation/create/', views.create_quotation, name='create_quotation'),
     path('quotation/list/', views.quotation_list, name='quotation_list'),
     path('quotation/<int:pk>/', views.quotation_detail, name='quotation_detail'),
+    path('queries/vendor/', views.vendor_query_list, name='vendor_query_list'),
     
     # Order URLs
     path('order/list/', views.order_list, name='order_list'),

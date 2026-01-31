@@ -131,14 +131,14 @@ class Invoice(models.Model):
     subtotal = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Sum of all invoice lines before tax/discount"
     )
     
     discount_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Discount applied"
     )
     
@@ -172,28 +172,28 @@ class Invoice(models.Model):
     cgst_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Central GST amount (intra-state only)"
     )
     
     sgst_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="State GST amount (intra-state only)"
     )
     
     igst_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Integrated GST amount (inter-state only)"
     )
     
     tax_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Total tax (CGST+SGST or IGST)"
     )
     
@@ -201,21 +201,21 @@ class Invoice(models.Model):
     late_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Late return penalties"
     )
     
     damage_charges = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Equipment damage costs"
     )
     
     other_charges = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Miscellaneous charges (delivery, packaging, etc.)"
     )
     
@@ -223,7 +223,7 @@ class Invoice(models.Model):
     total = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Final invoice total (subtotal - discount + tax + fees)"
     )
     
@@ -231,14 +231,14 @@ class Invoice(models.Model):
     paid_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Amount paid so far"
     )
     
     balance_due = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Remaining amount to be paid"
     )
     
@@ -246,14 +246,14 @@ class Invoice(models.Model):
     deposit_collected = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Security deposit collected upfront"
     )
     
     deposit_refunded = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Deposit returned after successful return"
     )
     
@@ -323,12 +323,26 @@ class Invoice(models.Model):
     
     def calculate_totals(self):
         """Recalculate all invoice totals"""
-        # Sum invoice lines
+        from decimal import Decimal
+        
+        # Sum invoice lines with proper Decimal handling
         lines = self.invoice_lines.all()
-        self.subtotal = sum(line.line_total for line in lines)
+        self.subtotal = sum((line.line_total for line in lines), Decimal('0.00'))
         
         # Calculate GST
         self.calculate_gst()
+        
+        # Ensure all amounts are Decimal
+        if self.discount_amount is None:
+            self.discount_amount = Decimal('0.00')
+        if self.late_fee is None:
+            self.late_fee = Decimal('0.00')
+        if self.damage_charges is None:
+            self.damage_charges = Decimal('0.00')
+        if self.other_charges is None:
+            self.other_charges = Decimal('0.00')
+        if self.tax_amount is None:
+            self.tax_amount = Decimal('0.00')
         
         # Calculate final total
         self.total = (
@@ -341,6 +355,8 @@ class Invoice(models.Model):
         )
         
         # Update balance
+        if self.paid_amount is None:
+            self.paid_amount = Decimal('0.00')
         self.balance_due = self.total - self.paid_amount
         
         self.save()
@@ -434,7 +450,20 @@ class InvoiceLine(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-calculate line total"""
-        self.line_total = self.quantity * self.unit_price
+        from decimal import Decimal
+        
+        # Ensure unit_price is not None and is Decimal
+        if self.unit_price is None:
+            self.unit_price = Decimal('0.00')
+        elif not isinstance(self.unit_price, Decimal):
+            self.unit_price = Decimal(str(self.unit_price))
+        
+        # Ensure quantity is not None
+        if self.quantity is None:
+            self.quantity = 1
+        
+        # Calculate line total with proper Decimal arithmetic
+        self.line_total = Decimal(str(self.quantity)) * self.unit_price
         super().save(*args, **kwargs)
 
 

@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from decimal import Decimal
 from catalog.models import Product, ProductVariant, RentalPricing
 from rentals.models import Quotation, QuotationLine, RentalOrder, RentalOrderLine, Pickup, Return
 
@@ -79,6 +80,48 @@ class QuotationLineForm(forms.ModelForm):
                 raise forms.ValidationError('Rental end date must be after start date.')
         
         return cleaned_data
+    
+    def save(self, commit=True):
+        """Calculate pricing before saving"""
+        instance = super().save(commit=False)
+        
+        # Calculate duration
+        if instance.rental_start_date and instance.rental_end_date:
+            duration = instance.rental_end_date - instance.rental_start_date
+            instance.duration_days = max(1, duration.days)
+            instance.duration_hours = max(0, duration.seconds // 3600)
+        else:
+            instance.duration_days = 1
+            instance.duration_hours = 0
+        
+        # Get pricing from product or variant
+        product = instance.product_variant if instance.product_variant else instance.product
+        
+        # Find daily rental price
+        try:
+            daily_price = RentalPricing.objects.filter(
+                product=instance.product if not instance.product_variant else None,
+                product_variant=instance.product_variant if instance.product_variant else None,
+                duration_type='daily',
+                is_active=True
+            ).first()
+            
+            if daily_price:
+                instance.unit_price = daily_price.price * Decimal(str(instance.duration_days))
+            else:
+                # Fallback: use cost_price if no rental pricing exists
+                cost_price = getattr(product, 'cost_price', Decimal('100.00'))
+                if not isinstance(cost_price, Decimal):
+                    cost_price = Decimal(str(cost_price))
+                instance.unit_price = cost_price * Decimal(str(instance.duration_days))
+        except Exception:
+            # Last resort fallback
+            instance.unit_price = Decimal('100.00') * Decimal(str(instance.duration_days))
+        
+        if commit:
+            instance.save()
+        
+        return instance
 
 
 # Create inline formset for quotation lines

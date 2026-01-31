@@ -39,17 +39,42 @@
         <h2 style="color: #2c3e50; margin-bottom: 15px;">Quick Actions</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
             <a href="{% url 'catalog:product_list' %}" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Browse Products</a>
-            <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">My Orders</a>
+            <a href="{% url 'rentals:order_list' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">My Orders</a>
             <a href="{% url 'accounts:profile' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">My Profile</a>
             <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Change Password</a>
         </div>
     </div>
     
-    <!-- Recent Activity -->
+    <!-- Latest Quotations -->
     <div>
-        <h2 style="color: #2c3e50; margin-bottom: 15px;">Recent Activity</h2>
+        <h2 style="color: #2c3e50; margin-bottom: 15px;">Latest Quotations</h2>
         <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <p style="text-align: center; color: #999; padding: 40px 0;">No recent activity yet. Start browsing products to place your first rental order!</p>
+            {% if sent_queries %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #eee;">
+                            <th style="padding: 10px; text-align: left; font-weight: 600;">Quotation #</th>
+                            <th style="padding: 10px; text-align: left; font-weight: 600;">Total</th>
+                            <th style="padding: 10px; text-align: left; font-weight: 600;">Sent On</th>
+                            <th style="padding: 10px; text-align: left; font-weight: 600;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in sent_queries %}
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 10px;">{{ q.quotation_number }}</td>
+                            <td style="padding: 10px;">₹{{ q.total|floatformat:2 }}</td>
+                            <td style="padding: 10px;">{{ q.created_at|date:"d M Y" }}</td>
+                            <td style="padding: 10px;">
+                                <a href="{% url 'rentals:quotation_detail' q.id %}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #999; padding: 20px 0;">No quotations sent yet.</p>
+            {% endif %}
         </div>
     </div>
 </div>

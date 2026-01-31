@@ -66,7 +66,11 @@
                         {% if order.status == 'draft' %}
                             <span class="badge bg-secondary">Draft</span>
                         {% elif order.status == 'confirmed' %}
-                            <span class="badge bg-info">Confirmed</span>
+                            {% if user.role == 'vendor' %}
+                                <span class="badge bg-info">Sale Order</span>
+                            {% else %}
+                                <span class="badge bg-info">Confirmed</span>
+                            {% endif %}
                         {% elif order.status == 'in_progress' %}
                             <span class="badge bg-warning">In Progress</span>
                         {% elif order.status == 'completed' %}

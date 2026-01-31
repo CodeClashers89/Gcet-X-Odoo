@@ -41,17 +41,17 @@ def get_client_ip(request):
 @require_http_methods(["GET", "POST"])
 def create_quotation(request):
     """
-    Create new quotation with line items.
+    Create new query with line items (customer request).
     Business Flow:
     1. Customer selects products, rental dates, quantities
     2. Form calculates pricing based on RentalPricing
-    3. Save quotation in draft status
-    4. Email option to request vendor confirmation
+    3. Save query (quotation) in draft status
+    4. Vendor reviews and sends quotation to customer
     
     Only customers can create quotations.
     """
     if request.user.role != 'customer':
-        return HttpResponseForbidden('Only customers can create quotations.')
+        return HttpResponseForbidden('Only customers can create queries.')
     
     if request.method == 'POST':
         form = CreateQuotationForm(request.POST)
@@ -81,20 +81,19 @@ def create_quotation(request):
                     AuditLog.log_action(
                         user=request.user,
                         action_type='create',
-                        model_name='Quotation',
-                        object_id=quotation.id,
+                        model_instance=quotation,
                         description=f'Quotation created: {quotation.quotation_number}',
-                        ip_address=get_client_ip(request),
+                        request=request,
                     )
                     
                     messages.success(
                         request,
-                        f'Quotation {quotation.quotation_number} created successfully!'
+                        f'Query {quotation.quotation_number} created successfully!'
                     )
                     return redirect('rentals:quotation_detail', pk=quotation.id)
             
             except Exception as e:
-                messages.error(request, f'Failed to create quotation: {str(e)}')
+                messages.error(request, f'Failed to create query: {str(e)}')
         else:
             for error in form.non_field_errors():
                 messages.error(request, error)
@@ -125,7 +124,7 @@ def quotation_list(request):
     elif request.user.is_staff:
         quotations = Quotation.objects.all().order_by('-created_at')
     else:
-        return HttpResponseForbidden('You do not have access to quotations.')
+        return HttpResponseForbidden('You do not have access to queries.')
     
     # Status filtering
     status = request.GET.get('status')
@@ -133,6 +132,30 @@ def quotation_list(request):
         quotations = quotations.filter(status=status)
     
     return render(request, 'rentals/quotation_list.html', {
+        'quotations': quotations,
+        'status': status,
+    })
+
+
+@login_required(login_url='login')
+@require_http_methods(["GET"])
+def vendor_query_list(request):
+    """
+    List customer queries (draft quotations) for vendors.
+    Vendors can review and send quotations to customers.
+    """
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden('Only vendors can view queries.')
+
+    quotations = Quotation.objects.filter(
+        quotation_lines__product__vendor=request.user
+    ).distinct().order_by('-created_at')
+
+    status = request.GET.get('status')
+    if status:
+        quotations = quotations.filter(status=status)
+
+    return render(request, 'rentals/vendor_query_list.html', {
         'quotations': quotations,
         'status': status,
     })
@@ -152,9 +175,15 @@ def quotation_detail(request, pk):
     
     # Permission check
     if request.user.role == 'customer' and quotation.customer != request.user:
-        return HttpResponseForbidden('You do not have access to this quotation.')
+        return HttpResponseForbidden('You do not have access to this query.')
+    elif request.user.role == 'vendor':
+        vendor_has_line = quotation.quotation_lines.filter(
+            product__vendor=request.user
+        ).exists()
+        if not vendor_has_line:
+            return HttpResponseForbidden('You do not have access to this query.')
     elif not request.user.is_staff and request.user != quotation.customer:
-        return HttpResponseForbidden('You do not have access to this quotation.')
+        return HttpResponseForbidden('You do not have access to this query.')
     
     # Get vendor info if exists
     vendor = None
@@ -168,6 +197,14 @@ def quotation_detail(request, pk):
         
         if action == 'confirm' and request.user.role == 'customer':
             # Customer confirms quotation → creates RentalOrder
+            if quotation.status != 'sent':
+                messages.error(request, 'This query is not ready for approval yet.')
+                return redirect('rentals:quotation_detail', pk=quotation.id)
+
+            if quotation.approval_status == 'pending':
+                messages.error(request, 'This query is pending approval and cannot be confirmed yet.')
+                return redirect('rentals:quotation_detail', pk=quotation.id)
+
             form = ConfirmQuotationForm(request.POST)
             if form.is_valid():
                 try:
@@ -178,7 +215,7 @@ def quotation_detail(request, pk):
                             customer=quotation.customer,
                             vendor=vendor,
                             order_number=f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                            status='draft',
+                            status='confirmed',
                             delivery_address=form.cleaned_data['delivery_address'],
                             billing_address=form.cleaned_data['billing_address'],
                             deposit_amount=form.cleaned_data.get('deposit_amount') or 0,
@@ -198,7 +235,7 @@ def quotation_detail(request, pk):
                             )
                         
                         # Create reservations to block inventory
-                        for order_line in rental_order.rental_order_lines.all():
+                        for order_line in rental_order.order_lines.all():
                             for _ in range(order_line.quantity):
                                 Reservation.objects.create(
                                     rental_order_line=order_line,
@@ -221,13 +258,12 @@ def quotation_detail(request, pk):
                         AuditLog.log_action(
                             user=request.user,
                             action_type='state_change',
-                            model_name='RentalOrder',
-                            object_id=rental_order.id,
+                            model_instance=rental_order,
                             field_name='status',
                             old_value='NONE',
-                            new_value='draft',
-                            description=f'Quotation confirmed, order created: {rental_order.order_number}',
-                            ip_address=get_client_ip(request),
+                            new_value='confirmed',
+                            description=f'Query approved, sale order created: {rental_order.order_number}',
+                            request=request,
                         )
                         
                         messages.success(
@@ -239,7 +275,7 @@ def quotation_detail(request, pk):
                 except Exception as e:
                     messages.error(request, f'Failed to confirm quotation: {str(e)}')
         
-        elif action == 'send' and request.user.is_staff:
+        elif action == 'send' and (request.user.is_staff or request.user.role == 'vendor'):
             # Admin/vendor sends quotation to customer
             form = SendQuotationForm(request.POST)
             if form.is_valid():
@@ -250,13 +286,12 @@ def quotation_detail(request, pk):
                 AuditLog.log_action(
                     user=request.user,
                     action_type='state_change',
-                    model_name='Quotation',
-                    object_id=quotation.id,
+                    model_instance=quotation,
                     field_name='status',
                     old_value='draft',
                     new_value='sent',
                     description=f'Quotation sent to customer: {quotation.quotation_number}',
-                    ip_address=get_client_ip(request),
+                    request=request,
                 )
                 quotation.status = 'sent'
                 
@@ -272,7 +307,7 @@ def quotation_detail(request, pk):
                         quotation.requires_approval = True
                         quotation.approval_status = 'pending'
                         
-                        ApprovalRequest.objects.create(
+                        approval_request = ApprovalRequest.objects.create(
                             request_number=f"APR-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                             request_type='quotation',
                             quotation=quotation,
@@ -281,15 +316,12 @@ def quotation_detail(request, pk):
                         )
                         
                         messages.info(request, f'Quotation exceeds approval threshold (₹{approval_threshold}). Approval required.')
-                        AuditLog.objects.create(
+                        AuditLog.log_action(
                             user=request.user,
-                            user_email=request.user.email,
-                            user_role=request.user.role,
-                            action='create',
-                            model_name='ApprovalRequest',
+                            action_type='create',
+                            model_instance=approval_request,
                             description=f'Approval request created for quotation {quotation.quotation_number}',
-                            ip_address=get_client_ip(request),
-                            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                            request=request,
                         )
                 except Exception as e:
                     # If settings don't exist, continue without approval
@@ -297,10 +329,30 @@ def quotation_detail(request, pk):
                 
                 quotation.save()
 
+        elif action == 'decline' and request.user.role == 'customer':
+            if quotation.status in ['sent', 'draft']:
+                old_status = quotation.status
+                quotation.status = 'cancelled'
+                quotation.save()
+
+                AuditLog.log_action(
+                    user=request.user,
+                    action_type='state_change',
+                    model_instance=quotation,
+                    field_name='status',
+                    old_value=old_status,
+                    new_value='cancelled',
+                    description=f'Query declined: {quotation.quotation_number}',
+                    request=request,
+                )
+
+                messages.info(request, 'Query declined successfully.')
+                return redirect('rentals:quotation_list')
+
     
     # Prepare forms
     confirm_form = ConfirmQuotationForm() if request.user.role == 'customer' else None
-    send_form = SendQuotationForm() if request.user.is_staff else None
+    send_form = SendQuotationForm() if (request.user.is_staff or request.user.role == 'vendor') else None
     
     return render(request, 'rentals/quotation_detail.html', {
         'quotation': quotation,
@@ -374,13 +426,12 @@ def order_detail(request, pk):
             AuditLog.log_action(
                 user=request.user,
                 action_type='state_change',
-                model_name='RentalOrder',
-                object_id=order.id,
+                model_instance=order,
                 field_name='status',
                 old_value='draft',
                 new_value='confirmed',
                 description=f'Order confirmed by vendor',
-                ip_address=get_client_ip(request),
+                request=request,
             )
         
         elif action == 'start' and request.user == order.vendor:
@@ -391,13 +442,12 @@ def order_detail(request, pk):
             AuditLog.log_action(
                 user=request.user,
                 action_type='state_change',
-                model_name='RentalOrder',
-                object_id=order.id,
+                model_instance=order,
                 field_name='status',
                 old_value='confirmed',
                 new_value='in_progress',
                 description=f'Order status changed to in progress',
-                ip_address=get_client_ip(request),
+                request=request,
             )
         
         elif action == 'complete' and request.user == order.vendor:
@@ -408,21 +458,20 @@ def order_detail(request, pk):
             AuditLog.log_action(
                 user=request.user,
                 action_type='state_change',
-                model_name='RentalOrder',
-                object_id=order.id,
+                model_instance=order,
                 field_name='status',
                 old_value='in_progress',
                 new_value='completed',
                 description=f'Order marked as completed',
-                ip_address=get_client_ip(request),
+                request=request,
             )
     
     # Get related pickup/return
-    pickup = order.rental_order_lines.first().pickup if order.rental_order_lines.exists() else None
-    return_record = order.rental_order_lines.first().return_record if order.rental_order_lines.exists() else None
+    pickup = order.pickup if hasattr(order, 'pickup') else None
+    return_record = order.return_doc if hasattr(order, 'return_doc') else None
     
     # Get invoice if exists
-    invoice = order.invoice_set.first()
+    invoice = order.invoices.first()
     
     return render(request, 'rentals/order_detail.html', {
         'order': order,
@@ -461,10 +510,9 @@ def schedule_pickup(request, order_id):
                     AuditLog.log_action(
                         user=request.user,
                         action_type='create',
-                        model_name='Pickup',
-                        object_id=pickup.id,
+                        model_instance=pickup,
                         description=f'Pickup scheduled: {pickup.pickup_number}',
-                        ip_address=get_client_ip(request),
+                        request=request,
                     )
                     
                     messages.success(request, 'Pickup scheduled successfully')
@@ -497,7 +545,7 @@ def complete_pickup(request, order_id):
     if form.is_valid():
         try:
             with transaction.atomic():
-                pickup = order.rental_order_lines.first().pickup
+                pickup = order.pickup if hasattr(order, 'pickup') else None
                 if not pickup:
                     pickup = Pickup.objects.create(
                         rental_order=order,
@@ -513,10 +561,9 @@ def complete_pickup(request, order_id):
                 AuditLog.log_action(
                     user=request.user,
                     action_type='update',
-                    model_name='Pickup',
-                    object_id=pickup.id,
+                    model_instance=pickup,
                     description='Pickup completed',
-                    ip_address=get_client_ip(request),
+                    request=request,
                 )
                 
                 messages.success(request, 'Pickup recorded')
@@ -557,10 +604,9 @@ def schedule_return(request, order_id):
                     AuditLog.log_action(
                         user=request.user,
                         action_type='create',
-                        model_name='Return',
-                        object_id=return_record.id,
+                        model_instance=return_record,
                         description=f'Return scheduled: {return_record.return_number}',
-                        ip_address=get_client_ip(request),
+                        request=request,
                     )
                     
                     messages.success(request, 'Return scheduled successfully')
@@ -593,7 +639,7 @@ def complete_return(request, order_id):
     if form.is_valid():
         try:
             with transaction.atomic():
-                return_record = order.rental_order_lines.first().return_record
+                return_record = order.return_doc if hasattr(order, 'return_doc') else None
                 if not return_record:
                     return_record = Return.objects.create(
                         rental_order=order,
@@ -607,7 +653,7 @@ def complete_return(request, order_id):
                 return_record.damage_cost = form.cleaned_data.get('damage_cost') or 0
                 
                 # Calculate late fees
-                for order_line in order.rental_order_lines.all():
+                for order_line in order.order_lines.all():
                     if return_record.actual_return_date > order_line.rental_end_date:
                         order_line.is_late_return = True
                         order_line.late_days = (return_record.actual_return_date - order_line.rental_end_date).days
@@ -626,10 +672,9 @@ def complete_return(request, order_id):
                 AuditLog.log_action(
                     user=request.user,
                     action_type='update',
-                    model_name='Return',
-                    object_id=return_record.id,
+                    model_instance=return_record,
                     description='Return completed, late fees calculated',
-                    ip_address=get_client_ip(request),
+                    request=request,
                 )
                 
                 messages.success(request, 'Return recorded and late fees calculated')

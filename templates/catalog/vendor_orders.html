@@ -37,7 +37,7 @@
                         <td style="padding: 12px;">₹{{ order.total_amount }}</td>
                         <td style="padding: 12px;">
                             {% if order.status == 'confirmed' %}
-                                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Confirmed</span>
+                                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Sale Order</span>
                             {% elif order.status == 'pending' %}
                                 <span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Pending</span>
                             {% elif order.status == 'completed' %}

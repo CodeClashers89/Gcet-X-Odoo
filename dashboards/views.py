@@ -23,6 +23,11 @@ def dashboard(request):
     context = {'user': user}
     
     if user.role == 'customer':
+        from rentals.models import Quotation
+        context['sent_queries'] = Quotation.objects.filter(
+            customer=user,
+            status='sent'
+        ).order_by('-created_at')[:5]
         return render(request, 'dashboards/customer_dashboard.html', context)
     elif user.role == 'vendor':
         return render(request, 'dashboards/vendor_dashboard.html', context)

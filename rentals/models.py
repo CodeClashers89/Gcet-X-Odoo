@@ -55,28 +55,28 @@ class Quotation(models.Model):
     subtotal = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Sum of all line items before tax/discount"
     )
     
     discount_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Total discount applied"
     )
     
     tax_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="GST calculated (CGST+SGST or IGST)"
     )
     
     total = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Final quotation amount (subtotal - discount + tax)"
     )
     
@@ -144,8 +144,15 @@ class Quotation(models.Model):
     
     def calculate_totals(self):
         """Recalculate quotation totals from line items"""
+        from decimal import Decimal
+        
         lines = self.quotation_lines.all()
-        self.subtotal = sum(line.line_total for line in lines)
+        # Use Decimal for sum to avoid float conversion
+        self.subtotal = sum((line.line_total for line in lines), Decimal('0.00'))
+        
+        # Ensure discount_amount is Decimal
+        if self.discount_amount is None:
+            self.discount_amount = Decimal('0.00')
         
         # GST calculation (simplified - actual GST logic will be more complex)
         tax_rate = Decimal('0.18')  # 18% GST (will be configurable)
@@ -240,7 +247,20 @@ class QuotationLine(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-calculate line total before saving"""
-        self.line_total = self.quantity * self.unit_price
+        from decimal import Decimal
+        
+        # Ensure unit_price is not None and is Decimal
+        if self.unit_price is None:
+            self.unit_price = Decimal('0.00')
+        elif not isinstance(self.unit_price, Decimal):
+            self.unit_price = Decimal(str(self.unit_price))
+        
+        # Ensure quantity is not None
+        if self.quantity is None:
+            self.quantity = 1
+        
+        # Calculate line total with proper Decimal arithmetic
+        self.line_total = Decimal(str(self.quantity)) * self.unit_price
         super().save(*args, **kwargs)
 
 
@@ -320,35 +340,35 @@ class RentalOrder(models.Model):
     subtotal = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Sum of all order lines"
     )
     
     discount_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Discount applied"
     )
     
     tax_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="GST amount"
     )
     
     late_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Late return penalties (added if items returned late)"
     )
     
     total = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Final order total including all fees"
     )
     
@@ -356,14 +376,14 @@ class RentalOrder(models.Model):
     deposit_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Security deposit collected upfront"
     )
     
     paid_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Amount paid so far (partial or full)"
     )
     
@@ -438,6 +458,27 @@ class RentalOrder(models.Model):
     def is_payment_complete(self):
         """Check if order is fully paid"""
         return self.paid_amount >= self.total
+
+    def calculate_totals(self):
+        """Recalculate order totals from line items"""
+        from decimal import Decimal
+
+        lines = self.order_lines.all()
+        self.subtotal = sum((line.line_total for line in lines), Decimal('0.00'))
+
+        if self.discount_amount is None:
+            self.discount_amount = Decimal('0.00')
+        if self.tax_amount is None:
+            self.tax_amount = Decimal('0.00')
+        if self.late_fee is None:
+            self.late_fee = Decimal('0.00')
+
+        self.total = self.subtotal - self.discount_amount + self.tax_amount + self.late_fee
+
+        if self.paid_amount is None:
+            self.paid_amount = Decimal('0.00')
+
+        self.save()
     
     def get_balance_due(self):
         """Calculate remaining payment amount"""
@@ -543,7 +584,7 @@ class RentalOrderLine(models.Model):
     late_fee_charged = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Late return penalty amount"
     )
     
@@ -561,7 +602,20 @@ class RentalOrderLine(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-calculate line total"""
-        self.line_total = self.quantity * self.unit_price
+        from decimal import Decimal
+        
+        # Ensure unit_price is not None and is Decimal
+        if self.unit_price is None:
+            self.unit_price = Decimal('0.00')
+        elif not isinstance(self.unit_price, Decimal):
+            self.unit_price = Decimal(str(self.unit_price))
+        
+        # Ensure quantity is not None
+        if self.quantity is None:
+            self.quantity = 1
+        
+        # Calculate line total with proper Decimal arithmetic
+        self.line_total = Decimal(str(self.quantity)) * self.unit_price
         super().save(*args, **kwargs)
     
     def calculate_late_fee(self):
@@ -850,7 +904,7 @@ class Return(models.Model):
     damage_cost = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Repair/replacement cost (deducted from deposit)"
     )
     
@@ -868,7 +922,7 @@ class Return(models.Model):
     late_fee_charged = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text="Late return penalty"
     )
     
