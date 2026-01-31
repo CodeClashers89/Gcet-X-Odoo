@@ -95,7 +95,8 @@
 
                         <div id="formset-container">
                             {% for form in formset %}
-                                <div class="formset-row">
+                                <div class="formset-row" data-form-index="{{ forloop.counter0 }}" {% if forloop.counter0 > 0 %}style="display: none;"{% endif %}>
+                                    {{ form.id }}
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label class="form-label">Product</label>
@@ -137,11 +138,9 @@
                                         </div>
                                     </div>
 
-                                    {% if not forloop.first %}
-                                        <div class="remove-row" onclick="removeFormset(this)">
-                                            <i class="fas fa-trash"></i> Remove Item
-                                        </div>
-                                    {% endif %}
+                                    <div class="remove-row" onclick="removeFormset(this)" style="{% if forloop.first %}display: none;{% endif %}">
+                                        <i class="fas fa-trash"></i> Remove Item
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
@@ -172,40 +171,155 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('[id^="id_quotationline_set-"]');
     inputs.forEach(input => {
         if (input.tagName === 'SELECT' || input.tagName === 'INPUT') {
-            input.classList.add('form-control', 'form-select');
+            input.classList.add('form-control');
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+            }
         }
     });
+    
+    // Update visible count
+    updateFormVisibility();
 });
+
+function updateFormVisibility() {
+    const allRows = document.querySelectorAll('.formset-row');
+    let visibleCount = 0;
+    
+    allRows.forEach(row => {
+        const deleteCheckbox = row.querySelector('[id$="-DELETE"]');
+        if (!deleteCheckbox || !deleteCheckbox.checked) {
+            if (row.style.display !== 'none') {
+                visibleCount++;
+            }
+        }
+    });
+    
+    // Update remove button visibility
+    allRows.forEach(row => {
+        const removeBtn = row.querySelector('.remove-row');
+        const deleteCheckbox = row.querySelector('[id$="-DELETE"]');
+        if (removeBtn && (!deleteCheckbox || !deleteCheckbox.checked)) {
+            if (row.style.display !== 'none') {
+                // Show remove button only if more than one visible form
+                removeBtn.style.display = visibleCount > 1 ? 'block' : 'none';
+            }
+        }
+    });
+}
 
 function removeFormset(element) {
     const row = element.closest('.formset-row');
     const deleteCheckbox = row.querySelector('[id$="-DELETE"]');
-    if (deleteCheckbox) {
-        deleteCheckbox.checked = true;
+    
+    const allRows = document.querySelectorAll('.formset-row');
+    let visibleCount = 0;
+    allRows.forEach(r => {
+        const delCheckbox = r.querySelector('[id$="-DELETE"]');
+        if (r.style.display !== 'none' && (!delCheckbox || !delCheckbox.checked)) {
+            visibleCount++;
+        }
+    });
+    
+    // Don't allow removing the last visible form
+    if (visibleCount <= 1) {
+        alert('At least one product must be specified in the query.');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to remove this item?')) {
+        if (deleteCheckbox) {
+            deleteCheckbox.checked = true;
+        }
         row.style.display = 'none';
+        updateFormVisibility();
     }
 }
 
 function addFormset() {
     const container = document.getElementById('formset-container');
-    const formCount = document.getElementById('id_quotationline_set-TOTAL_FORMS');
-    const emptyForm = document.querySelector('.formset-row.empty-form');
+    const totalForms = document.getElementById('id_quotationline_set-TOTAL_FORMS');
+    const currentTotal = parseInt(totalForms.value);
     
-    if (emptyForm) {
-        const newForm = emptyForm.cloneNode(true);
-        newForm.classList.remove('empty-form');
-        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formCount.value);
-        
-        container.appendChild(newForm);
-        formCount.value = parseInt(formCount.value) + 1;
-        
-        // Add form classes
-        newForm.querySelectorAll('select, input').forEach(input => {
-            if (input.tagName === 'SELECT' || input.tagName === 'INPUT') {
-                input.classList.add('form-control', 'form-select');
+    // Find all existing rows
+    const allRows = document.querySelectorAll('.formset-row');
+    
+    // Check if there are any hidden pre-existing rows
+    let foundHidden = false;
+    allRows.forEach(row => {
+        if (row.style.display === 'none' && !row.classList.contains('empty-form')) {
+            const deleteCheckbox = row.querySelector('[id$="-DELETE"]');
+            if (!deleteCheckbox || !deleteCheckbox.checked) {
+                row.style.display = 'block';
+                const removeBtn = row.querySelector('.remove-row');
+                if (removeBtn) {
+                    removeBtn.style.display = 'block';
+                }
+                foundHidden = true;
+                updateFormVisibility();
+                return;
             }
-        });
+        }
+    });
+    
+    if (foundHidden) {
+        return;
     }
+    
+    // Create new form from template
+    const template = `
+        <div class="formset-row" data-form-index="${currentTotal}">
+            <input type="hidden" name="quotationline_set-${currentTotal}-id" id="id_quotationline_set-${currentTotal}-id">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Product</label>
+                    <select name="quotationline_set-${currentTotal}-product" class="form-control form-select" id="id_quotationline_set-${currentTotal}-product" required>
+                        <option value="">---------</option>
+                        ${getProductOptions()}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Variant</label>
+                    <select name="quotationline_set-${currentTotal}-product_variant" class="form-control form-select" id="id_quotationline_set-${currentTotal}-product_variant">
+                        <option value="">---------</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" name="quotationline_set-${currentTotal}-quantity" class="form-control" min="1" placeholder="1" id="id_quotationline_set-${currentTotal}-quantity" required>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label">Rental Start Date</label>
+                    <input type="datetime-local" name="quotationline_set-${currentTotal}-rental_start_date" class="form-control" id="id_quotationline_set-${currentTotal}-rental_start_date" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Rental End Date</label>
+                    <input type="datetime-local" name="quotationline_set-${currentTotal}-rental_end_date" class="form-control" id="id_quotationline_set-${currentTotal}-rental_end_date" required>
+                </div>
+            </div>
+            <div class="remove-row" onclick="removeFormset(this)">
+                <i class="fas fa-trash"></i> Remove Item
+            </div>
+            <input type="checkbox" name="quotationline_set-${currentTotal}-DELETE" id="id_quotationline_set-${currentTotal}-DELETE" style="display: none;">
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', template);
+    totalForms.value = currentTotal + 1;
+    updateFormVisibility();
+}
+
+function getProductOptions() {
+    // Get product options from the first select
+    const firstSelect = document.querySelector('[id$="-product"]');
+    if (firstSelect) {
+        return Array.from(firstSelect.options)
+            .map(opt => `<option value="${opt.value}">${opt.text}</option>`)
+            .join('');
+    }
+    return '';
 }
 </script>
 {% endblock %}
