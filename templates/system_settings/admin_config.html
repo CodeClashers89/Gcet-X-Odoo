@@ -3,76 +3,296 @@
 {% block title %}System Configuration - Rental ERP{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50;">System Configuration ⚙️</h1>
-        <a href="{% url 'dashboards:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+<style>
+    .config-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "⚙️";
+        font-size: 32px;
+    }
+
+    .back-link {
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .back-link:hover {
+        background: rgba(255,255,255,0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    .config-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .config-body {
+        padding: 30px;
+    }
+
+    .config-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+        padding: 12px 20px;
+        margin: 0 -30px 20px -30px;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .section-header:first-of-type {
+        margin-top: -30px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #2c3e50;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #2c3e50;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    .form-control:hover {
+        border-color: #3498db;
+        background-color: white;
+    }
+
+    .form-control:focus {
+        border-color: #2c3e50;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+    }
+
+    .help-text {
+        display: block;
+        margin-top: 6px;
+        color: #7f8c8d;
+        font-size: 13px;
+    }
+
+    .gst-callout {
+        background: #e7f3ff;
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #3498db;
+    }
+
+    .gst-callout p {
+        margin: 0;
+        font-size: 13px;
+        color: #2c3e50;
+    }
+
+    .gst-callout a {
+        font-weight: 600;
+        color: #3498db;
+        text-decoration: none;
+    }
+
+    .gst-callout a:hover {
+        color: #2980b9;
+    }
+
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .actions-row {
+        margin-top: 30px;
+        border-top: 2px solid #f0f0f0;
+        padding-top: 20px;
+        text-align: right;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1024px) {
+        .config-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .config-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<div class="config-container">
+    <div class="page-header">
+        <h2>System Configuration</h2>
+        <a href="{% url 'dashboards:dashboard' %}" class="back-link">← Back to Dashboard</a>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <form method="POST" enctype="multipart/form-data" class="config-card">
         {% csrf_token %}
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-            <!-- Left Column -->
-            <div>
-                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; color: #2c3e50;">Company Info</h3>
-                {% for field in form %}
-                    {% if field.name in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
-                        <div class="form-group">
-                            <label>{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                                <small style="color: #666;">{{ field.help_text }}</small>
-                            {% endif %}
-                            {{ field.errors }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <!-- Right Column -->
-            <div>
-                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; color: #2c3e50;">Operational Settings</h3>
-                
-                <!-- Quick Link to Categorical GST -->
-                <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #007bff;">
-                    <p style="margin: 0; font-size: 13px; color: #004085;">
-                        Looking for <strong>Categorical GST & HSN</strong>? 
-                        <a href="{% url 'system_settings:admin_gst_list' %}" style="font-weight: 600; color: #007bff;">Manage Rates →</a>
-                    </p>
-                </div>
-
-                {% for field in form %}
-                    {% if field.name not in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
-                        <div class="form-group">
-                            <label>{{ field.label }}</label>
-                            {% if field.field.widget.input_type == 'checkbox' %}
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    {{ field }}
-                                    <span style="font-size: 14px; color: #666;">{{ field.help_text }}</span>
-                                </div>
-                            {% else %}
+        <div class="config-body">
+            <div class="config-grid">
+                <div>
+                    <h3 class="section-header">Company Info</h3>
+                    {% for field in form %}
+                        {% if field.name in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
+                            <div class="form-group">
+                                <label>{{ field.label }}</label>
                                 {{ field }}
                                 {% if field.help_text %}
-                                    <small style="color: #666;">{{ field.help_text }}</small>
+                                    <small class="help-text">{{ field.help_text }}</small>
                                 {% endif %}
-                            {% endif %}
-                            {{ field.errors }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
 
-        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; text-align: right;">
-            <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Save Configuration</button>
+                <div>
+                    <h3 class="section-header">Operational Settings</h3>
+
+                    <div class="gst-callout">
+                        <p>
+                            Looking for <strong>Categorical GST & HSN</strong>?
+                            <a href="{% url 'system_settings:admin_gst_list' %}">Manage Rates →</a>
+                        </p>
+                    </div>
+
+                    {% for field in form %}
+                        {% if field.name not in 'company_name,company_gstin,company_email,company_phone,company_address,site_title,site_tagline' %}
+                            <div class="form-group">
+                                <label>{{ field.label }}</label>
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="checkbox-row">
+                                        {{ field }}
+                                        <span class="help-text">{{ field.help_text }}</span>
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="help-text">{{ field.help_text }}</small>
+                                    {% endif %}
+                                {% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="actions-row">
+                <button type="submit" class="action-btn">Save Configuration</button>
+            </div>
         </div>
     </form>
 </div>
-
-<style>
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: #444; }
-    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
-</style>
 {% endblock %}

@@ -3,75 +3,433 @@
 {% block title %}Manage Vendors - Rental ERP{% endblock %}
 
 {% block content %}
-<div style="max-width: 1200px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50;">Manage Vendors 👤</h1>
-        <a href="{% url 'dashboards:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+<style>
+    .vendors-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "👤";
+        font-size: 32px;
+    }
+
+    .back-link {
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .back-link:hover {
+        background: rgba(255,255,255,0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .filter-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        color: #2c3e50;
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+    }
+
+    .filter-btn:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+        text-decoration: none;
+    }
+
+    .filter-btn.active:hover {
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+    }
+
+    .vendors-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .vendors-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .vendors-table thead {
+        background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        color: white;
+    }
+
+    .vendors-table thead th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .vendors-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .vendors-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .vendors-table tbody td {
+        padding: 20px;
+        vertical-align: middle;
+        color: #555;
+    }
+
+    .vendor-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .masked-gstin {
+        font-family: 'Courier New', monospace;
+        color: #7f8c8d;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        gap: 6px;
+        animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .status-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-approved::before {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-pending::before {
+        background-color: #ffc107;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn-secondary {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        box-shadow: 0 2px 5px rgba(149, 165, 166, 0.3);
+    }
+
+    .action-btn-secondary:hover {
+        background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
+        box-shadow: 0 4px 12px rgba(149, 165, 166, 0.4);
+    }
+
+    .action-btn-warning {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3);
+    }
+
+    .action-btn-warning:hover {
+        background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+        box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+    }
+
+    .action-btn-success {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+    }
+
+    .action-btn-success:hover {
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        animation: fadeIn 0.5s ease;
+    }
+
+    .empty-state-icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .empty-state-text {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .vendors-container {
+            padding: 15px 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+        }
+
+        .vendors-table {
+            font-size: 12px;
+        }
+
+        .vendors-table thead th,
+        .vendors-table tbody td {
+            padding: 12px 10px;
+        }
+
+        .actions-cell {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+
+<div class="vendors-container">
+    <div class="page-header">
+        <h2>Manage Vendors</h2>
+        <a href="{% url 'dashboards:dashboard' %}" class="back-link">← Back to Dashboard</a>
     </div>
 
-    <!-- Filters -->
-    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center;">
-        <span style="font-weight: 500; color: #666;">Filter by Status:</span>
-        <a href="{% url 'accounts:admin_vendor_list' %}" class="btn {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">All</a>
-        <a href="{% url 'accounts:admin_vendor_list' %}?status=pending" class="btn {% if current_status == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">Pending Approval</a>
-        <a href="{% url 'accounts:admin_vendor_list' %}?status=approved" class="btn {% if current_status == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 5px 15px; font-size: 13px;">Approved</a>
+    <div class="filter-section">
+        <span class="filter-label">Filter by Status:</span>
+        <a href="{% url 'accounts:admin_vendor_list' %}" class="filter-btn {% if not current_status %}active{% endif %}">All</a>
+        <a href="{% url 'accounts:admin_vendor_list' %}?status=pending" class="filter-btn {% if current_status == 'pending' %}active{% endif %}">Pending Approval</a>
+        <a href="{% url 'accounts:admin_vendor_list' %}?status=approved" class="filter-btn {% if current_status == 'approved' %}active{% endif %}">Approved</a>
     </div>
 
-    <!-- Vendor Table -->
-    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    {% if vendors %}
+    <div class="vendors-table-wrapper">
+        <table class="vendors-table">
             <thead>
-                <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
-                    <th style="padding: 15px; color: #666; font-weight: 600;">Company Name</th>
-                    <th style="padding: 15px; color: #666; font-weight: 600;">Contact Person</th>
-                    <th style="padding: 15px; color: #666; font-weight: 600;">Email</th>
-                    <th style="padding: 15px; color: #666; font-weight: 600;">GSTIN (Masked)</th>
-                    <th style="padding: 15px; color: #666; font-weight: 600;">Status</th>
-                    <th style="padding: 15px; color: #666; font-weight: 600;">Actions</th>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>GSTIN (Masked)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for vendor in vendors %}
-                <tr style="border-bottom: 1px solid #f8f9fa; transition: background 0.2s;" onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='white'">
-                    <td style="padding: 15px; font-weight: 500;">{{ vendor.company_name }}</td>
-                    <td style="padding: 15px;">{{ vendor.user.get_full_name }}</td>
-                    <td style="padding: 15px;">{{ vendor.user.email }}</td>
-                    <td style="padding: 15px; font-family: monospace; color: #666;">
+                <tr class="vendor-row">
+                    <td><span class="vendor-name">{{ vendor.company_name }}</span></td>
+                    <td>{{ vendor.user.get_full_name }}</td>
+                    <td>{{ vendor.user.email }}</td>
+                    <td class="masked-gstin">
                         {{ vendor.gstin|slice:":2" }}*********{{ vendor.gstin|slice:"-3:" }} (Masked)
                     </td>
-                    <td style="padding: 15px;">
+                    <td>
                         {% if vendor.is_approved %}
-                            <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Approved</span>
+                            <span class="status-badge status-approved">Approved</span>
                         {% else %}
-                            <span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Pending</span>
+                            <span class="status-badge status-pending">Pending</span>
                         {% endif %}
                     </td>
-                    <td style="padding: 15px; display: flex; gap: 8px;">
-                        <a href="{% url 'accounts:admin_vendor_profile' vendor.pk %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">View Profile</a>
-                        <a href="{% url 'accounts:admin_vendor_edit' vendor.pk %}" class="btn btn-warning" style="padding: 6px 12px; font-size: 12px;">Edit</a>
-                        
-                        {% if not vendor.is_approved %}
-                            <form method="POST" action="{% url 'accounts:approve_vendor' vendor.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Approve this vendor?')">Approve</button>
-                            </form>
-                        {% else %}
-                            <form method="POST" action="{% url 'accounts:reject_vendor' vendor.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deactivate this vendor?')">Deactivate</button>
-                            </form>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" style="padding: 40px; text-align: center; color: #999;">
-                        No vendors found matching your criteria.
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'accounts:admin_vendor_profile' vendor.pk %}" class="action-btn">View Profile</a>
+                            <a href="{% url 'accounts:admin_vendor_edit' vendor.pk %}" class="action-btn action-btn-warning">Edit</a>
+                            {% if not vendor.is_approved %}
+                                <form method="POST" action="{% url 'accounts:approve_vendor' vendor.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn action-btn-success" onclick="return confirm('Approve this vendor?')">Approve</button>
+                                </form>
+                            {% else %}
+                                <form method="POST" action="{% url 'accounts:reject_vendor' vendor.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn action-btn-secondary" onclick="return confirm('Deactivate this vendor?')">Deactivate</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p class="empty-state-text">No vendors found matching your criteria.</p>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+// Initialize row animations
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.vendor-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        row.style.transition = '';
+
+        setTimeout(() => {
+            row.style.transition = 'all 0.4s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateX(0)';
+        }, index * 50);
+    });
+});
+</script>
 {% endblock %}

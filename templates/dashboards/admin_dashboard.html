@@ -3,79 +3,264 @@
 {% block title %}Admin Dashboard - Rental ERP{% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px;">
-    <h1 style="color: #2c3e50; margin-bottom: 10px;">Admin Dashboard ⚙️</h1>
-    <p style="color: #666; margin-bottom: 30px;">System configuration and approvals</p>
-    
-    <!-- Stats Section -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
-        <!-- Total Users -->
-        <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-            <h3 style="color: #17a2b8; margin: 0; font-size: 24px; margin-bottom: 5px;">--</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Total Users</p>
+<style>
+    .admin-dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "⚙️";
+        font-size: 32px;
+    }
+
+    .page-subtitle {
+        margin: 8px 0 0 44px;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid #3498db;
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease-out;
+        animation-fill-mode: backwards;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0s; border-left-color: #3498db; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; border-left-color: #f39c12; }
+    .stat-card:nth-child(3) { animation-delay: 0.2s; border-left-color: #27ae60; }
+    .stat-card:nth-child(4) { animation-delay: 0.3s; border-left-color: #17a2b8; }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #7f8c8d;
+        margin: 0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        border-radius: 2px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn-primary {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+
+    .action-btn-primary:hover {
+        box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+    }
+
+    .tasks-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .tasks-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .task-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .task-item:last-child { border-bottom: none; }
+
+    .task-link {
+        color: #2c3e50;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .task-link:hover { color: #2980b9; text-decoration: none; }
+
+    .task-desc {
+        margin: 6px 0 0 0;
+        color: #7f8c8d;
+        font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+        .admin-dashboard-container { padding: 15px 10px; }
+        .page-header { padding: 20px; }
+        .page-header h2 { font-size: 22px; }
+        .page-subtitle { margin-left: 34px; font-size: 13px; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .actions-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="admin-dashboard-container">
+    <div class="page-header">
+        <h2>Admin Dashboard</h2>
+        <p class="page-subtitle">System configuration and approvals</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3 class="stat-value">--</h3>
+            <p class="stat-label">Total Users</p>
         </div>
-        
-        <!-- Pending Vendors -->
-        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107;">
-            <h3 style="color: #ffc107; margin: 0; font-size: 24px; margin-bottom: 5px;">{{ pending_vendors }}</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Pending Vendors</p>
+        <div class="stat-card">
+            <h3 class="stat-value">{{ pending_vendors }}</h3>
+            <p class="stat-label">Pending Vendors</p>
         </div>
-        
-        <!-- Total Revenue -->
-        <div style="background: #d4edda; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
-            <h3 style="color: #28a745; margin: 0; font-size: 24px; margin-bottom: 5px;">₹--</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Platform Revenue</p>
+        <div class="stat-card">
+            <h3 class="stat-value" style="color: #27ae60;">₹--</h3>
+            <p class="stat-label">Platform Revenue</p>
         </div>
-        
-        <!-- Active Rentals -->
-        <div style="background: #d1ecf1; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-            <h3 style="color: #17a2b8; margin: 0; font-size: 24px; margin-bottom: 5px;">--</h3>
-            <p style="margin: 0; color: #666; font-size: 14px;">Active Rentals</p>
+        <div class="stat-card">
+            <h3 class="stat-value">--</h3>
+            <p class="stat-label">Active Rentals</p>
         </div>
     </div>
-    
-    <!-- Quick Actions -->
-    <div style="margin-bottom: 40px;">
-        <h2 style="color: #2c3e50; margin-bottom: 15px;">Management</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-            <a href="{% url 'accounts:admin_vendor_list' %}" class="btn btn-primary" style="padding: 12px; text-align: center; display: block;">Manage Vendors</a>
-            <a href="#" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">View Reports</a>
-            <a href="{% url 'system_settings:admin_system_config' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">System Settings</a>
-            <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary" style="padding: 12px; text-align: center; display: block;">Change Password</a>
-        </div>
+
+    <h2 class="section-title">Management</h2>
+    <div class="actions-grid">
+        <a href="{% url 'accounts:admin_vendor_list' %}" class="action-btn action-btn-primary">Manage Vendors</a>
+        <a href="#" class="action-btn">View Reports</a>
+        <a href="{% url 'system_settings:admin_system_config' %}" class="action-btn">System Settings</a>
+        <a href="{% url 'accounts:change_password' %}" class="action-btn">Change Password</a>
     </div>
-    
-    <!-- Admin Panel Quick Links -->
-    <div>
-        <h2 style="color: #2c3e50; margin-bottom: 15px;">Common Tasks</h2>
-        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <ul style="list-style: none; padding: 0; margin: 0;">
-                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'accounts:admin_vendor_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">👤 Manage Vendors</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Review and approve pending vendor registrations</p>
-                </li>
-                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'accounts:admin_product_list' %}?status=pending" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📦 Product Approvals</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Review and publish vendor products</p>
-                </li>
-                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'system_settings:admin_gst_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">⚖️ GST Rates & HSN</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Manage category-specific tax rates and HSN codes</p>
-                </li>
-                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'system_settings:admin_system_config' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">⚙️ System Configuration</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Configure API keys, email templates, tax rates, etc.</p>
-                </li>
-                <li style="padding: 12px 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'audit:admin_audit_log_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📋 Audit Trail</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">View all user activities and system changes</p>
-                </li>
-                <li style="padding: 12px 0;">
-                    <a href="{% url 'system_settings:admin_email_template_list' %}" style="color: #2c3e50; text-decoration: none; font-weight: 500;">📧 Email Templates</a>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Customize notification and welcome emails</p>
-                </li>
-            </ul>
-        </div>
+
+    <h2 class="section-title">Common Tasks</h2>
+    <div class="tasks-card">
+        <ul class="tasks-list">
+            <li class="task-item">
+                <a href="{% url 'accounts:admin_vendor_list' %}" class="task-link">👤 Manage Vendors</a>
+                <p class="task-desc">Review and approve pending vendor registrations</p>
+            </li>
+            <li class="task-item">
+                <a href="{% url 'accounts:admin_product_list' %}?status=pending" class="task-link">📦 Product Approvals</a>
+                <p class="task-desc">Review and publish vendor products</p>
+            </li>
+            <li class="task-item">
+                <a href="{% url 'system_settings:admin_gst_list' %}" class="task-link">⚖️ GST Rates & HSN</a>
+                <p class="task-desc">Manage category-specific tax rates and HSN codes</p>
+            </li>
+            <li class="task-item">
+                <a href="{% url 'system_settings:admin_system_config' %}" class="task-link">⚙️ System Configuration</a>
+                <p class="task-desc">Configure API keys, email templates, tax rates, etc.</p>
+            </li>
+            <li class="task-item">
+                <a href="{% url 'audit:admin_audit_log_list' %}" class="task-link">📋 Audit Trail</a>
+                <p class="task-desc">View all user activities and system changes</p>
+            </li>
+            <li class="task-item">
+                <a href="{% url 'system_settings:admin_email_template_list' %}" class="task-link">📧 Email Templates</a>
+                <p class="task-desc">Customize notification and welcome emails</p>
+            </li>
+        </ul>
     </div>
 </div>
 {% endblock %}
