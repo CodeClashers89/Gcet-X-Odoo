@@ -625,7 +625,7 @@ def schedule_pickup(request, order_id):
 
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def complete_pickup(request, order_id):
     """
     Record pickup completion.
@@ -636,39 +636,44 @@ def complete_pickup(request, order_id):
     if request.user != order.vendor:
         return HttpResponseForbidden('Only vendor can complete pickups.')
     
-    form = PickupCompletionForm(request.POST)
-    if form.is_valid():
-        try:
-            with transaction.atomic():
-                pickup = order.pickup if hasattr(order, 'pickup') else None
-                if not pickup:
-                    pickup = Pickup.objects.create(
-                        rental_order=order,
-                        pickup_number=f"PU-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                    )
-                
-                pickup.actual_pickup_date = form.cleaned_data['actual_pickup_date']
-                pickup.items_checked = form.cleaned_data.get('items_checked', False)
-                pickup.customer_id_verified = form.cleaned_data.get('customer_id_verified', False)
-                pickup.pickup_notes = form.cleaned_data.get('pickup_notes', '')
-                pickup.save()
-                
-                messages.success(request, 'Pickup recorded')
-                
-                # ERP Transition: Create Return Record automatically
-                from rentals.models import Return
-                if not hasattr(order, 'return_doc'):
-                    Return.objects.create(
-                        rental_order=order,
-                        return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                        scheduled_return_date=order.rental_end_date,
-                        status='pending'
-                    )
+    if request.method == 'POST':
+        form = PickupCompletionForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    pickup = order.pickup if hasattr(order, 'pickup') else None
+                    if not pickup:
+                        # Create pickup with scheduled date from order
+                        pickup = Pickup.objects.create(
+                            rental_order=order,
+                            pickup_number=f"PU-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                            scheduled_pickup_date=order.rental_start_date or timezone.now(),
+                        )
+                    
+                    pickup.actual_pickup_date = form.cleaned_data['actual_pickup_date']
+                    pickup.items_checked = form.cleaned_data.get('items_checked', False)
+                    pickup.customer_id_verified = form.cleaned_data.get('customer_id_verified', False)
+                    pickup.pickup_notes = form.cleaned_data.get('pickup_notes', '')
+                    pickup.save()
+                    
+                    messages.success(request, 'Pickup completed successfully')
+                    
+                    # ERP Transition: Create Return Record automatically
+                    from rentals.models import Return
+                    if not hasattr(order, 'return_doc'):
+                        Return.objects.create(
+                            rental_order=order,
+                            return_number=f"RET-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                            scheduled_return_date=order.rental_end_date,
+                            status='pending'
+                        )
 
-                return redirect('rentals:order_detail', pk=order.id)
-        
-        except Exception as e:
-            messages.error(request, f'Failed to complete pickup: {str(e)}')
+                    return redirect('rentals:order_detail', pk=order.id)
+            
+            except Exception as e:
+                messages.error(request, f'Failed to complete pickup: {str(e)}')
+    else:
+        form = PickupCompletionForm()
     
     return render(request, 'rentals/complete_pickup.html', {
         'order': order,

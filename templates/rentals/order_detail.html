@@ -584,7 +584,9 @@
                             <div class="status-text">
                                 {% if pickup %}
                                     <div><strong>{{ pickup.pickup_number }}</strong></div>
-                                    <div>Scheduled: {{ pickup.scheduled_pickup_date|date:"d M Y H:i" }}</div>
+                                    {% if pickup.scheduled_pickup_date %}
+                                        <div>Scheduled: {{ pickup.scheduled_pickup_date|date:"d M Y H:i" }}</div>
+                                    {% endif %}
                                     {% if pickup.actual_pickup_date %}
                                         <div>✓ Completed: {{ pickup.actual_pickup_date|date:"d M Y H:i" }}</div>
                                     {% else %}
@@ -638,6 +640,8 @@
                         {% endif %}
 
                         {% if order.status == 'confirmed' %}
+                        <!-- Only show Start Order if pickup hasn't been completed -->
+                        {% if not pickup or not pickup.actual_pickup_date %}
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="start">
@@ -649,14 +653,16 @@
                             📅 Schedule Pickup
                         </a>
                         {% endif %}
-
-                        {% if order.status == 'in_progress' %}
-                        <a href="{% url 'rentals:complete_return' order.id %}" class="action-btn primary">
-                            ✓ Complete Return
+                        
+                        <!-- Show Mark Pickup Completed button if pickup is scheduled but not completed -->
+                        {% if pickup and not pickup.actual_pickup_date %}
+                        <a href="{% url 'rentals:complete_pickup' order.id %}" class="action-btn primary">
+                            ✓ Mark Pickup Completed
                         </a>
                         {% endif %}
-
-                        {% if order.status == 'confirmed' %}
+                        
+                        <!-- Show Complete Order button only if pickup is completed -->
+                        {% if pickup and pickup.actual_pickup_date %}
                         <form method="post" class="mb-3">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="complete">
@@ -664,6 +670,13 @@
                                 ✓ Complete Order
                             </button>
                         </form>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if order.status == 'in_progress' %}
+                        <a href="{% url 'rentals:complete_return' order.id %}" class="action-btn primary">
+                            ✓ Complete Return
+                        </a>
                         {% endif %}
                     {% endif %}
 
