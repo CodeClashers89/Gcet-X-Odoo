@@ -338,8 +338,8 @@
                     <td><span class="order-number">{{ order.order_number }}</span></td>
                     <td><span class="customer-name">{{ order.customer.get_full_name }}</span></td>
                     <td>
-                        {% if order.rental_order_lines.exists %}
-                            {% with first_line=order.rental_order_lines.first %}
+                        {% if order.order_lines.exists %}
+                            {% with first_line=order.order_lines.first %}
                                 <span class="date-cell">{{ first_line.rental_start_date|date:"d M Y" }} to {{ first_line.rental_end_date|date:"d M Y" }}</span>
                             {% endwith %}
                         {% else %}

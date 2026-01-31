@@ -120,11 +120,17 @@ def quotation_list(request):
     List quotations for logged-in user.
     Business Logic:
     - Customers: See quotations they created
-    - Vendors: Not applicable (vendors see orders, not quotations)
+    - Vendors: See quotations that contain their products
     - Admins: See all quotations
     """
     if request.user.role == 'customer':
         quotations = Quotation.objects.filter(customer=request.user).order_by('-created_at')
+    elif request.user.role == 'vendor':
+        # Vendors see quotations that contain their products
+        from django.db.models import Q
+        quotations = Quotation.objects.filter(
+            quotation_lines__product__vendor=request.user
+        ).distinct().order_by('-created_at')
     elif request.user.is_staff:
         quotations = Quotation.objects.all().order_by('-created_at')
     else:
