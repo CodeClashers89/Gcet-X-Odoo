@@ -252,6 +252,72 @@
         margin-top: 4px;
     }
 
+    .attributes-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .attribute-item {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 6px;
+        border-left: 3px solid #9b59b6;
+        font-size: 14px;
+    }
+
+    .attribute-key {
+        font-weight: 600;
+        color: #2c3e50;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .attribute-value {
+        color: #555;
+    }
+
+    .variant-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .variant-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .variant-pricing {
+        background: #fff3e0;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 8px;
+    }
+
+    .variant-pricing strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #e67e22;
+        font-size: 13px;
+    }
+
+    .variant-price-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(230, 126, 34, 0.1);
+        font-size: 13px;
+    }
+
+    .variant-price-item:last-child {
+        border-bottom: none;
+    }
+
     .availability-section {
         background: white;
         border-radius: 12px;
@@ -437,6 +503,21 @@
                 <strong>Description:</strong><br>
                 {{ product.description }}
             </div>
+
+            <!-- Product Attributes -->
+            {% if product.attributes %}
+            <div class="product-detail">
+                <strong>Product Attributes:</strong><br>
+                <div class="attributes-list">
+                    {% for key, value in product.attributes.items %}
+                    <div class="attribute-item">
+                        <span class="attribute-key">{{ key }}:</span>
+                        <span class="attribute-value">{{ value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Rental Pricing -->
@@ -480,15 +561,48 @@
         {% if product.variants.all %}
         <div class="product-info-section">
             <h3 class="section-header">Available Variants</h3>
+            <p style="color: #666; margin-bottom: 20px; font-size: 14px;">This product is available in multiple variants. Please select your preferred variant when creating a query.</p>
             {% for variant in product.variants.all %}
             <div class="variant-item">
-                <div class="variant-name">{{ variant.variant_name }}</div>
-                <div class="variant-sku">SKU: {{ variant.sku }}</div>
-                {% if variant.quantity_on_hand > 0 %}
-                    <span class="status-badge status-in-stock" style="margin-top: 8px;">In Stock ({{ variant.quantity_on_hand }})</span>
-                {% else %}
-                    <span class="status-badge status-out-stock" style="margin-top: 8px;">Out of Stock</span>
-                {% endif %}
+                <div class="variant-header">
+                    <div class="variant-name">{{ variant.variant_name }}</div>
+                    <div class="variant-sku">SKU: {{ variant.sku }}</div>
+                </div>
+                
+                <div class="variant-details">
+                    <!-- Variant Stock -->
+                    {% if variant.quantity_on_hand > 0 %}
+                        <span class="status-badge status-in-stock">In Stock ({{ variant.quantity_on_hand }})</span>
+                    {% else %}
+                        <span class="status-badge status-out-stock">Out of Stock</span>
+                    {% endif %}
+                    
+                    <!-- Variant Attributes -->
+                    {% if variant.variant_attributes %}
+                    <div class="variant-pricing" style="margin-top: 12px;">
+                        <strong>Variant Specifications:</strong>
+                        {% for key, value in variant.variant_attributes.items %}
+                        <div class="variant-price-item">
+                            <span style="text-transform: capitalize;">{{ key }}:</span>
+                            <span><strong>{{ value }}</strong></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Variant Pricing -->
+                    {% if variant.rental_prices.exists %}
+                    <div class="variant-pricing">
+                        <strong>Rental Prices:</strong>
+                        {% for price in variant.rental_prices.all %}
+                        <div class="variant-price-item">
+                            <span>{{ price.duration_value }} {{ price.get_duration_type_display }}</span>
+                            <span class="amount-cell">₹{{ price.price|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>

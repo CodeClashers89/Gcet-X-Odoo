@@ -69,16 +69,47 @@ class QuotationLineForm(forms.ModelForm):
             self.fields['product_variant'].queryset = ProductVariant.objects.filter(
                 product_id=self.instance.product_id
             )
+        elif 'data' in kwargs and kwargs['data']:
+            # Check if product is in POST data (for form submission validation)
+            data = kwargs['data']
+            # Handle both direct form data and formset data (with prefix)
+            product_id = None
+            if 'product' in data:
+                product_id = data.get('product')
+            else:
+                # Try to find product field with formset prefix
+                prefix = kwargs.get('prefix', '')
+                if prefix:
+                    product_id = data.get(f'{prefix}-product')
+            
+            if product_id:
+                try:
+                    self.fields['product_variant'].queryset = ProductVariant.objects.filter(
+                        product_id=int(product_id),
+                        is_active=True
+                    )
+                except (ValueError, TypeError):
+                    pass
     
     def clean(self):
-        """Validate rental dates"""
+        """Validate rental dates and variant requirement"""
         cleaned_data = super().clean()
         start_date = cleaned_data.get('rental_start_date')
         end_date = cleaned_data.get('rental_end_date')
+        product = cleaned_data.get('product')
+        product_variant = cleaned_data.get('product_variant')
         
+        # Validate rental dates
         if start_date and end_date:
             if start_date >= end_date:
                 raise forms.ValidationError('Rental end date must be after start date.')
+        
+        # Validate variant requirement: if product has variants, variant must be selected
+        if product and product.variants.filter(is_active=True).exists():
+            if not product_variant:
+                raise forms.ValidationError(
+                    f'Please select a variant for {product.name}. This product has multiple variants available.'
+                )
         
         return cleaned_data
     

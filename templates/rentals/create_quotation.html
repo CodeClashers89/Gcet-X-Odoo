@@ -324,11 +324,15 @@
                                 </div>
 
                                 <div>
-                                    <label for="{{ form.product_variant.id_for_label }}" class="form-label">{{ form.product_variant.label }}</label>
+                                    <label for="{{ form.product_variant.id_for_label }}" class="form-label">
+                                        {{ form.product_variant.label }}
+                                        <span class="variant-required-indicator" style="color: #e74c3c; display: none;">*</span>
+                                    </label>
                                     {{ form.product_variant }}
                                     {% if form.product_variant.errors %}
                                         <div style="color: #e74c3c; font-size: 12px; margin-top: 6px;">{{ form.product_variant.errors }}</div>
                                     {% endif %}
+                                    <small class="form-text" style="display: none; color: #e67e22;">This product has variants. Please select one.</small>
                                 </div>
 
                                 <div>
@@ -400,7 +404,174 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Setup variant loading for all product dropdowns
+    setupVariantLoading();
+    
+    // Add form submission validation
+    const form = document.getElementById('query-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Validate that required variants are selected
+            const productSelects = document.querySelectorAll('select[id$="-product"]');
+            let hasError = false;
+            
+            productSelects.forEach(productSelect => {
+                const formRow = productSelect.closest('.formset-row');
+                if (!formRow || formRow.style.display === 'none') return;
+                
+                const deleteCheckbox = formRow.querySelector('[id$="-DELETE"]');
+                if (deleteCheckbox && deleteCheckbox.checked) return;
+                
+                const variantSelect = formRow.querySelector('select[id$="-product_variant"]');
+                if (variantSelect && variantSelect.required && !variantSelect.value) {
+                    hasError = true;
+                    variantSelect.style.borderColor = '#e74c3c';
+                    variantSelect.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.2)';
+                    
+                    // Show error message
+                    const existingError = formRow.querySelector('.variant-error-message');
+                    if (!existingError) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'variant-error-message';
+                        errorDiv.style.color = '#e74c3c';
+                        errorDiv.style.fontSize = '12px';
+                        errorDiv.style.marginTop = '6px';
+                        errorDiv.textContent = 'Please select a variant for this product.';
+                        variantSelect.parentElement.appendChild(errorDiv);
+                    }
+                }
+            });
+            
+            if (hasError) {
+                e.preventDefault();
+                alert('Please select variants for all products that require them.');
+                return false;
+            }
+        });
+    }
 });
+
+function setupVariantLoading() {
+    const productSelects = document.querySelectorAll('select[id$="-product"]');
+    productSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            loadVariantsForProduct(this);
+        });
+        
+        // Load variants if product is already selected
+        if (select.value) {
+            loadVariantsForProduct(select);
+        }
+    });
+    
+    // Add change listeners to variant selects to clear errors
+    const variantSelects = document.querySelectorAll('select[id$="-product_variant"]');
+    variantSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.value) {
+                // Clear error styling
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+                
+                // Remove error message
+                const formRow = this.closest('.formset-row');
+                const errorMessage = formRow ? formRow.querySelector('.variant-error-message') : null;
+                if (errorMessage) {
+                    errorMessage.remove();
+                }
+            }
+        });
+    });
+}
+
+function loadVariantsForProduct(productSelect) {
+    const productId = productSelect.value;
+    if (!productId) return;
+    
+    // Find the corresponding variant select
+    const formRow = productSelect.closest('.formset-row');
+    const variantSelect = formRow.querySelector('select[id$="-product_variant"]');
+    
+    if (!variantSelect) return;
+    
+    // Get the label and helper text elements
+    const variantLabel = formRow.querySelector(`label[for="${variantSelect.id}"]`);
+    const requiredIndicator = variantLabel ? variantLabel.querySelector('.variant-required-indicator') : null;
+    const helperText = formRow.querySelector('.form-text');
+    
+    // Clear existing options except the first one
+    variantSelect.innerHTML = '<option value="">---------</option>';
+    variantSelect.disabled = true;
+    
+    // Fetch variants for the selected product
+    fetch(`/catalog/api/variants/?product_id=${productId}`)
+        .then(response => response.json())
+        .then(variants => {
+            if (variants.length > 0) {
+                // Enable and populate variant dropdown
+                variantSelect.disabled = false;
+                variants.forEach(variant => {
+                    const option = document.createElement('option');
+                    option.value = variant.id;
+                    option.textContent = `${variant.variant_name} (Stock: ${variant.quantity_on_hand})`;
+                    if (variant.quantity_on_hand === 0) {
+                        option.disabled = true;
+                        option.textContent += ' - Out of Stock';
+                    }
+                    variantSelect.appendChild(option);
+                });
+                
+                // Make variant required if product has variants
+                variantSelect.required = true;
+                
+                // Show required indicator
+                if (requiredIndicator) {
+                    requiredIndicator.style.display = 'inline';
+                }
+                
+                // Show helper text
+                if (helperText) {
+                    helperText.style.display = 'block';
+                }
+                
+                // Change label color
+                if (variantLabel) {
+                    variantLabel.style.color = '#e67e22';
+                    setTimeout(() => {
+                        variantLabel.style.color = '';
+                    }, 2000);
+                }
+            } else {
+                // No variants, make it optional
+                variantSelect.disabled = true;
+                variantSelect.required = false;
+                
+                // Hide required indicator
+                if (requiredIndicator) {
+                    requiredIndicator.style.display = 'none';
+                }
+                
+                // Hide helper text
+                if (helperText) {
+                    helperText.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading variants:', error);
+            variantSelect.disabled = false;
+            variantSelect.required = false;
+            
+            // Hide indicators on error
+            if (requiredIndicator) {
+                requiredIndicator.style.display = 'none';
+            }
+            if (helperText) {
+                helperText.style.display = 'none';
+            }
+        });
+}
 
 function updateFormVisibility() {
     const allRows = document.querySelectorAll('.formset-row');
@@ -497,10 +668,14 @@ function addFormset() {
                 </select>
             </div>
             <div>
-                <label class="form-label">Variant</label>
+                <label class="form-label">
+                    Variant
+                    <span class="variant-required-indicator" style="color: #e74c3c; display: none;">*</span>
+                </label>
                 <select name="quotationline_set-${currentTotal}-product_variant" class="form-control form-select" id="id_quotationline_set-${currentTotal}-product_variant">
                     <option value="">---------</option>
                 </select>
+                <small class="form-text" style="display: none; color: #e67e22;">This product has variants. Please select one.</small>
             </div>
             <div>
                 <label class="form-label">Quantity</label>
@@ -529,6 +704,11 @@ function addFormset() {
     
     if (firstSelect && newSelect) {
         newSelect.innerHTML = firstSelect.innerHTML;
+        
+        // Setup variant loading for the new product select
+        newSelect.addEventListener('change', function() {
+            loadVariantsForProduct(this);
+        });
     }
     
     updateFormVisibility();

@@ -324,7 +324,7 @@
                     <h5 class="card-title mb-0">Actions</h5>
                 </div>
                 <div class="card-body">
-                    {% if user == quotation.customer and quotation.status == 'sent' and quotation.approval_status != 'pending' %}
+                    {% if user == quotation.customer and quotation.status == 'sent' %}
                     <div class="mb-3">
                         <p class="text-muted"><small>Approve this query to create a rental order</small></p>
                         <form method="post" class="mb-3">

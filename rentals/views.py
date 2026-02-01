@@ -57,6 +57,9 @@ def create_quotation(request):
     if request.user.role != 'customer':
         return HttpResponseForbidden('Only customers can create queries.')
     
+    # Initialize hide_extra_form default value
+    hide_extra_form = False
+    
     if request.method == 'POST':
         form = CreateQuotationForm(request.POST)
         formset = QuotationLineFormSet(request.POST)
@@ -108,7 +111,6 @@ def create_quotation(request):
         product_id = request.GET.get('product_id')
         
         form = CreateQuotationForm()
-        hide_extra_form = False
         
         if product_id:
             # Pre-populate with one product line
@@ -398,24 +400,29 @@ def quotation_detail(request, pk):
                     approval_threshold = sys_config.quotation_approval_threshold if sys_config else 50000
                     
                     if quotation.total >= approval_threshold:
-                        # Create approval request
+                        # Mark as requiring approval, but auto-approve since vendor is sending it
                         quotation.requires_approval = True
-                        quotation.approval_status = 'pending'
+                        quotation.approval_status = 'approved'
+                        quotation.approved_by = request.user
                         
+                        # Create approval request record for audit trail
                         approval_request = ApprovalRequest.objects.create(
                             request_number=f"APR-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                             request_type='quotation',
                             quotation=quotation,
                             requested_by=request.user,
                             approval_amount=quotation.total,
+                            status='approved',
+                            approved_by=request.user,
+                            approved_at=timezone.now(),
                         )
                         
-                        messages.info(request, f'Quotation exceeds approval threshold (₹{approval_threshold}). Approval required.')
+                        messages.info(request, f'Quotation approved and sent to customer (Amount: ₹{quotation.total:,.2f}).')
                         AuditLog.log_action(
                             user=request.user,
-                            action_type='create',
+                            action_type='approve',
                             model_instance=approval_request,
-                            description=f'Approval request created for quotation {quotation.quotation_number}',
+                            description=f'Quotation {quotation.quotation_number} auto-approved by vendor and sent to customer',
                             request=request,
                         )
                 except Exception as e:

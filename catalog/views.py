@@ -156,7 +156,7 @@ def product_detail(request, pk):
             Product.objects.filter(
                 Q(is_published=True) | Q(vendor=request.user)
             ).filter(is_rentable=True).prefetch_related(
-                'variants',
+                'variants__rental_prices',
                 'rental_prices',
                 'category',
                 'vendor'
@@ -167,7 +167,7 @@ def product_detail(request, pk):
         # Public can only see published products
         product = get_object_or_404(
             Product.objects.filter(is_published=True, is_rentable=True).prefetch_related(
-                'variants',
+                'variants__rental_prices',
                 'rental_prices',
                 'category',
                 'vendor'
