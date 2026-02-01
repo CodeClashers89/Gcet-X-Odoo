@@ -395,6 +395,15 @@
                     </div>
                     
                     <div class="form-group">
+                        <label class="form-label">Product Image</label>
+                        <input type="file" name="image_main" accept="image/*" class="form-control" id="productImage" onchange="previewImage(event)">
+                        <small class="text-muted">Upload a clear image of your product (JPG, PNG, GIF)</small>
+                        <div id="imagePreview" style="margin-top: 15px; display: none;">
+                            <img id="previewImg" src="" alt="Preview" style="max-width: 300px; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label class="form-label">Daily Rental Price (₹) *</label>
                         <input type="number" name="daily_price" required step="0.01" min="0" class="form-control" placeholder="0.00">
                     </div>
@@ -558,6 +567,28 @@ function removeVariant(id) {
     setTimeout(() => {
         element.remove();
     }, 300);
+}
+
+// Preview image before upload
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = e.target.result;
+            preview.style.display = 'block';
+            
+            // Add fade-in animation
+            preview.style.opacity = '0';
+            setTimeout(() => {
+                preview.style.transition = 'opacity 0.3s ease';
+                preview.style.opacity = '1';
+            }, 50);
+        }
+        reader.readAsDataURL(file);
+    }
 }
 
 // Add slideOut animation

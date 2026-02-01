@@ -424,6 +424,7 @@ def vendor_add_product(request):
             description = request.POST.get('description')
             daily_price = request.POST.get('daily_price')
             quantity = request.POST.get('quantity')
+            image_main = request.FILES.get('image_main')  # Get uploaded image
             
             # Get attributes data
             attr_names = request.POST.getlist('attr_name[]')
@@ -466,7 +467,8 @@ def vendor_add_product(request):
                 cost_price=cost_price,
                 is_rentable=True,
                 is_published=False,  # Draft by default, admin can publish
-                attributes=attributes  # Save attributes as JSON
+                attributes=attributes,  # Save attributes as JSON
+                image_main=image_main if image_main else None  # Save uploaded image
             )
             
             # Create rental pricing

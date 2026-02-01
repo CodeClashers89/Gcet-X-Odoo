@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf import settings
+from django.conf.urls.static import static
 from accounts.views import login_view
 
 urlpatterns = [
@@ -48,3 +50,7 @@ urlpatterns = [
 
 # Serve static files in development
 urlpatterns += staticfiles_urlpatterns()
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

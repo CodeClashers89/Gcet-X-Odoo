@@ -13,6 +13,9 @@ ENV/
 # (database files are intentionally tracked for this repo)
 .env
 
+# Media files (uploaded content)
+media/
+
 # Logs
 *.log
 logs/
