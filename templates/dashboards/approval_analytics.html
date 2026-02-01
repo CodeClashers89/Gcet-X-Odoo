@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
+{% load dashboard_filters %}
 
 {% block title %}Approval Analytics - Rental ERP{% endblock %}
 
@@ -299,7 +300,7 @@
                     {% if avg_approval_time %}
                     <p>
                         <strong>Avg Time to Approve</strong><br>
-                        <span class="text-success" style="font-size: 1.5rem;">{{ avg_approval_time|timeuntil }}</span>
+                        <span class="text-success" style="font-size: 1.5rem;">{{ avg_approval_time|format_timedelta }}</span>
                     </p>
                     {% endif %}
                     <hr>
@@ -373,7 +374,7 @@
                                     <td>{{ approver.count }}</td>
                                     <td>
                                         {% if approver.avg_time %}
-                                            {{ approver.avg_time|timeuntil }}
+                                            {{ approver.avg_time|format_timedelta }}
                                         {% else %}
                                             —
                                         {% endif %}
