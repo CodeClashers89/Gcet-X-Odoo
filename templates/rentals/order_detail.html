@@ -674,6 +674,19 @@
                         {% endif %}
 
                         {% if order.status == 'in_progress' %}
+                        <!-- Allow scheduling/completing pickup even if order started -->
+                        {% if not pickup or not pickup.actual_pickup_date %}
+                        <a href="{% url 'rentals:schedule_pickup' order.id %}" class="action-btn">
+                            📅 Schedule Pickup
+                        </a>
+                        {% endif %}
+                        
+                        {% if pickup and not pickup.actual_pickup_date %}
+                        <a href="{% url 'rentals:complete_pickup' order.id %}" class="action-btn primary">
+                            ✓ Mark Pickup Completed
+                        </a>
+                        {% endif %}
+                        
                         <a href="{% url 'rentals:complete_return' order.id %}" class="action-btn primary">
                             ✓ Complete Return
                         </a>

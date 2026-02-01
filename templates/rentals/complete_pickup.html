@@ -4,11 +4,170 @@
 {% block title %}Record Pickup Completion - Rental ERP{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-6 offset-lg-3">
-            <h2 class="mb-4">Record Pickup Completion</h2>
+<style>
+    .detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
 
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h2::before {
+        content: "✅";
+        font-size: 28px;
+    }
+
+    .card-modern {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-modern-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #f0f0f0;
+        background: white;
+    }
+
+    .card-modern-header h5 {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .card-modern-body {
+        padding: 25px;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-left: 4px solid #3498db;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 10px 12px;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .checklist-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .checklist-header {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-check-label {
+        font-size: 0.95rem;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+
+    .action-btn.success {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+
+    .action-btn.success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        color: white;
+    }
+
+    .action-btn.secondary {
+        background: #f8f9fa;
+        color: #7f8c8d;
+        border: 1px solid #dee2e6;
+    }
+
+    .action-btn.secondary:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+    }
+</style>
+
+<div class="detail-container">
+    <div class="page-header">
+        <div>
+            <h2>Record Pickup Completion</h2>
+            <p class="mb-0 opacity-75 text-white" style="margin-left: 44px; font-size: 0.9rem; opacity: 0.8;">
+                Confirm items have been handed over
+            </p>
+        </div>
+    </div>
+
+    <div class="card-modern">
+        <div class="card-modern-header">
+            <h5>Order #{{ order.order_number }}</h5>
+        </div>
+        <div class="card-modern-body">
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -18,88 +177,85 @@
                 {% endfor %}
             {% endif %}
 
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Order {{ order.order_number }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3 p-3 bg-light rounded">
-                        <p class="mb-1"><strong>Customer:</strong> {{ order.customer.get_full_name }}</p>
-                        <p class="mb-1"><strong>Items:</strong> {{ order.rental_order_lines.count }} line(s)</p>
-                        <p class="mb-0"><strong>Rental Period:</strong> 
+            <div class="info-box">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Customer</p>
+                        <p class="mb-3 fw-bold">{{ order.customer.get_full_name }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Total Items</p>
+                        <p class="mb-3 fw-bold">{{ order.rental_order_lines.count }} line(s)</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Rental Period</p>
+                        <p class="mb-3 fw-bold">
                             {% if order.rental_order_lines.exists %}
                                 {% with first=order.rental_order_lines.first %}
-                                    {{ first.rental_start_date|date:"d M Y" }} to {{ first.rental_end_date|date:"d M Y" }}
+                                    {{ first.rental_start_date|date:"d M" }} - {{ first.rental_end_date|date:"d M Y" }}
                                 {% endwith %}
                             {% endif %}
                         </p>
                     </div>
-
-                    <form method="post">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label for="{{ form.actual_pickup_date.id_for_label }}" class="form-label">
-                                Actual Pickup Date & Time <span class="text-danger">*</span>
-                            </label>
-                            {{ form.actual_pickup_date }}
-                            {% if form.actual_pickup_date.errors %}
-                                <div class="text-danger mt-1">{{ form.actual_pickup_date.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h6 class="card-title mb-0">Verification Checklist</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-check mb-2">
-                                    {{ form.items_checked }}
-                                    <label class="form-check-label" for="{{ form.items_checked.id_for_label }}">
-                                        All items have been verified and counted
-                                    </label>
-                                </div>
-
-                                <div class="form-check mb-2">
-                                    {{ form.customer_id_verified }}
-                                    <label class="form-check-label" for="{{ form.customer_id_verified.id_for_label }}">
-                                        Customer ID has been verified
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.pickup_notes.id_for_label }}" class="form-label">
-                                Pickup Notes <small class="text-muted">(optional)</small>
-                            </label>
-                            {{ form.pickup_notes }}
-                            {% if form.pickup_notes.errors %}
-                                <div class="text-danger mt-1">{{ form.pickup_notes.errors }}</div>
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1">
-                                Any observations about item condition or special notes.
-                            </small>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check-circle"></i> Confirm Pickup
-                            </button>
-                            <a href="{% url 'rentals:order_detail' order.id %}" class="btn btn-secondary">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
                 </div>
             </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="{{ form.actual_pickup_date.id_for_label }}" class="form-label">
+                        Actual Pickup Date & Time <span class="text-danger">*</span>
+                    </label>
+                    {{ form.actual_pickup_date }}
+                    {% if form.actual_pickup_date.errors %}
+                        <div class="text-danger mt-1 small">{{ form.actual_pickup_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="checklist-card">
+                    <div class="checklist-header">
+                        <i class="fas fa-tasks me-2"></i> Verification Checklist
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ form.items_checked }}
+                        <label class="form-check-label" for="{{ form.items_checked.id_for_label }}">
+                            All items have been verified and counted
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        {{ form.customer_id_verified }}
+                        <label class="form-check-label" for="{{ form.customer_id_verified.id_for_label }}">
+                            Customer ID has been verified
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.pickup_notes.id_for_label }}" class="form-label">
+                        Pickup Notes <small class="text-muted">(optional)</small>
+                    </label>
+                    {{ form.pickup_notes }}
+                    {% if form.pickup_notes.errors %}
+                        <div class="text-danger mt-1 small">{{ form.pickup_notes.errors }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">
+                        Any observations about item condition or special notes.
+                    </small>
+                </div>
+
+                <div class="d-flex gap-3 pt-2">
+                    <button type="submit" class="action-btn success">
+                        <i class="fas fa-check-circle"></i> Confirm Pickup
+                    </button>
+                    <a href="{% url 'rentals:order_detail' order.id %}" class="action-btn secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-<style>
-    .form-control, .form-select, textarea {
-        font-size: 0.95rem;
-    }
-</style>
 {% endblock %}
