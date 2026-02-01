@@ -239,15 +239,15 @@
 
     <div class="stats-grid">
         <div class="stat-card">
-            <h3 class="stat-value">0</h3>
+            <h3 class="stat-value">{{ active_rentals_count }}</h3>
             <p class="stat-label">Active Rentals</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value">0</h3>
+            <h3 class="stat-value">{{ pending_approvals_count }}</h3>
             <p class="stat-label">Pending Approvals</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value">₹0</h3>
+            <h3 class="stat-value">₹{{ total_spent|floatformat:0 }}</h3>
             <p class="stat-label">Total Spent</p>
         </div>
         <div class="stat-card">

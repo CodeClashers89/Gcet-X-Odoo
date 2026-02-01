@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Sum, Count, Avg, Q, F, Case, When, Value, DecimalField
 from django.db.models.functions import TruncDate, ExtractMonth, ExtractYear
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
+from decimal import Decimal
 import json
+from .utils import render_to_pdf
 
 
 @login_required
@@ -23,11 +25,32 @@ def dashboard(request):
     context = {'user': user}
     
     if user.role == 'customer':
-        from rentals.models import Quotation
+        from rentals.models import Quotation, RentalOrder
+        
+        # Recent queries
         context['sent_queries'] = Quotation.objects.filter(
             customer=user,
             status='sent'
         ).order_by('-created_at')[:5]
+        
+        # Stats Calculations
+        context['active_rentals_count'] = RentalOrder.objects.filter(
+            customer=user,
+            status='in_progress'
+        ).count()
+        
+        context['pending_approvals_count'] = Quotation.objects.filter(
+            customer=user,
+            status='sent'
+        ).count()
+        
+        total_spent = RentalOrder.objects.filter(
+            customer=user,
+            status__in=['in_progress', 'completed', 'confirmed', 'invoiced']
+        ).aggregate(Sum('total'))['total__sum']
+        
+        context['total_spent'] = total_spent or Decimal('0.00')
+        
         return render(request, 'dashboards/customer_dashboard.html', context)
     elif user.role == 'vendor':
         from catalog.models import Product
@@ -574,4 +597,51 @@ def vendor_financials(request):
     }
     
     return render(request, 'dashboards/vendor_financials.html', context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def vendor_financials_pdf(request):
+    """
+    Generate PDF for vendor financials.
+    """
+    if request.user.role != 'vendor':
+        return HttpResponseForbidden("Only vendors can export financial reports")
+    
+    from billing.models import Invoice, Payment
+    
+    user = request.user
+    today = timezone.now().date()
+    
+    # Get all invoices for this vendor
+    invoices = Invoice.objects.filter(vendor=user).order_by('-created_at')
+    
+    # Calculate aggregates
+    stats = invoices.aggregate(
+        total_revenue=Sum('total'),
+        total_paid=Sum('paid_amount'),
+        total_due=Sum('balance_due'),
+        total_deposits=Sum('deposit_collected'),
+        total_refunded=Sum('deposit_refunded')
+    )
+    
+    deposits_held = (stats['total_deposits'] or Decimal('0.00')) - (stats['total_refunded'] or Decimal('0.00'))
+    
+    context = {
+        'invoices': invoices,
+        'stats': stats,
+        'deposits_held': deposits_held,
+        'user': user,
+        'today': today,
+        'generated_at': timezone.now()
+    }
+    
+    pdf = render_to_pdf('dashboards/pdf/financial_report.html', context)
+    if pdf:
+        filename = f"Financial_Report_{user.first_name}_{today}.pdf"
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    return HttpResponse("Error Rendering PDF", status=400)
 

@@ -18,4 +18,5 @@ urlpatterns = [
     
     # Vendor Financials
     path('vendor/financials/', views.vendor_financials, name='vendor_financials'),
+    path('vendor/financials/pdf/', views.vendor_financials_pdf, name='vendor_financials_pdf'),
 ]

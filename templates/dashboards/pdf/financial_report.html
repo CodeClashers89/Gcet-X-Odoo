@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Financial Report</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+        }
+        
+        .meta-info {
+            margin-bottom: 30px;
+        }
+        
+        .meta-table {
+            width: 100%;
+        }
+        
+        .summary-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .stats-label {
+            color: #7f8c8d;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stats-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        
+        .data-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .data-table td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+            vertical-align: middle;
+            word-wrap: break-word; /* Ensure long words wrap */
+        }
+        
+        .data-table tr.even {
+            background-color: #f9f9f9;
+        }
+        
+        .total-row td {
+            font-weight: bold;
+            border-top: 2px solid #2c3e50;
+            padding-top: 10px;
+        }
+        
+        .status-paid { color: #27ae60; font-weight: bold; }
+        .status-pending { color: #f39c12; font-weight: bold; }
+        .status-overdue { color: #c0392b; font-weight: bold; }
+        
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Financial Performance Report</h1>
+        <p>Rental ERP System - Vendor Analytics</p>
+    </div>
+    
+    <div class="meta-info">
+        <table class="meta-table">
+            <tr>
+                <td>
+                    <strong>Vendor:</strong> {{ user.get_full_name }}<br/>
+                    <strong>Email:</strong> {{ user.email }}
+                </td>
+                <td style="text-align: right;">
+                    <strong>Report Date:</strong> {{ today|date:"d M Y" }}<br/>
+                    <strong>Generated At:</strong> {{ generated_at|date:"h:i A" }}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="summary-box">
+        <div class="section-title" style="margin-top: 0;">Financial Summary</div>
+        <table class="stats-table">
+            <tr>
+                <td width="25%">
+                    <div class="stats-label">Total Revenue</div>
+                    <div class="stats-value">Rs {{ stats.total_revenue|default:"0.00"|floatformat:2 }}</div>
+                </td>
+                <td width="25%">
+                    <div class="stats-label">Total Paid</div>
+                    <div class="stats-value" style="color: #27ae60;">Rs {{ stats.total_paid|default:"0.00"|floatformat:2 }}</div>
+                </td>
+                <td width="25%">
+                    <div class="stats-label">Pending Balance</div>
+                    <div class="stats-value" style="color: #f39c12;">Rs {{ stats.total_due|default:"0.00"|floatformat:2 }}</div>
+                </td>
+                <td width="25%">
+                    <div class="stats-label">Deposits Held</div>
+                    <div class="stats-value" style="color: #3498db;">Rs {{ deposits_held|default:"0.00"|floatformat:2 }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section-title">Detailed Invoice History</div>
+    {% if invoices %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th width="28%">Invoice #</th>
+                <th width="12%">Date</th>
+                <th width="20%">Customer</th>
+                <th width="10%">Status</th>
+                <th width="15%" style="text-align: right;">Paid</th>
+                <th width="15%" style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td>{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+                <td>{{ invoice.billing_name }}</td>
+                <td>
+                    {% if invoice.status == 'paid' %}
+                        <span class="status-paid">PAID</span>
+                    {% elif invoice.status == 'overdue' %}
+                        <span class="status-overdue">OVERDUE</span>
+                    {% else %}
+                        <span class="status-pending">{{ invoice.get_status_display|upper }}</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">{{ invoice.paid_amount|floatformat:2 }}</td>
+                <td style="text-align: right; font-weight: bold;">{{ invoice.total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td colspan="4" style="text-align: right;">Totals:</td>
+                <td style="text-align: right;">{{ stats.total_paid|default:"0.00"|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ stats.total_revenue|default:"0.00"|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #7f8c8d; padding: 20px;">No invoices found for this period.</p>
+    {% endif %}
+
+    <div id="footerContent" class="footer">
+        Page <pdf:pagenumber> of <pdf:pagecount> | Generated by Rental ERP System
+    </div>
+</body>
+</html>

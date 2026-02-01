@@ -286,9 +286,9 @@
             <p>Financial visibility and performance tracking for {{ user.get_full_name }}</p>
         </div>
         <div class="header-actions">
-            <button onclick="window.print()" class="action-btn" aria-label="Export earnings report to PDF">
+            <a href="{% url 'dashboards:vendor_financials_pdf' %}" class="action-btn" aria-label="Export earnings report to PDF">
                 <span>📄</span> Export to PDF
-            </button>
+            </a>
         </div>
     </div>
 
