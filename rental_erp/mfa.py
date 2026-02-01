@@ -4,10 +4,23 @@ Phase 10 - Enhanced authentication security with TOTP and email verification.
 """
 import logging
 import secrets
-import qrcode
 from io import BytesIO
 from base64 import b64encode
 from datetime import datetime, timedelta
+
+# Try to import pyotp FIRST before any Django imports
+try:
+    import pyotp
+    PYOTP_AVAILABLE = True
+except ImportError as e:
+    pyotp = None
+    PYOTP_AVAILABLE = False
+    print(f"PyOTP import failed: {e}")
+
+# Now import qrcode
+import qrcode
+
+# Now Django imports
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -17,63 +30,53 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+if not PYOTP_AVAILABLE:
+    logger.warning('pyotp library not installed. TOTP functionality will be limited.')
+
+
 
 class TOTPManager:
     """Manage Time-based One-Time Passwords (TOTP) for 2FA."""
     
-    def __init__(self):
-        """Initialize TOTP manager."""
+    def _get_pyotp(self):
+        """Dynamic import of pyotp to ensure it's available."""
         try:
             import pyotp
-            self.pyotp = pyotp
+            return pyotp
         except ImportError:
-            logger.warning('pyotp library not installed. TOTP functionality will be limited.')
-            self.pyotp = None
+            return None
     
     def generate_secret(self):
         """
         Generate a new TOTP secret key.
-        
-        Returns:
-            Base32 encoded secret key
         """
-        if not self.pyotp:
+        pyotp_lib = self._get_pyotp()
+        if not pyotp_lib:
+            logger.error("Cannot generate secret: pyotp library not installed")
             return None
-        
-        return self.pyotp.random_base32()
+        return pyotp_lib.random_base32()
     
     def get_totp(self, secret):
         """
         Create TOTP instance for a secret.
-        
-        Args:
-            secret: Base32 encoded secret key
-        
-        Returns:
-            TOTP instance
         """
-        if not self.pyotp:
+        pyotp_lib = self._get_pyotp()
+        if not pyotp_lib or not secret:
             return None
-        
-        return self.pyotp.TOTP(secret)
+        return pyotp_lib.TOTP(secret)
     
     def verify_token(self, secret, token):
         """
         Verify a TOTP token.
-        
-        Args:
-            secret: Base32 encoded secret key
-            token: 6-digit code from authenticator app
-        
-        Returns:
-            Boolean indicating if token is valid
         """
-        if not self.pyotp:
+        pyotp_lib = self._get_pyotp()
+        if not pyotp_lib:
             return False
         
         try:
             totp = self.get_totp(secret)
-            # Allow 1 time step before/after for clock skew
+            if not totp:
+                return False
             return totp.verify(token, valid_window=1)
         except Exception as e:
             logger.error(f'TOTP verification failed: {str(e)}')
@@ -82,37 +85,27 @@ class TOTPManager:
     def get_provisioning_uri(self, secret, email, issuer='RentalERP'):
         """
         Get provisioning URI for QR code generation.
-        
-        Args:
-            secret: Base32 encoded secret key
-            email: User's email address
-            issuer: Issuer name (default: RentalERP)
-        
-        Returns:
-            Provisioning URI
         """
-        if not self.pyotp:
+        pyotp_lib = self._get_pyotp()
+        if not pyotp_lib:
             return None
         
         totp = self.get_totp(secret)
+        if not totp:
+            return None
         return totp.provisioning_uri(name=email, issuer_name=issuer)
     
     def generate_qr_code(self, secret, email):
         """
         Generate QR code for TOTP setup.
-        
-        Args:
-            secret: Base32 encoded secret key
-            email: User's email address
-        
-        Returns:
-            Base64 encoded QR code image
         """
         provisioning_uri = self.get_provisioning_uri(secret, email)
         if not provisioning_uri:
+            logger.error('Cannot generate QR code: Provisioning URI is None (check if pyotp is installed)')
             return None
         
         try:
+            import qrcode
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(provisioning_uri)
             qr.make(fit=True)

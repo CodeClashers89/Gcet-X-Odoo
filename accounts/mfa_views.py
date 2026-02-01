@@ -34,6 +34,11 @@ def setup_2fa(request):
             # Generate TOTP secret and QR code
             setup_data = mfa_manager.setup_totp(user)
             
+            # Debug logging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Setup data: secret={setup_data.get('secret')}, qr_code={'present' if setup_data.get('qr_code') else 'None'}, backup_codes={len(setup_data.get('backup_codes', []))}")
+            
             # Store in session temporarily
             request.session['totp_secret'] = setup_data['secret']
             request.session['totp_backup_codes'] = setup_data['backup_codes']
