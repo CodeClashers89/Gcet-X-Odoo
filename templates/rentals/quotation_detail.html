@@ -364,7 +364,7 @@
                             <button type="submit" class="btn btn-success w-100">
                                 <i class="fas fa-check"></i> 
                                 {% if quotation.advance_payment_amount > 0 %}
-                                    Pay Advance (₹{{ quotation.advance_payment_amount|floatformat:2 }}) & Accept
+                                    Proceed to Payment & Accept (₹{{ quotation.advance_payment_amount|floatformat:2 }})
                                 {% else %}
                                     Approve & Create Order
                                 {% endif %}

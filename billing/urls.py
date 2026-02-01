@@ -10,6 +10,10 @@ urlpatterns = [
     path('invoices/<int:pk>/pdf/', views.download_invoice_pdf, name='download_pdf'),
     path('invoices/<int:pk>/sent/', views.mark_invoice_sent, name='mark_sent'),
     path('invoices/<int:pk>/payment/', views.record_payment, name='record_payment'),
+
+    # Payment Gateway
+    path('gateway/<int:order_id>/', views.payment_gateway, name='payment_gateway'),
+    path('gateway/<int:order_id>/process/', views.process_payment, name='process_payment'),
     
     # AJAX endpoints
     path('api/generate/', views.generate_invoice, name='generate_invoice'),

@@ -414,3 +414,130 @@ def record_payment(request, pk):
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
         else:
             return redirect('billing:invoice_detail', pk=invoice.id)
+
+
+@login_required
+@require_http_methods(["GET"])
+def payment_gateway(request, order_id):
+    """
+    Render fake payment gateway page.
+    """
+    order = get_object_or_404(RentalOrder, pk=order_id)
+    
+    # Permission check
+    if request.user != order.customer and not request.user.is_staff:
+        return HttpResponseForbidden('Access denied.')
+    
+    # Calculate amount to pay
+    # Defaults to remaining balance, but could be advance amount if specified
+    amount_str = request.GET.get('amount')
+    if amount_str:
+        try:
+            amount = Decimal(amount_str)
+        except:
+            amount = order.total - order.paid_amount
+    else:
+        amount = order.total - order.paid_amount
+        
+    if amount <= 0:
+        messages.info(request, 'No balance due to pay.')
+        return redirect('rentals:order_detail', pk=order.id)
+    
+    return render(request, 'billing/payment_gateway.html', {
+        'order': order,
+        'amount': amount,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def process_payment(request, order_id):
+    """
+    Process the fake payment.
+    """
+    import time
+    
+    order = get_object_or_404(RentalOrder, pk=order_id)
+    
+    if request.user != order.customer and not request.user.is_staff:
+        return HttpResponseForbidden('Access denied.')
+    
+    try:
+        amount = Decimal(request.POST.get('amount', 0))
+        payment_method = request.POST.get('payment_method', 'card')
+        
+        # Validate amount
+        if amount <= 0:
+            messages.error(request, 'Invalid payment amount.')
+            return redirect('billing:payment_gateway', order_id=order.id)
+            
+        # Simulate processing delay
+        time.sleep(2)
+        
+        from billing.models import Invoice, Payment
+        
+        with transaction.atomic():
+            # 1. Ensure an invoice exists
+            invoice = order.invoices.first()
+            if not invoice:
+                # Create invoice if missing
+                invoice = Invoice.objects.create(
+                    invoice_number=f"INV-GEN-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    rental_order=order,
+                    customer=order.customer,
+                    vendor=order.vendor,
+                    status='draft',
+                    invoice_date=timezone.now().date(),
+                    due_date=timezone.now().date(),
+                    payment_terms='immediate',
+                    billing_name=order.customer.get_full_name(),
+                    billing_address=order.billing_address,
+                    subtotal=order.subtotal,
+                    discount_amount=order.discount_amount,
+                    tax_amount=order.tax_amount,
+                    late_fee=order.late_fee,
+                    total=order.total,
+                )
+            
+            # 2. Record payment
+            Payment.objects.create(
+                payment_number=f"PAY-{payment_method.upper()}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                invoice=invoice,
+                customer=order.customer,
+                amount=amount,
+                payment_method=payment_method,
+                payment_status='completed',
+                payment_date=timezone.now(),
+                notes=f"Online payment via SecurePay Gateway ({payment_method.upper()})"
+            )
+            
+            # 3. Synchronize Invoice
+            invoice.paid_amount += amount
+            invoice.balance_due = max(Decimal('0.00'), invoice.total - invoice.paid_amount)
+            
+            if invoice.balance_due <= 0:
+                invoice.status = 'paid'
+                invoice.paid_at = timezone.now()
+            else:
+                invoice.status = 'partial'
+                
+            invoice.save()
+            
+            # 4. Synchronize Order
+            order.paid_amount += amount
+            order.save()
+            
+            AuditLog.log_action(
+                user=request.user,
+                action_type='create',
+                model_instance=order,
+                description=f'Online payment of ₹{amount:,.2f} received',
+                request=request,
+            )
+            
+            messages.success(request, f'Payment of ₹{amount:,.2f} successful!')
+            return redirect('rentals:order_detail', pk=order.id)
+            
+    except Exception as e:
+        messages.error(request, f'Payment failed: {str(e)}')
+        return redirect('billing:payment_gateway', order_id=order.id)

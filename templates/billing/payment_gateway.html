@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Secure Payment - Rental ERP{% endblock %}
+
+{% block content %}
+<style>
+    .payment-container {
+        max-width: 500px;
+        margin: 40px auto;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-payment {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .card-header-payment {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .card-header-payment h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .amount-display {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 10px 0;
+        color: #2ecc71;
+    }
+
+    .card-body-payment {
+        padding: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.3s ease;
+        background-color: #f9f9f9;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        background-color: white;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #7f8c8d;
+        font-size: 12px;
+        margin-top: 20px;
+    }
+
+    .card-icons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+        color: #bdc3c7;
+        font-size: 24px;
+    }
+</style>
+
+<div class="payment-container">
+    <div class="card-payment">
+        <div class="card-header-payment">
+            <h3><i class="fas fa-lock"></i> Secure Checkout</h3>
+            <div class="text-white-50 small">Order {{ order.order_number }}</div>
+            <div class="amount-display">₹{{ amount|floatformat:2 }}</div>
+        </div>
+        <div class="card-body-payment">
+            <div class="payment-methods mb-4">
+                <ul class="nav nav-pills nav-fill" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="card-tab" data-bs-toggle="pill" data-bs-target="#card-payment" type="button" role="tab" onclick="setPaymentMethod('card')">
+                            <i class="fas fa-credit-card me-2"></i>Card
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upi-payment" type="button" role="tab" onclick="setPaymentMethod('upi')">
+                            <i class="fas fa-qrcode me-2"></i>UPI
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <form method="post" action="{% url 'billing:process_payment' order.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="amount" value="{{ amount }}">
+                <input type="hidden" name="payment_method" id="payment_method" value="card">
+                
+                <div class="tab-content">
+                    <!-- Card Payment Form -->
+                    <div class="tab-pane fade show active" id="card-payment" role="tabpanel">
+                        <div class="card-icons">
+                            <i class="fab fa-cc-visa" style="color: #1a1f71;"></i>
+                            <i class="fab fa-cc-mastercard" style="color: #eb001b;"></i>
+                            <i class="fab fa-cc-amex" style="color: #2e77bc;"></i>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-credit-card text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0 card-input" placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control text-center expiry-input" placeholder="MM / YY" maxlength="5">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">CVV</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                        <input type="password" class="form-control border-start-0 ps-0 text-center cvv-input" placeholder="•••" maxlength="4">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control name-input" placeholder="Name on Card">
+                        </div>
+                    </div>
+
+                    <!-- UPI Payment Form -->
+                    <div class="tab-pane fade" id="upi-payment" role="tabpanel">
+                        <div class="text-center mb-4">
+                            <div class="bg-light p-3 rounded d-inline-block">
+                                <i class="fas fa-qrcode fa-4x text-dark"></i>
+                            </div>
+                            <p class="mt-2 text-muted small">Scan with any UPI App</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">UPI ID / VPA</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-mobile-alt text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0 upi-input" placeholder="username@upi">
+                            </div>
+                            <div class="form-text mt-2">
+                                <span class="badge bg-light text-dark border me-1">GPay</span>
+                                <span class="badge bg-light text-dark border me-1">PhonePe</span>
+                                <span class="badge bg-light text-dark border me-1">Paytm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay" id="payButton">
+                    <span>Pay Now</span>
+                    <span id="spinner" class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div class="secure-badge">
+                <i class="fas fa-shield-alt"></i>
+                Please do not refresh the page
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setPaymentMethod(method) {
+        document.getElementById('payment_method').value = method;
+        
+        // Toggle required attributes based on method
+        const cardInputs = document.querySelectorAll('.card-input, .expiry-input, .cvv-input, .name-input');
+        const upiInputs = document.querySelectorAll('.upi-input');
+        
+        if (method === 'card') {
+            cardInputs.forEach(el => el.required = true);
+            upiInputs.forEach(el => el.required = false);
+        } else {
+            cardInputs.forEach(el => el.required = false);
+            upiInputs.forEach(el => el.required = true);
+        }
+    }
+
+    // Initialize required fields
+    setPaymentMethod('card');
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const btn = document.getElementById('payButton');
+        const spinner = document.getElementById('spinner');
+        const span = btn.querySelector('span:first-child');
+        
+        btn.disabled = true;
+        span.textContent = 'Processing...';
+        spinner.style.display = 'inline-block';
+    });
+
+    // Simple formatter for card input
+    document.querySelector('.card-input').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        e.target.value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    });
+    
+    document.querySelector('.expiry-input').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            e.target.value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
+        } else {
+            e.target.value = value;
+        }
+    });
+
+</script>
+{% endblock %}

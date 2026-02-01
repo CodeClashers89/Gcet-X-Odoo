@@ -689,12 +689,9 @@
 
                     {% if user == order.customer %}
                         {% if order.balance > 0 %}
-                        <form action="{% url 'rentals:pay_order_balance' order.id %}" method="post" class="mb-3">
-                            {% csrf_token %}
-                            <button type="submit" class="action-btn success" style="background: #27ae60; color: white;">
-                                <i class="fas fa-credit-card mr-2"></i> Pay Remaining Balance (₹{{ order.balance|floatformat:2 }})
-                            </button>
-                        </form>
+                        <a href="{% url 'billing:payment_gateway' order.id %}" class="action-btn success" style="background: #27ae60; color: white;">
+                            <i class="fas fa-credit-card mr-2"></i> Pay Remaining Balance (₹{{ order.balance|floatformat:2 }})
+                        </a>
                         {% endif %}
                     {% endif %}
 

@@ -286,13 +286,13 @@ def quotation_detail(request, pk):
                         
                         # Handle Advance Payment (Invoice + Payment)
                         if rental_order.advance_payment_amount > 0:
-                            # 1. Create Invoice for Advance
+                            # 1. Create Invoice for Advance (Draft first)
                             invoice = Invoice.objects.create(
                                 invoice_number=f"INV-ADV-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                                 rental_order=rental_order,
                                 customer=rental_order.customer,
                                 vendor=rental_order.vendor,
-                                status='paid',
+                                status='draft', # Draft until paid
                                 invoice_date=timezone.now().date(),
                                 due_date=timezone.now().date(),
                                 payment_terms='immediate',
@@ -301,32 +301,33 @@ def quotation_detail(request, pk):
                                 billing_address=rental_order.billing_address,
                                 subtotal=rental_order.advance_payment_amount,
                                 total=rental_order.advance_payment_amount,
-                                paid_amount=rental_order.advance_payment_amount,
-                                balance_due=Decimal('0.00'),
+                                paid_amount=Decimal('0.00'),
+                                balance_due=rental_order.advance_payment_amount,
                             )
                             
-                            # 2. Create Payment Record (Success)
-                            from billing.models import Payment
-                            Payment.objects.create(
-                                payment_number=f"PAY-ADV-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                                invoice=invoice,
-                                customer=rental_order.customer,
-                                amount=rental_order.advance_payment_amount,
-                                payment_method='upi', # Default to UPI for auto-collection demo
-                                payment_status='success',
-                                payment_date=timezone.now(),
-                                notes="Advance payment collected on quotation acceptance"
+                            # Update quotation status
+                            quotation.status = 'confirmed'
+                            quotation.confirmed_at = timezone.now()
+                            quotation.save()
+                            
+                            # Log order creation
+                            AuditLog.log_action(
+                                user=request.user,
+                                action_type='state_change',
+                                model_instance=rental_order,
+                                field_name='status',
+                                old_value='NONE',
+                                new_value='confirmed',
+                                description=f'Query approved, sale order created: {rental_order.order_number}',
+                                request=request,
                             )
                             
-                            # Update Order Paid Amount
-                            rental_order.paid_amount = rental_order.advance_payment_amount
-                            rental_order.save()
-
-                            # Notify customer about invoice
-                            from rentals.notifications import notify_invoice_stage
-                            notify_invoice_stage(invoice)
+                            notify_order_stage(rental_order, 'confirmed')
                             
-                            messages.success(request, f'Advance payment of ₹{rental_order.advance_payment_amount} recorded. Quotation accepted.')
+                            # Redirect to Payment Gateway
+                            messages.success(request, f'Order created! Please pay the advance amount of ₹{rental_order.advance_payment_amount} to proceed.')
+                            return redirect(f"{reverse('billing:payment_gateway', args=[rental_order.id])}?amount={rental_order.advance_payment_amount}")
+                        
                         else:
                             messages.success(request, 'Quotation accepted and order created.')
 
