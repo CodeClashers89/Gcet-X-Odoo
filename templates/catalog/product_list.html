@@ -182,84 +182,150 @@
 
     .product-card {
         background: white;
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e8ecf0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.25s ease;
         height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #3498db;
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        overflow: hidden;
     }
 
     .product-image {
         width: 100%;
-        height: 190px;
+        height: 100%;
         object-fit: cover;
-        background-color: #eef2f7;
+    }
+
+    .product-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     }
 
     .product-info {
-        padding: 18px 20px 22px;
+        padding: 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
     }
 
     .product-name {
         font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 6px;
+        font-size: 13px;
+        margin-bottom: 5px;
         color: #2c3e50;
         text-align: center;
+        line-height: 1.3;
+        height: 33px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .price-pill {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+        font-weight: 700;
+        border-radius: 5px;
+        padding: 5px 10px;
+        font-size: 13px;
+        display: inline-block;
+        margin: 4px auto;
+        text-align: center;
+        box-shadow: 0 1px 4px rgba(39, 174, 96, 0.2);
     }
 
     .product-description {
-        font-size: 13px;
+        font-size: 11px;
         color: #7f8c8d;
-        margin-bottom: 10px;
-        height: 2.4em;
+        margin-bottom: 6px;
+        height: 2.6em;
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         text-align: center;
+        line-height: 1.3;
     }
 
     .product-vendor {
-        font-size: 12px;
-        color: #7f8c8d;
-        margin-bottom: 8px;
+        font-size: 10px;
+        color: #95a5a6;
+        margin-bottom: 6px;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
     }
 
     .product-stock {
-        font-size: 12px;
-        color: #7f8c8d;
-        margin-bottom: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        margin-bottom: 8px;
         text-align: center;
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 3px 6px;
+        border-radius: 4px;
     }
 
-    .product-stock.in-stock { color: #27ae60; }
-    .product-stock.low-stock { color: #f39c12; }
-    .product-stock.out-of-stock { color: #e74c3c; }
+    .product-stock.in-stock { 
+        color: #27ae60;
+        background: rgba(39, 174, 96, 0.08);
+    }
+    .product-stock.low-stock { 
+        color: #f39c12;
+        background: rgba(243, 156, 18, 0.08);
+    }
+    .product-stock.out-of-stock { 
+        color: #e74c3c;
+        background: rgba(231, 76, 60, 0.08);
+    }
 
     .product-meta {
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
 
-    .price-pill {
-        background: #ecfdf3;
-        color: #047857;
-        font-weight: 700;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 13px;
-        display: inline-block;
-        margin-top: 6px;
+    .product-actions {
+        margin-top: auto;
+        display: grid;
+        gap: 5px;
+    }
+
+    .product-actions .action-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .product-actions .action-btn.ghost {
+        padding: 6px 10px;
     }
 
     .empty-state {
@@ -269,6 +335,51 @@
         text-align: center;
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
+
+    /* Horizontal product scroll */
+.product-scroll-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
+}
+
+.product-scroll-row::-webkit-scrollbar {
+    height: 8px;
+}
+
+.product-scroll-row::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 4px;
+}
+
+.product-scroll-row::-webkit-scrollbar-track {
+    background: #ecf0f1;
+}
+
+/* Each card takes 1/3 width */
+.product-scroll-item {
+    flex: 0 0 calc(33.333% - 11px);
+    max-width: calc(33.333% - 11px);
+}
+
+/* Tablet */
+@media (max-width: 992px) {
+    .product-scroll-item {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+    .product-scroll-item {
+        flex: 0 0 85%;
+        max-width: 85%;
+    }
+}
+
 
     @media (max-width: 768px) {
         .browse-container {
@@ -383,56 +494,58 @@
         <!-- Products Grid -->
         <div class="col-lg-9">
             {% if products %}
-            <div class="row g-4">
+            <div class="product-scroll-row">
                 {% for product in products %}
-                <div class="col-12 col-sm-6 col-lg-4">
+                <div class="product-scroll-item">
                     <div class="product-card">
                         <!-- Product Image -->
-                        {% if product.image_main %}
-                        <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="product-image">
-                        {% else %}
-                        <div class="product-image bg-light d-flex align-items-center justify-content-center">
-                            <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
+                        <div class="product-image-wrapper">
+                            {% if product.image_main %}
+                            <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="product-image">
+                            {% else %}
+                            <div class="product-image-placeholder">
+                                <i class="fas fa-image text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
 
                         <!-- Product Info -->
                         <div class="product-info">
-                            <div class="product-meta">
-                                <h6 class="product-name">{{ product.name }}</h6>
-                                {% with daily=product.rental_prices.all|dictsort:"price"|first %}
-                                {% if daily %}
-                                <div class="price-pill">₹{{ daily.price|floatformat:0 }}/day</div>
-                                {% endif %}
-                                {% endwith %}
-                            </div>
-                            <p class="product-description">{{ product.short_description }}</p>
+                            <h6 class="product-name">{{ product.name }}</h6>
+                            
+                            {% with daily=product.rental_prices.all|dictsort:"price"|first %}
+                            {% if daily %}
+                            <div class="price-pill">₹{{ daily.price|floatformat:0 }}/day</div>
+                            {% endif %}
+                            {% endwith %}
+
+                            <p class="product-description">{{ product.short_description|default:"One of the best of its kind." }}</p>
 
                             {% if product.vendor %}
                             <div class="product-vendor">
-                                <i class="fas fa-store"></i> {{ product.vendor.vendorprofile.company_name }}
+                                <i class="fas fa-store"></i> <span>{{ product.vendor.vendorprofile.company_name }}</span>
                             </div>
                             {% endif %}
 
                             <!-- Stock Status -->
                             {% if product.quantity_on_hand > 0 %}
                             <div class="product-stock in-stock">
-                                <i class="fas fa-check-circle"></i> In Stock ({{ product.quantity_on_hand }} available)
+                                <i class="fas fa-check-circle"></i> <span>In Stock ({{ product.quantity_on_hand }})</span>
                             </div>
                             {% else %}
                             <div class="product-stock out-of-stock">
-                                <i class="fas fa-times-circle"></i> Out of Stock
+                                <i class="fas fa-times-circle"></i> <span>Out of Stock</span>
                             </div>
                             {% endif %}
 
                             <!-- Action Buttons -->
-                            <div class="d-grid gap-2 mt-3">
+                            <div class="product-actions">
                                 <a href="{% url 'catalog:product_detail' product.id %}" class="action-btn ghost">
-                                    <i class="fas fa-eye"></i> View Details
+                                    View Details
                                 </a>
                                 {% if user.role != 'vendor' %}
                                 <a href="{% url 'rentals:create_quotation' %}?product_id={{ product.id }}" class="action-btn">
-                                    <i class="fas fa-file-alt"></i> Create Query
+                                    Create Query
                                 </a>
                                 {% endif %}
                             </div>
