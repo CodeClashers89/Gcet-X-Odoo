@@ -66,10 +66,12 @@ def create_users():
             'last_name': 'Administrator',
             'role': 'admin',
             'is_staff': True,
-            'is_superuser': True
+            'is_superuser': True,
+            'is_verified': True
         }
     )
     if created: admin.set_password('demo12345678')
+    admin.is_verified = True # Ensure existing users are also verified
     admin.save()
 
     # Vendor 1 - Camera
@@ -79,10 +81,12 @@ def create_users():
             'username': 'lenspro_vendor',
             'first_name': 'John',
             'last_name': 'Lens',
-            'role': 'vendor'
+            'role': 'vendor',
+            'is_verified': True
         }
     )
     if created: v1.set_password('demo12345678')
+    v1.is_verified = True
     v1.save()
     
     vp1, _ = VendorProfile.objects.get_or_create(
@@ -106,10 +110,12 @@ def create_users():
             'username': 'comfort_vendor',
             'first_name': 'Sarah',
             'last_name': 'Comfort',
-            'role': 'vendor'
+            'role': 'vendor',
+            'is_verified': True
         }
     )
     if created: v2.set_password('demo12345678')
+    v2.is_verified = True
     v2.save()
     
     vp2, _ = VendorProfile.objects.get_or_create(
@@ -135,10 +141,12 @@ def create_users():
                 'username': f'customer_demo_{i}',
                 'first_name': f'Customer',
                 'last_name': f'Number {i}',
-                'role': 'customer'
+                'role': 'customer',
+                'is_verified': True
             }
         )
         if created: c.set_password('demo12345678')
+        c.is_verified = True
         c.save()
         
         CustomerProfile.objects.get_or_create(
@@ -274,13 +282,16 @@ def create_transactions(customers, products):
             # Create Invoice if not cancelled
             if status != 'cancelled':
                 inv_num = f'INV-DEMO-{random.randint(1000, 9999)}'
+                is_paid = (status == 'completed')
                 inv = Invoice.objects.create(
                     invoice_number=inv_num,
                     rental_order=o,
                     customer=customer,
                     vendor=product.vendor,
-                    status='paid' if status == 'completed' else 'sent',
+                    status='paid' if is_paid else 'sent',
                     total=o.total,
+                    paid_amount=o.total if is_paid else Decimal('0.00'),
+                    balance_due=Decimal('0.00') if is_paid else o.total,
                     due_date=timezone.now().date(),
                     invoice_date=timezone.now().date(),
                     billing_name=customer.customer_profile.company_name,
@@ -293,8 +304,12 @@ def create_transactions(customers, products):
                     vendor_state=product.vendor.vendorprofile.state,
                 )
                 
-                if status == 'completed':
-                    Payment.objects.create(
+                if is_paid:
+                    # Update RentalOrder paid_amount
+                    o.paid_amount = o.total
+                    o.save()
+                    
+                    pay = Payment.objects.create(
                         payment_number=f'PAY-DEMO-{random.randint(1000, 9999)}',
                         invoice=inv,
                         customer=customer,
@@ -304,6 +319,9 @@ def create_transactions(customers, products):
                         payment_status='success',
                         payment_date=timezone.now()
                     )
+                    # Use a small delay or manual update to ensure processed_at is set
+                    pay.processed_at = timezone.now()
+                    pay.save()
 
 if __name__ == "__main__":
     clear_data()
