@@ -114,6 +114,86 @@
         color: #bdc3c7;
         font-size: 24px;
     }
+
+    /* Payment Method Tabs */
+    .payment-tabs {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
+        background-color: #f0f0f0;
+        padding: 6px;
+        border-radius: 12px;
+    }
+
+    .payment-divider {
+        width: 1px;
+        height: 32px;
+        background-color: #d0d7de;
+    }
+
+    .payment-tab {
+        color: #7f8c8d;
+        background-color: transparent;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .payment-tab:hover {
+        background-color: rgba(44, 62, 80, 0.1);
+        color: #2c3e50;
+    }
+
+    .payment-tab.active {
+        background-color: #2c3e50;
+        color: white;
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.3);
+    }
+
+    .payment-tab i {
+        font-size: 16px;
+    }
+
+    .tab-content {
+        margin-top: 10px;
+    }
+
+    .payment-section {
+        display: none;
+        animation: fadeIn 0.35s ease-in-out;
+    }
+
+    .payment-section.active {
+        display: block;
+    }
+
+    /* Input Group Styling */
+    .input-group-text {
+        background-color: #f9f9f9;
+        border: 2px solid #e0e0e0;
+    }
+
+    .input-group .form-control {
+        border-left: none !important;
+    }
+
+    .input-group:focus-within .input-group-text {
+        border-color: #3498db;
+        background-color: white;
+    }
+
+    .input-group:focus-within .form-control {
+        border-color: #3498db;
+    }
 </style>
 
 <div class="payment-container">
@@ -125,18 +205,15 @@
         </div>
         <div class="card-body-payment">
             <div class="payment-methods mb-4">
-                <ul class="nav nav-pills nav-fill" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="card-tab" data-bs-toggle="pill" data-bs-target="#card-payment" type="button" role="tab" onclick="setPaymentMethod('card')">
-                            <i class="fas fa-credit-card me-2"></i>Card
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upi-payment" type="button" role="tab" onclick="setPaymentMethod('upi')">
-                            <i class="fas fa-qrcode me-2"></i>UPI
-                        </button>
-                    </li>
-                </ul>
+                <div class="payment-tabs">
+                    <button type="button" class="payment-tab active" id="card-tab" onclick="switchTab('card')">
+                        <i class="fas fa-credit-card"></i> Card
+                    </button>
+                    <div class="payment-divider" aria-hidden="true"></div>
+                    <button type="button" class="payment-tab" id="upi-tab" onclick="switchTab('upi')">
+                        <i class="fas fa-qrcode"></i> UPI
+                    </button>
+                </div>
             </div>
 
             <form method="post" action="{% url 'billing:process_payment' order.id %}">
@@ -146,7 +223,7 @@
                 
                 <div class="tab-content">
                     <!-- Card Payment Form -->
-                    <div class="tab-pane fade show active" id="card-payment" role="tabpanel">
+                    <div class="payment-section active" id="card-payment">
                         <div class="card-icons">
                             <i class="fab fa-cc-visa" style="color: #1a1f71;"></i>
                             <i class="fab fa-cc-mastercard" style="color: #eb001b;"></i>
@@ -186,7 +263,7 @@
                     </div>
 
                     <!-- UPI Payment Form -->
-                    <div class="tab-pane fade" id="upi-payment" role="tabpanel">
+                    <div class="payment-section" id="upi-payment">
                         <div class="text-center mb-4">
                             <div class="bg-light p-3 rounded d-inline-block">
                                 <i class="fas fa-qrcode fa-4x text-dark"></i>
@@ -224,6 +301,27 @@
 </div>
 
 <script>
+    function switchTab(method) {
+        const cardTab = document.getElementById('card-tab');
+        const upiTab = document.getElementById('upi-tab');
+        const cardSection = document.getElementById('card-payment');
+        const upiSection = document.getElementById('upi-payment');
+
+        if (method === 'card') {
+            cardTab.classList.add('active');
+            upiTab.classList.remove('active');
+            cardSection.classList.add('active');
+            upiSection.classList.remove('active');
+        } else {
+            upiTab.classList.add('active');
+            cardTab.classList.remove('active');
+            upiSection.classList.add('active');
+            cardSection.classList.remove('active');
+        }
+
+        setPaymentMethod(method);
+    }
+
     function setPaymentMethod(method) {
         document.getElementById('payment_method').value = method;
         
@@ -240,8 +338,8 @@
         }
     }
 
-    // Initialize required fields
-    setPaymentMethod('card');
+    // Initialize required fields and default tab
+    switchTab('card');
 
     document.querySelector('form').addEventListener('submit', function(e) {
         const btn = document.getElementById('payButton');
