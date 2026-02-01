@@ -208,19 +208,19 @@
 
     <div class="stats-grid">
         <div class="stat-card">
-            <h3 class="stat-value">--</h3>
+            <h3 class="stat-value">{{ total_users|default:0 }}</h3>
             <p class="stat-label">Total Users</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value">{{ pending_vendors }}</h3>
+            <h3 class="stat-value">{{ pending_vendors|default:0 }}</h3>
             <p class="stat-label">Pending Vendors</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value" style="color: #27ae60;">₹--</h3>
+            <h3 class="stat-value" style="color: #27ae60;">₹{{ platform_revenue|default:"0.00"|floatformat:0 }}</h3>
             <p class="stat-label">Platform Revenue</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value">--</h3>
+            <h3 class="stat-value">{{ active_rentals|default:0 }}</h3>
             <p class="stat-label">Active Rentals</p>
         </div>
     </div>

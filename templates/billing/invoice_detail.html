@@ -171,6 +171,130 @@
     .btn-send:hover { background: #2980b9; transform: translateY(-2px); }
     .btn-download { background: #ecf0f1; color: #2c3e50; }
     .btn-download:hover { background: #bdc3c7; }
+
+    .table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .table-modern th {
+        background: #f3f6f9;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e9edf2;
+    }
+
+    .table-modern td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #eef1f4;
+        vertical-align: middle;
+    }
+
+    .table-modern tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-pill.completed { background: rgba(39, 174, 96, 0.15); color: #229954; }
+    .status-pill.pending { background: rgba(243, 156, 18, 0.15); color: #d68910; }
+    .status-pill.failed { background: rgba(231, 76, 60, 0.15); color: #c0392b; }
+
+    .summary-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border: 1px solid #eef1f4;
+    }
+
+    .summary-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .summary-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .summary-value.success { color: #229954; }
+    .summary-value.danger { color: #c0392b; }
+
+    .side-actions {
+        display: grid;
+        gap: 10px;
+    }
+
+    .action-btn-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        border: none;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .action-btn-modern.primary {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .action-btn-modern.primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(52, 152, 219, 0.4);
+        color: white;
+    }
+
+    .action-btn-modern.secondary {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(127, 140, 141, 0.3);
+    }
+
+    .action-btn-modern.secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(127, 140, 141, 0.4);
+        color: white;
+    }
+
+    .action-btn-modern.ghost {
+        background: rgba(52, 152, 219, 0.12);
+        color: #2c3e50;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+        box-shadow: none;
+    }
+
+    .action-btn-modern.ghost:hover {
+        background: rgba(52, 152, 219, 0.2);
+        color: #2c3e50;
+        transform: translateY(-1px);
+    }
 </style>
 
 <div class="detail-container">
@@ -293,19 +417,19 @@
 
             <!-- Payment History -->
             {% if payments %}
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Payment History</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Payment History</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-modern-body" style="padding: 0;">
                     <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead class="table-light">
+                        <table class="table-modern">
+                            <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>Method</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
+                                    <th style="text-align: right;">Amount</th>
+                                    <th style="text-align: center;">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -313,14 +437,14 @@
                                 <tr>
                                     <td>{{ payment.payment_date|date:"d M Y H:i" }}</td>
                                     <td>{{ payment.payment_method|title }}</td>
-                                    <td>₹{{ payment.amount|floatformat:2 }}</td>
-                                    <td>
+                                    <td style="text-align: right; font-weight: 600;">₹{{ payment.amount|floatformat:2 }}</td>
+                                    <td style="text-align: center;">
                                         {% if payment.payment_status == 'completed' %}
-                                            <span class="badge bg-success">Completed</span>
+                                            <span class="status-pill completed">Completed</span>
                                         {% elif payment.payment_status == 'pending' %}
-                                            <span class="badge bg-warning">Pending</span>
+                                            <span class="status-pill pending">Pending</span>
                                         {% elif payment.payment_status == 'failed' %}
-                                            <span class="badge bg-danger">Failed</span>
+                                            <span class="status-pill failed">Failed</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -335,40 +459,44 @@
 
         <!-- Actions Panel -->
         <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Payment Summary</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Payment Summary</h5>
                 </div>
-                <div class="card-body">
-                    <p class="mb-2"><strong>Total Amount:</strong></p>
-                    <h4 class="mb-3">₹{{ invoice.total|floatformat:2 }}</h4>
-
-                    <p class="mb-2"><strong>Paid:</strong></p>
-                    <h5 class="mb-3 text-success">₹{{ invoice.paid_amount|floatformat:2 }}</h5>
-
-                    <p class="mb-2"><strong>Balance Due:</strong></p>
-                    <h5 class="mb-3 text-danger">₹{{ invoice.balance_due|floatformat:2 }}</h5>
+                <div class="card-modern-body">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Amount</div>
+                        <div class="summary-value">₹{{ invoice.total|floatformat:2 }}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Paid</div>
+                        <div class="summary-value success">₹{{ invoice.paid_amount|floatformat:2 }}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Balance Due</div>
+                        <div class="summary-value danger">₹{{ invoice.balance_due|floatformat:2 }}</div>
+                    </div>
 
                     {% if invoice.balance_due > 0 and user == invoice.vendor or user.is_staff %}
-                    <div class="card card-body bg-light mb-3">
-                        <h6 class="card-title mb-3">Record Payment</h6>
+                    <div class="summary-card" style="background: #fff;">
+                        <div class="summary-label" style="margin-bottom: 10px;">Record Payment</div>
                         <form method="post" action="{% url 'billing:record_payment' invoice.id %}">
                             {% csrf_token %}
                             <div class="mb-2">
-                                <label class="form-label form-label-sm">Amount</label>
-                                <input type="number" name="amount" class="form-control form-control-sm" 
+                                <label class="form-label" style="font-size: 11px;">Amount</label>
+                                <input type="number" name="amount" class="form-control" 
                                        placeholder="Enter amount" min="0" step="0.01" max="{{ invoice.balance_due }}" required>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label form-label-sm">Method</label>
-                                <select name="payment_method" class="form-select form-select-sm" required>
+                                <label class="form-label" style="font-size: 11px;">Method</label>
+                                <select name="payment_method" class="form-select" required>
                                     <option value="bank_transfer">Bank Transfer</option>
                                     <option value="cash">Cash</option>
                                     <option value="cheque">Cheque</option>
                                     <option value="card">Credit/Debit Card</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <button type="submit" class="action-btn-modern primary" style="width: 100%;">
                                 <i class="fas fa-credit-card"></i> Record Payment
                             </button>
                         </form>
@@ -378,27 +506,29 @@
             </div>
 
             <!-- Actions -->
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Actions</h5>
+            <div class="card-modern">
+                <div class="card-modern-header">
+                    <h5>Actions</h5>
                 </div>
-                <div class="card-body">
-                    <a href="{% url 'billing:download_pdf' invoice.id %}" class="action-btn" style="background: #ecf0f1; color: #2c3e50;" target="_blank">
-                        <i class="fas fa-file-pdf"></i> Download PDF
-                    </a>
+                <div class="card-modern-body">
+                    <div class="side-actions">
+                        <a href="{% url 'billing:download_pdf' invoice.id %}" class="action-btn-modern secondary" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </a>
 
-                    {% if invoice.status == 'draft' and user == invoice.vendor or user.is_staff %}
-                    <form method="post" action="{% url 'billing:mark_sent' invoice.id %}" class="mb-2">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-sm w-100">
-                            <i class="fas fa-envelope"></i> Send to Customer
-                        </button>
-                    </form>
-                    {% endif %}
+                        {% if invoice.status == 'draft' and user == invoice.vendor or user.is_staff %}
+                        <form method="post" action="{% url 'billing:mark_sent' invoice.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn-modern primary" style="width: 100%;">
+                                <i class="fas fa-envelope"></i> Send to Customer
+                            </button>
+                        </form>
+                        {% endif %}
 
-                    <a href="{% url 'billing:invoice_list' %}" class="btn btn-secondary btn-sm w-100">
-                        <i class="fas fa-arrow-left"></i> Back to Invoices
-                    </a>
+                        <a href="{% url 'billing:invoice_list' %}" class="action-btn-modern ghost">
+                            <i class="fas fa-arrow-left"></i> Back to Invoices
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

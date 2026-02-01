@@ -4,108 +4,289 @@
 
 {% block title %}Late Returns Analytics - Rental ERP{% endblock %}
 
+{% block extra_styles %}
+<style>
+    .analytics-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h1::before {
+        content: "⏰";
+        font-size: 32px;
+    }
+
+    .page-header p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .filter-panel {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-panel .form-select {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        background: #f8f9fa;
+        font-size: 13px;
+        padding: 8px 10px;
+        min-width: 160px;
+    }
+
+    .filter-panel .form-select:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        background: #fff;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid transparent;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .kpi-card.success { border-left-color: #27ae60; }
+    .kpi-card.info { border-left-color: #3498db; }
+    .kpi-card.warning { border-left-color: #f39c12; }
+    .kpi-card.danger { border-left-color: #e74c3c; }
+
+    .kpi-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #7f8c8d;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .kpi-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+        font-size: 12px;
+        color: #95a5a6;
+    }
+
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background: rgba(52, 152, 219, 0.12);
+        color: #2980b9;
+        flex-shrink: 0;
+    }
+
+    .kpi-card.success .kpi-icon { background: rgba(39, 174, 96, 0.15); color: #229954; }
+    .kpi-card.info .kpi-icon { background: rgba(52, 152, 219, 0.15); color: #2980b9; }
+    .kpi-card.warning .kpi-icon { background: rgba(243, 156, 18, 0.15); color: #d68910; }
+    .kpi-card.danger .kpi-icon { background: rgba(231, 76, 60, 0.15); color: #c0392b; }
+
+    .kpi-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .kpi-col {
+        flex: 1 1 calc(50% - 16px);
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 14px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .section-body { padding: 18px; }
+
+    .chart-box { height: 240px; }
+    .chart-box.small { height: 200px; }
+    .chart-box canvas { height: 100% !important; }
+
+    .table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .table-modern thead th {
+        background: #f3f6f9;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e9edf2;
+    }
+
+    .table-modern td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #eef1f4;
+        vertical-align: middle;
+    }
+
+    .table-modern tbody tr:hover { background: #f8fafc; }
+
+    @media (max-width: 768px) {
+        .analytics-container { padding: 15px 10px; }
+        .page-header { padding: 20px; }
+        .page-header h1 { font-size: 22px; }
+        .filter-panel { width: 100%; justify-content: space-between; }
+        .filter-panel .form-select { width: 100%; }
+        .kpi-col { flex: 1 1 100%; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-2">
-                <i class="fas fa-exclamation-triangle"></i> Late Returns Analytics
-            </h1>
-            <p class="text-muted">Late return tracking and penalty analysis</p>
+<div class="analytics-container">
+    <div class="page-header">
+        <div>
+            <h1>Late Returns Analytics</h1>
+            <p>Late return tracking and penalty analysis</p>
         </div>
-        <div class="col-md-4 text-end">
-            <form method="get" class="d-flex gap-2 justify-content-end">
-                <select name="days" class="form-select w-auto" onchange="this.form.submit()">
-                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
-                    <option value="365" {% if days == 365 %}selected{% endif %}>Last year</option>
-                </select>
-            </form>
-        </div>
+        <form method="get" class="filter-panel">
+            <select name="days" class="form-select" onchange="this.form.submit()">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                <option value="365" {% if days == 365 %}selected{% endif %}>Last year</option>
+            </select>
+        </form>
     </div>
 
     <!-- Key Metrics -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="text-muted small mb-1">Total Returns</p>
-                            <h3 class="mb-0">{{ total_returns }}</h3>
-                        </div>
-                        <i class="fas fa-redo fa-2x text-primary opacity-25"></i>
-                    </div>
+    <div class="kpi-row mb-4">
+        <div class="kpi-col">
+            <div class="kpi-card info">
+                <div>
+                    <div class="kpi-label">Total Returns</div>
+                    <div class="kpi-value">{{ total_returns }}</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-redo"></i></div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-danger">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="text-muted small mb-1">Late Returns</p>
-                            <h3 class="mb-0">{{ late_returns }}</h3>
-                            <small class="text-danger">{{ late_rate }}% late</small>
-                        </div>
-                        <i class="fas fa-clock fa-2x text-danger opacity-25"></i>
-                    </div>
+        <div class="kpi-col">
+            <div class="kpi-card danger">
+                <div>
+                    <div class="kpi-label">Late Returns</div>
+                    <div class="kpi-value">{{ late_returns }}</div>
+                    <div class="kpi-sub">{{ late_rate }}% late</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-clock"></i></div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="text-muted small mb-1">Total Late Fees</p>
-                            <h3 class="mb-0">₹{{ total_late_fees|floatformat:0|intcomma }}</h3>
-                        </div>
-                        <i class="fas fa-money-bill-wave fa-2x text-warning opacity-25"></i>
-                    </div>
+        <div class="kpi-col">
+            <div class="kpi-card warning">
+                <div>
+                    <div class="kpi-label">Total Late Fees</div>
+                    <div class="kpi-value">₹{{ total_late_fees|floatformat:0|intcomma }}</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="text-muted small mb-1">Avg Late Days</p>
-                            <h3 class="mb-0">{{ avg_late_days }}</h3>
-                        </div>
-                        <i class="fas fa-calendar-alt fa-2x text-info opacity-25"></i>
-                    </div>
+        <div class="kpi-col">
+            <div class="kpi-card info">
+                <div>
+                    <div class="kpi-label">Avg Late Days</div>
+                    <div class="kpi-value">{{ avg_late_days }}</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-calendar-alt"></i></div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Late Returns Trend -->
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Late Returns Trend (Last {{ days }} days)</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="lateReturnsChart" height="80"></canvas>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="section-card">
+                <div class="section-header">Late Returns Trend (Last {{ days }} days)</div>
+                <div class="section-body chart-box">
+                    <canvas id="lateReturnsChart"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Late Fee Breakdown -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Return Status</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="statusChart" height="150"></canvas>
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="section-header">Return Status</div>
+                <div class="section-body chart-box small">
+                    <canvas id="statusChart"></canvas>
                     {{ daily_late|json_script:"lateReturnsData" }}
                     {{ total_returns|json_script:"totalReturnsValue" }}
                     {{ late_returns|json_script:"lateReturnsValue" }}
@@ -117,13 +298,11 @@
     <!-- Daily Late Returns Data -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Daily Late Return Data</h5>
-                </div>
-                <div class="card-body">
+            <div class="section-card">
+                <div class="section-header">Daily Late Return Data</div>
+                <div class="section-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover table-modern">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -155,24 +334,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.border-left-primary {
-    border-left: 4px solid #007BFF !important;
-}
-
-.border-left-danger {
-    border-left: 4px solid #DC3545 !important;
-}
-
-.border-left-warning {
-    border-left: 4px solid #FFC107 !important;
-}
-
-.border-left-info {
-    border-left: 4px solid #17A2B8 !important;
-}
-</style>
 {% endblock %}
 
 {% block extra_scripts %}

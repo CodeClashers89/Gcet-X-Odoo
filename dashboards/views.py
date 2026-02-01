@@ -93,8 +93,16 @@ def dashboard(request):
         
         return render(request, 'dashboards/vendor_dashboard.html', context)
     elif user.role == 'admin':
-        from accounts.models import VendorProfile
+        from accounts.models import VendorProfile, User
+        from rentals.models import RentalOrder
+        context['total_users'] = User.objects.count()
         context['pending_vendors'] = VendorProfile.objects.filter(is_approved=False).count()
+        context['platform_revenue'] = RentalOrder.objects.aggregate(
+            Sum('total')
+        )['total__sum'] or Decimal('0.00')
+        context['active_rentals'] = RentalOrder.objects.filter(
+            status__in=['confirmed', 'in_progress', 'active']
+        ).count()
         return render(request, 'dashboards/admin_dashboard.html', context)
     
     # Fallback
@@ -420,7 +428,7 @@ def revenue_analytics(request):
     
     # Payment tracking
     total_paid = orders.aggregate(Sum('paid_amount'))['paid_amount__sum'] or Decimal('0.00')
-    total_due = orders.aggregate(Sum(F('total') - F('paid_amount')))['total__sum'] or Decimal('0.00')
+    total_due = orders.aggregate(total_due=Sum(F('total') - F('paid_amount')))['total_due'] or Decimal('0.00')
     
     payment_rate = (total_paid / total_revenue * 100) if total_revenue > 0 else 0
     

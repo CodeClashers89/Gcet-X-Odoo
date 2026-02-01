@@ -7,37 +7,238 @@
 {# CSS STYLES SECTION                                                          #}
 {# ============================================================================ #}
 
-{% block extra_css %}
+{% block extra_styles %}
 <style>
-    /* ========================================================================== */
-    /* CARD BORDER STYLES                                                         */
-    /* ========================================================================== */
-    .border-left-primary {
-        border-left: 4px solid #4CAF50 !important;
+    .analytics-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        animation: fadeIn 0.4s ease-in;
     }
 
-    .border-left-info {
-        border-left: 4px solid #2196F3 !important;
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .border-left-warning {
-        border-left: 4px solid #FF9800 !important;
+    .page-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
     }
 
-    .border-left-danger {
-        border-left: 4px solid #F44336 !important;
+    .page-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
-    /* ========================================================================== */
-    /* CARD HOVER EFFECTS                                                         */
-    /* ========================================================================== */
-    .card {
-        transition: transform 0.2s, box-shadow 0.2s;
+    .page-header h1::before {
+        content: "📊";
+        font-size: 32px;
     }
 
-    .card:hover {
+    .page-header p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .filter-panel {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-panel .form-select {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        background: #f8f9fa;
+        font-size: 13px;
+        padding: 8px 10px;
+        min-width: 160px;
+    }
+
+    .filter-panel .form-select:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        background: #fff;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid transparent;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .kpi-card.success { border-left-color: #27ae60; }
+    .kpi-card.info { border-left-color: #3498db; }
+    .kpi-card.warning { border-left-color: #f39c12; }
+    .kpi-card.danger { border-left-color: #e74c3c; }
+
+    .kpi-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #7f8c8d;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .kpi-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+        font-size: 12px;
+        color: #95a5a6;
+    }
+
+    .kpi-sub a {
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background: rgba(52, 152, 219, 0.12);
+        color: #2980b9;
+        flex-shrink: 0;
+    }
+
+    .kpi-card.success .kpi-icon { background: rgba(39, 174, 96, 0.15); color: #229954; }
+    .kpi-card.info .kpi-icon { background: rgba(52, 152, 219, 0.15); color: #2980b9; }
+    .kpi-card.warning .kpi-icon { background: rgba(243, 156, 18, 0.15); color: #d68910; }
+    .kpi-card.danger .kpi-icon { background: rgba(231, 76, 60, 0.15); color: #c0392b; }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 14px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-body { padding: 18px; }
+
+    .link-card {
+        background: #f8f9fa;
+        border: 1px solid #eef1f4;
+        border-radius: 12px;
+        padding: 18px 14px;
+        text-align: center;
+        text-decoration: none;
+        color: #2c3e50;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+
+    .link-card:hover {
+        background: #ffffff;
+        border-color: #3498db;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+    }
+
+    .link-card i { font-size: 22px; }
+
+    .link-title {
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .link-sub { font-size: 11px; color: #7f8c8d; }
+
+    .detailed-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .col-12 { flex: 1 1 100%; }
+    .col-6 { flex: 1 1 calc(50% - 16px); }
+    .col-md-3 { flex: 1 1 calc(25% - 16px); }
+    .col-md-2 { flex: 1 1 calc(16.666% - 16px); }
+
+    @media (max-width: 992px) {
+        .detailed-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .analytics-container { padding: 15px 10px; }
+        .page-header { padding: 20px; }
+        .page-header h1 { font-size: 22px; }
+        .filter-panel { width: 100%; justify-content: space-between; }
+        .filter-panel .form-select { width: 100%; }
+        .col-6,
+        .col-md-2,
+        .col-md-3 { flex: 1 1 100%; }
+        .row { margin-bottom: 16px; }
+        .detailed-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
@@ -47,154 +248,108 @@
 {# ============================================================================ #}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-2">
-                <i class="fas fa-chart-line"></i> Analytics Dashboard
-            </h1>
-            <p class="text-muted">Business intelligence and performance metrics</p>
+<div class="analytics-container">
+    <div class="page-header">
+        <div>
+            <h1>Analytics Dashboard</h1>
+            <p>Business intelligence and performance metrics</p>
         </div>
-        <div class="col-md-4">
-            <form method="get" class="d-flex gap-2">
-                <select name="period" class="form-select" onchange="this.form.submit()">
-                    <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
-                    <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
-                    <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
-                    <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
-                </select>
-            </form>
-        </div>
+        <form method="get" class="filter-panel">
+            <select name="period" class="form-select" onchange="this.form.submit()">
+                <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
+            </select>
+        </form>
     </div>
 
     <!-- KPI Cards Row 1 -->
-    <div class="row mb-4">
+    <div class="row g-3 mb-4">
         <!-- Total Revenue -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Total Revenue</p>
-                            <h3 class="mb-0">₹{{ total_revenue|floatformat:0|intcomma }}</h3>
-                            <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> vs last period
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #4CAF50; opacity: 0.3;">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="kpi-card success">
+                <div>
+                    <div class="kpi-label">Total Revenue</div>
+                    <div class="kpi-value">₹{{ total_revenue|floatformat:0|intcomma }}</div>
+                    <div class="kpi-sub"><i class="fas fa-arrow-up"></i> vs last period</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
             </div>
         </div>
 
         <!-- Total Orders -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Total Orders</p>
-                            <h3 class="mb-0">{{ total_orders }}</h3>
-                            <small class="text-info">
-                                {{ confirmed_orders }} confirmed
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #2196F3; opacity: 0.3;">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="kpi-card info">
+                <div>
+                    <div class="kpi-label">Total Orders</div>
+                    <div class="kpi-value">{{ total_orders }}</div>
+                    <div class="kpi-sub">{{ confirmed_orders }} confirmed</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
             </div>
         </div>
 
         <!-- Quotations -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Total Quotations</p>
-                            <h3 class="mb-0">{{ total_quotations }}</h3>
-                            <small class="text-warning">
-                                {{ conversion_rate }}% conversion
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #FF9800; opacity: 0.3;">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="kpi-card warning">
+                <div>
+                    <div class="kpi-label">Total Quotations</div>
+                    <div class="kpi-value">{{ total_quotations }}</div>
+                    <div class="kpi-sub">{{ conversion_rate }}% conversion</div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
             </div>
         </div>
 
         <!-- Pending Approvals -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-danger">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Pending Approvals</p>
-                            <h3 class="mb-0">{{ pending_approvals }}</h3>
-                            <small class="text-danger">
-                                <a href="{% url 'rentals:approval_list' %}" class="text-danger text-decoration-none">
-                                    Review <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #F44336; opacity: 0.3;">
-                            <i class="fas fa-tasks"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="kpi-card danger">
+                <div>
+                    <div class="kpi-label">Pending Approvals</div>
+                    <div class="kpi-value">{{ pending_approvals }}</div>
+                    <div class="kpi-sub">
+                        <a href="{% url 'rentals:approval_list' %}" class="text-danger">
+                            Review <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-tasks"></i></div>
             </div>
         </div>
     </div>
 
     <!-- KPI Cards Row 2 -->
-    <div class="row mb-4">
+    <div class="row g-3 mb-4">
         <!-- Late Returns -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-danger">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Late Returns</p>
-                            <h3 class="mb-0">{{ late_returns }}</h3>
-                            <small class="text-danger">
-                                <a href="{% url 'dashboards:late_returns_analytics' %}" class="text-danger text-decoration-none">
-                                    View analytics <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #F44336; opacity: 0.3;">
-                            <i class="fas fa-clock"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="kpi-card danger">
+                <div>
+                    <div class="kpi-label">Late Returns</div>
+                    <div class="kpi-value">{{ late_returns }}</div>
+                    <div class="kpi-sub">
+                        <a href="{% url 'dashboards:late_returns_analytics' %}" class="text-danger">
+                            View analytics <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-clock"></i></div>
             </div>
         </div>
 
         <!-- Pending Payments -->
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-left-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted small mb-1">Pending Payments</p>
-                            <h3 class="mb-0">₹{{ pending_payments|floatformat:0|intcomma }}</h3>
-                            <small class="text-warning">
-                                <a href="{% url 'billing:invoice_list' %}" class="text-warning text-decoration-none">
-                                    View invoices <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </small>
-                        </div>
-                        <div style="font-size: 2rem; color: #FF9800; opacity: 0.3;">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="kpi-card warning">
+                <div>
+                    <div class="kpi-label">Pending Payments</div>
+                    <div class="kpi-value">₹{{ pending_payments|floatformat:0|intcomma }}</div>
+                    <div class="kpi-sub">
+                        <a href="{% url 'billing:invoice_list' %}" class="text-warning">
+                            View invoices <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
+                <div class="kpi-icon"><i class="fas fa-credit-card"></i></div>
             </div>
         </div>
     </div>
@@ -202,73 +357,47 @@
     <!-- Quick Analytics Links -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-external-link-alt"></i> Detailed Analytics
-                    </h5>
+            <div class="section-card">
+                <div class="section-header">
+                    <i class="fas fa-external-link-alt"></i> Detailed Analytics
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:quotation_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
-                                    <p class="small fw-bold">Quotations</p>
-                                    <small class="text-muted">Status & trends</small>
-                                </div>
-                            </a>
-                        </div>
+                <div class="section-body">
+                    <div class="detailed-grid">
+                        <a href="{% url 'dashboards:quotation_analytics' %}" class="link-card">
+                            <i class="fas fa-chart-bar text-primary"></i>
+                            <div class="link-title">Quotations</div>
+                            <div class="link-sub">Status & trends</div>
+                        </a>
 
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:order_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-chart-pie fa-2x text-success mb-2"></i>
-                                    <p class="small fw-bold">Orders</p>
-                                    <small class="text-muted">Fulfillment stats</small>
-                                </div>
-                            </a>
-                        </div>
+                        <a href="{% url 'dashboards:order_analytics' %}" class="link-card">
+                            <i class="fas fa-chart-pie text-success"></i>
+                            <div class="link-title">Orders</div>
+                            <div class="link-sub">Fulfillment stats</div>
+                        </a>
 
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:approval_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
-                                    <p class="small fw-bold">Approvals</p>
-                                    <small class="text-muted">Workflow stats</small>
-                                </div>
-                            </a>
-                        </div>
+                        <a href="{% url 'dashboards:approval_analytics' %}" class="link-card">
+                            <i class="fas fa-check-circle text-warning"></i>
+                            <div class="link-title">Approvals</div>
+                            <div class="link-sub">Workflow stats</div>
+                        </a>
 
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:revenue_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
-                                    <p class="small fw-bold">Revenue</p>
-                                    <small class="text-muted">Financial data</small>
-                                </div>
-                            </a>
-                        </div>
+                        <a href="{% url 'dashboards:revenue_analytics' %}" class="link-card">
+                            <i class="fas fa-coins text-info"></i>
+                            <div class="link-title">Revenue</div>
+                            <div class="link-sub">Financial data</div>
+                        </a>
 
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:inventory_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-boxes fa-2x text-secondary mb-2"></i>
-                                    <p class="small fw-bold">Inventory</p>
-                                    <small class="text-muted">Utilization</small>
-                                </div>
-                            </a>
-                        </div>
+                        <a href="{% url 'dashboards:inventory_analytics' %}" class="link-card">
+                            <i class="fas fa-boxes text-secondary"></i>
+                            <div class="link-title">Inventory</div>
+                            <div class="link-sub">Utilization</div>
+                        </a>
 
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'dashboards:late_returns_analytics' %}" class="card text-decoration-none text-reset border-0 shadow-sm h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
-                                    <p class="small fw-bold">Late Returns</p>
-                                    <small class="text-muted">Penalties & trends</small>
-                                </div>
-                            </a>
-                        </div>
+                        <a href="{% url 'dashboards:late_returns_analytics' %}" class="link-card">
+                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                            <div class="link-title">Late Returns</div>
+                            <div class="link-sub">Penalties & trends</div>
+                        </a>
                     </div>
                 </div>
             </div>
