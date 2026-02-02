@@ -42,9 +42,12 @@ def generate_rental_document(document_obj, doc_type='quotation'):
     if config.company_logo:
         try:
             logo_path = config.company_logo.path
-            img = Image(logo_path, width=2.5*cm, height=2.5*cm)
+            # Read image into memory to handle paths with spaces and special characters
+            with open(logo_path, 'rb') as f:
+                img_data = BytesIO(f.read())
+            img = Image(img_data, width=2.5*cm, height=2.5*cm)
             logo_cells.append(img)
-        except:
+        except Exception as e:
             logo_cells.append(Paragraph(f"<b>{config.company_name}</b>", styles['Normal']))
     else:
         logo_cells.append(Paragraph(f"<b>{config.company_name}</b>", styles['Normal']))
@@ -53,9 +56,12 @@ def generate_rental_document(document_obj, doc_type='quotation'):
     if vendor and hasattr(vendor, 'vendorprofile') and vendor.vendorprofile.vendor_logo:
         try:
             v_logo_path = vendor.vendorprofile.vendor_logo.path
-            v_img = Image(v_logo_path, width=2.5*cm, height=2.5*cm)
+            # Read image into memory to handle paths with spaces and special characters
+            with open(v_logo_path, 'rb') as f:
+                v_img_data = BytesIO(f.read())
+            v_img = Image(v_img_data, width=2.5*cm, height=2.5*cm)
             logo_cells.append(v_img)
-        except:
+        except Exception as e:
             logo_cells.append("")
     else:
         logo_cells.append("")
